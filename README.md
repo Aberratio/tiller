@@ -132,6 +132,7 @@ A hit means the fact belongs in a profile, not that the term list is wrong.
 | `flow-write-ticket` | write or clean up a ticket; conventions from `## ticket conventions` |
 | `flow-pm` | keep the board true; mandate from `## board` |
 | `flow-manual-qa` | decide which criteria need a human; register from `## verification register` |
+| `flow-onboard-project` | create a profile from detected facts and a human's answers; report drift (`lib/onboard/onboard.mjs`) |
 
 ## The harness in pictures
 

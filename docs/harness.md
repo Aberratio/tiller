@@ -38,7 +38,8 @@ node lib/contract/validate.mjs script-result out.json --exit 3  # one document, 
   `~/.claude/run-state/<profile>/<run>/`; the quota file sits one level up, at
   `~/.claude/run-state/<profile>/`, shared by every run of that profile.
 - Tests are hermetic: `gh`, `git` and `claude` are stubs on `PATH`, fixtures sit next to the tests,
-  no network.
+  no network. `lib/onboard` is the exception for `git`: detection reads git's own output, so its
+  tests build throwaway repos with the real binary.
 
 ## Failure kinds
 

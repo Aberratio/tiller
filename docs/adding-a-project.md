@@ -3,13 +3,41 @@
 A project joins by getting a profile. No skill is edited, ever — if a project needs the procedure
 to change, that is a finding about the skill, not about the project.
 
+`profiles/<project>/` is git-ignored: the profile, its `cases.json`, its `secrets.env` and its
+`leak-terms.txt` stay on the machine that uses them.
+
+## Scripted path
+
+```bash
+node lib/onboard/onboard.mjs new <project> <repo-dir>... --project "<Display name>"
+node lib/onboard/onboard.mjs ask <project>      # remaining decisions, in the terminal
+```
+
+`new` scaffolds `profiles/<project>/` with `lib/new-profile.sh` and reads every fact a script can
+establish: main branch, branch and commit conventions with their source, test and static-check
+commands and lockfiles from the manifests, recorded in `profiles/<project>/detected.json`. Ticket
+key, gates, merge authority and the commit format when history does not settle it are decisions,
+offered as answers and stored in `answers.json`. What stays open renders as `TODO`; `ask` (or the
+`flow-onboard-project` skill, through `AskUserQuestion`) asks for it, and the profile is
+re-rendered and checked after every answer. Merge authority defaults to `unconfirmed`; `agent` is
+accepted only from `ask` run in a terminal. `cases.json` follows the merge authority until it is
+edited by hand. No model reads the repo.
+
+`node lib/onboard/onboard.mjs drift <project>` compares any profile, generated or hand-written,
+with its repos and exits 5 on a difference, a stale `measured` date, or a `## repos` table it
+cannot read. TODOs and facts it could not compare (no network, unreadable branch protection) are
+notes and do not fail. A generated profile carries an `onboarding: generated` line; deleting it
+hands the file over to hand editing.
+
+Left for a human either way: project names in `leak-terms.txt`, `## tools` rows other than the
+defaults, and the QA statuses, environments, release and known issues prose.
+
+## By hand
+
 ```bash
 lib/new-profile.sh <project>                                           # copies profiles/_template/
 lib/profile-facts.sh --check --profile profiles/<project>/profile.md   # repeat after every section
 ```
-
-`profiles/<project>/` is git-ignored: the profile, its `cases.json`, its `secrets.env` and its
-`leak-terms.txt` stay on the machine that uses them.
 
 Then fill it, in this order. The first four decide whether a skill can run at all, the rest decide
 whether it can finish.
