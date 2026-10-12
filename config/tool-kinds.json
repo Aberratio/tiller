@@ -1,5 +1,5 @@
 {
-  "description": "Role vocabulary for tool names. A skill or role names `role:<role>.<op>` (or `role:<role>` for the whole server); a profile's `## tools` picks the kind and server per role, and `## tracker` picks the tracker's kind. A kind's ops map to the tool names its MCP server exposes. A role whose kind is `none` grants nothing.",
+  "description": "Role vocabulary for tool names. A skill or role names `role:<role>.<op>` (or `role:<role>` for the whole server); a profile’s `## tools` picks the kind and server per role, and `## tracker` picks the tracker’s kind. Each op names its vendor tool and its access: `read`, or `write` with the outward channel (lib/contract/kinds.json outwardChannels) it reaches, `null` when the write stays inside the run. An unattended child is denied every write op whose channel is a hard stop, and every server whose `serverChannels` names one. A role whose kind is `none` grants nothing.",
   "roles": {
     "tracker": {
       "default": "jira",
@@ -7,20 +7,20 @@
         "jira": {
           "server": "atlassian",
           "ops": {
-            "get": "getJiraIssue",
-            "search": "searchJiraIssuesUsingJql",
-            "transitions": "getTransitionsForJiraIssue",
-            "transition": "transitionJiraIssue",
-            "edit": "editJiraIssue",
-            "create": "createJiraIssue",
-            "comment": "addCommentToJiraIssue",
-            "link": "createIssueLink",
-            "remote-links": "getJiraIssueRemoteIssueLinks",
-            "lookup-user": "lookupJiraAccountId",
-            "projects": "getVisibleJiraProjects",
-            "issue-types": "getJiraProjectIssueTypesMetadata",
-            "sites": "getAccessibleAtlassianResources",
-            "me": "atlassianUserInfo"
+            "get": { "tool": "getJiraIssue", "access": "read" },
+            "search": { "tool": "searchJiraIssuesUsingJql", "access": "read" },
+            "transitions": { "tool": "getTransitionsForJiraIssue", "access": "read" },
+            "transition": { "tool": "transitionJiraIssue", "access": "write", "channel": null },
+            "edit": { "tool": "editJiraIssue", "access": "write", "channel": null },
+            "create": { "tool": "createJiraIssue", "access": "write", "channel": null },
+            "comment": { "tool": "addCommentToJiraIssue", "access": "write", "channel": null },
+            "link": { "tool": "createIssueLink", "access": "write", "channel": null },
+            "remote-links": { "tool": "getJiraIssueRemoteIssueLinks", "access": "read" },
+            "lookup-user": { "tool": "lookupJiraAccountId", "access": "read" },
+            "projects": { "tool": "getVisibleJiraProjects", "access": "read" },
+            "issue-types": { "tool": "getJiraProjectIssueTypesMetadata", "access": "read" },
+            "sites": { "tool": "getAccessibleAtlassianResources", "access": "read" },
+            "me": { "tool": "atlassianUserInfo", "access": "read" }
           }
         }
       }
@@ -31,15 +31,15 @@
         "slack": {
           "server": "slack",
           "ops": {
-            "search": "slack_search_public_and_private",
-            "search-public": "slack_search_public",
-            "read-thread": "slack_read_thread",
-            "read-channel": "slack_read_channel",
-            "search-users": "slack_search_users",
-            "search-channels": "slack_search_channels",
-            "send": "slack_send_message",
-            "schedule": "slack_schedule_message",
-            "draft": "slack_send_message_draft"
+            "search": { "tool": "slack_search_public_and_private", "access": "read" },
+            "search-public": { "tool": "slack_search_public", "access": "read" },
+            "read-thread": { "tool": "slack_read_thread", "access": "read" },
+            "read-channel": { "tool": "slack_read_channel", "access": "read" },
+            "search-users": { "tool": "slack_search_users", "access": "read" },
+            "search-channels": { "tool": "slack_search_channels", "access": "read" },
+            "send": { "tool": "slack_send_message", "access": "write", "channel": "chat-send" },
+            "schedule": { "tool": "slack_schedule_message", "access": "write", "channel": "chat-schedule" },
+            "draft": { "tool": "slack_send_message_draft", "access": "write", "channel": null }
           }
         }
       }
@@ -50,15 +50,15 @@
         "notion": {
           "server": "notion",
           "ops": {
-            "search": "notion-search",
-            "fetch": "notion-fetch"
+            "search": { "tool": "notion-search", "access": "read" },
+            "fetch": { "tool": "notion-fetch", "access": "read" }
           }
         },
         "confluence": {
           "server": "atlassian",
           "ops": {
-            "search": "searchConfluenceUsingCql",
-            "fetch": "getConfluencePage"
+            "search": { "tool": "searchConfluenceUsingCql", "access": "read" },
+            "fetch": { "tool": "getConfluencePage", "access": "read" }
           }
         }
       }
@@ -69,13 +69,13 @@
         "google-calendar": {
           "server": "google-calendar",
           "ops": {
-            "list": "list_events",
-            "search": "search_events",
-            "get": "get_event",
-            "create": "create_event",
-            "update": "update_event",
-            "delete": "delete_event",
-            "respond": "respond_to_event"
+            "list": { "tool": "list_events", "access": "read" },
+            "search": { "tool": "search_events", "access": "read" },
+            "get": { "tool": "get_event", "access": "read" },
+            "create": { "tool": "create_event", "access": "write", "channel": "calendar-write" },
+            "update": { "tool": "update_event", "access": "write", "channel": "calendar-write" },
+            "delete": { "tool": "delete_event", "access": "write", "channel": "calendar-write" },
+            "respond": { "tool": "respond_to_event", "access": "write", "channel": "calendar-write" }
           }
         }
       }
@@ -83,13 +83,11 @@
     "email": {
       "default": "gmail",
       "kinds": {
-        "gmail": { "server": "gmail", "ops": {} }
-      }
-    },
-    "review-bot": {
-      "default": "coderabbit",
-      "kinds": {
-        "coderabbit": { "server": null, "ops": {} }
+        "gmail": {
+          "server": "gmail",
+          "ops": {},
+          "serverChannels": ["email-send", "email-draft"]
+        }
       }
     }
   }

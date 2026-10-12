@@ -141,8 +141,8 @@ tool_rows="$(rows tools | jq -R -s 'split("\n") | map(select(length > 0) | split
   | .server |= (if . == "default" or . == "-" then "" else . end))')"
 if ! has_section tools; then tools_err=x
 elif is_none tools; then tools_err="!none is not a binding; leave the section out for the defaults"
-else tools_err="$(jq -r --slurpfile k "$REPO_DIR/config/tool-kinds.json" --arg tk "$tracker_kind" '
-  ($k[0].roles) as $roles
+else tools_err="$(jq -r --slurpfile k "$REPO_DIR/config/tool-kinds.json" --slurpfile s "$REPO_DIR/config/mcp-servers.json" --arg tk "$tracker_kind" '
+  ($k[0].roles) as $roles | ([$s[0][] | keys[]] | unique) as $servers
   | if length == 0 then "!no rows"
     elif any(.[]; (.role + .kind + .server) | test("TODO")) then "TODO"
     elif any(.[]; $roles[.role] == null) then "!unknown role " + ([.[] | select($roles[.role] == null) | .role] | join(", ")) + "; roles: " + ($roles | keys | join(", "))
@@ -150,6 +150,8 @@ else tools_err="$(jq -r --slurpfile k "$REPO_DIR/config/tool-kinds.json" --arg t
     elif any(.[]; .role == "tracker" and .kind != "" and .kind != $tk) then "!the tracker kind is set in ## tracker"
     elif any(.[]; .kind != "" and .kind != "none" and $roles[.role].kinds[.kind] == null) then
       "!unknown kind " + ([.[] | select(.kind != "" and .kind != "none" and $roles[.role].kinds[.kind] == null) | .role + " " + .kind] | join(", "))
+    elif any(.[]; .server != "" and (.server as $sv | $servers | any(. == $sv) | not)) then
+      "!server not in config/mcp-servers.json: " + ([.[] | select(.server != "" and (.server as $sv | $servers | any(. == $sv) | not)) | .role + " " + .server] | join(", "))
     else "x" end' <<<"$tool_rows")"; fi
 require 'tools — role bindings' "$tools_err"
 tools="$(jq --arg tk "$tracker_kind" '

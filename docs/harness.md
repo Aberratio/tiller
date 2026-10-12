@@ -149,7 +149,8 @@ and `classify-failure`; a green claim passes `verify-claim` before a gate reads 
 **Hard-stop channels.** `route.mjs` treats every outward channel as a hard stop. The profile's
 `Hard-stop channels` prose may narrow that list; the args builder renders it to channel ids from
 `outwardChannels`, and a runner drops `step.channel` for a channel outside the list before routing.
-`config/outward-tools.json` maps each channel to role ops (`role:chat.send`) an unattended child is denied.
+An unattended child is denied every op `config/tool-kinds.json` marks `write` with a hard-stop channel
+(`role:chat.send`), and the whole server of a kind whose `serverChannels` names one (`role:email`).
 They resolve through the profile's `## tools` and through the default kinds both, so rebinding a role or
 setting it to `none` never reopens the server it left.
 

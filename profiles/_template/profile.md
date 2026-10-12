@@ -28,8 +28,8 @@ No secret values here: tokens and access codes go in `secrets.env` next to this 
 ## tools
 
 Optional. Leave it out to take the defaults in `config/tool-kinds.json` (chat `slack`, docs `notion`,
-calendar `google-calendar`, email `gmail`, review-bot `coderabbit`). Server is a logical id from
-`config/mcp-servers.json`; the tracker's kind is set above.
+calendar `google-calendar`, email `gmail`). Server is a logical id from `config/mcp-servers.json`;
+any other server is refused at launch. The tracker's kind is set above.
 
 | Role | Kind | Server |
 |---|---|---|

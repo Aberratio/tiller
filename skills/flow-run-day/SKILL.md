@@ -72,7 +72,7 @@ node "$TILLER_HOME/skills/flow-run-ticket/bin/harness.mjs" supervise-env --profi
 
 Export `env.SUPERVISE_STOP_HOUR` and `env.SUPERVISE_DISALLOWED_TOOLS` from its output, then run
 `lib/supervisor/supervise.sh <brief>`. The disallowed tools are the hard-stop channels the profile
-names, mapped through `config/outward-tools.json`; an unattended child never holds them.
+names: every write op in `config/tool-kinds.json` that reaches one; an unattended child never holds them.
 
 ## What the day does on its own
 

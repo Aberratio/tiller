@@ -163,3 +163,11 @@ test('outward tools resolve through the profile, and a rebound or none role neve
   assert.ok(moved.includes('mcp__claude_ai_Atlassian__slack_send_message'))
   for (const t of base) assert.ok(moved.includes(t), t)
 })
+
+test('outward tools are derived from write ops: reads and in-run writes stay, a narrowed-out channel reopens', () => {
+  const all = outwardTools({ ownerProxy: {} }).tools
+  for (const t of ['mcp__claude_ai_Slack__slack_read_thread', 'mcp__claude_ai_Slack__slack_send_message_draft', 'mcp__claude_ai_Atlassian__transitionJiraIssue'])
+    assert.ok(!all.includes(t), t)
+  const chatOnly = outwardTools({ ownerProxy: { hardStopChannels: ['chat-send'] } }).tools
+  assert.deepEqual(chatOnly, ['mcp__claude_ai_Slack__slack_send_message'])
+})
