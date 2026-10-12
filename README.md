@@ -46,6 +46,7 @@ export TILLER_HOME="$HOME/src/tiller"
 git config core.hooksPath .githooks     # enable the leak guard on every commit
 ./install.sh all                        # symlink every flow-* skill into ~/.claude/skills
 ./install.sh flow-tdd                   # or just one
+./install.sh --agents                   # write the harness roles (flow-resolver, ...) to ~/.claude/agents
 ```
 
 ## Profiles
