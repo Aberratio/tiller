@@ -16,6 +16,13 @@ bot; it reads them from the active profile.
 A skill that needs a profile and cannot resolve one **stops**. A guessed profile applies one
 project's merge rule to another project's branch.
 
+**Environment overlay.** With `TILLER_OVERLAY=<env>`, `profiles/<name>/overlays/<env>.md` is layered
+over the resolved profile: each of its `## ` sections replaces the profile's section of the same heading
+whole, or is appended; text before its first section is ignored. The merged file is written to
+`profiles/<name>/.merged-<env>.md` and that path is printed, so prose readers and `profile-facts.sh`
+read the same profile. A missing overlay, or one that sets `## merge authority`, `## inviolables` or
+`## owner proxy`, is refused: an environment must not loosen the owner's authority.
+
 ## Schema version
 
 The frontmatter carries `schema_version`; absent reads as `1`. `lib/profile-facts.sh` states the
