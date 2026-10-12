@@ -21,7 +21,8 @@ commands**, not the examples in its prose. Those facts live in the profile; the 
 ```
 skills/flow-*/             the procedure, with no project facts in it
 profiles/_template/        tracked: the starting point for a profile
-profiles/<name>/           local, git-ignored: profile.md, cases.json, secrets.env, leak-terms.txt
+profiles/<name>/           local, git-ignored: profile.md, cases.json, secrets.env, leak-terms.txt,
+                           and optionally skills/ and agents/ that only make sense for that project
 personal/_templates/       tracked: templates for one person's generated skills
 personal/<user>/           local, git-ignored: one person's skills and leak-terms.txt
 lib/resolve-profile.sh     cwd -> profile, or a hard failure
@@ -37,17 +38,33 @@ project's merge authority to another project because it guessed.
 
 ## Setup
 
-`TILLER_HOME` must point at this checkout wherever the skills run; each skill's `Step −1` calls
-`$TILLER_HOME/lib/resolve-profile.sh`. Without it every skill resolves no profile and stops, which
-is the correct failure but an opaque one.
+From a fresh clone to a working session, in order:
 
 ```bash
-export TILLER_HOME="$HOME/src/tiller"
-git config core.hooksPath .githooks     # enable the leak guard on every commit
-./install.sh all                        # symlink every flow-* skill into ~/.claude/skills
-./install.sh flow-tdd                   # or just one
-./install.sh --agents                   # write the harness roles (flow-resolver, ...) to ~/.claude/agents
+git clone <this repo> ~/src/tiller && cd ~/src/tiller
+git config core.hooksPath .githooks          # leak guard on every commit
+
+# 1. TILLER_HOME, persistently: add to the "env" object in ~/.claude/settings.json
+#    "TILLER_HOME": "/absolute/path/to/tiller"
+
+# 2. Shared skills and harness roles
+./install.sh all                              # symlink every flow-* skill into ~/.claude/skills
+./install.sh --agents                         # write flow-resolver, flow-owner-proxy, flow-pm to ~/.claude/agents
+
+# 3. One profile per project (see Profiles below)
+lib/new-profile.sh acme                       # also seeds profiles/acme/leak-terms.txt with the name
+echo acme > ~/src/acme-web/.tiller-profile    # or repo_globs in the profile's frontmatter
+
+# 4. Personal skills (asks questions in a terminal; --answers <file.json> without one)
+./install.sh --setup-personal <user>
+
+# 5. Project-only skills and agents, if the profile has any
+./install.sh --profile acme all               # profiles/acme/skills/* and profiles/acme/agents/*.md
 ```
+
+`TILLER_HOME` must be set wherever the skills run; each skill's `Step −1` calls
+`$TILLER_HOME/lib/resolve-profile.sh`. Without it every skill resolves no profile and stops, which
+is the correct failure but an opaque one. Restart the session after installing.
 
 ## Profiles
 
@@ -77,11 +94,15 @@ procedure) is [docs/profile-schema.md](docs/profile-schema.md); filling a new on
 [docs/adding-a-project.md](docs/adding-a-project.md) and `profiles/_template/README.md`.
 Credentials go in `profiles/<name>/secrets.env` (mode 600), never in `profile.md`.
 
+A skill or agent that only makes sense for one project (a QA lane for that product, a simulator
+for its domain) lives in `profiles/<name>/skills/<skill>/` or `profiles/<name>/agents/<agent>.md`
+and is installed with `./install.sh --profile <name> all`.
+
 ## Personal skills
 
 Skills about one person rather than one project (a daily note, a writing voice) are generated into
-`personal/<user>/`, which is git-ignored. `install.sh --personal <user>` installs them; `all` never
-does. The mechanism and the templates: `personal/_templates/README.md`.
+`personal/<user>/`, which is git-ignored. `install.sh --setup-personal <user>` generates and links
+them, `install.sh --personal <user> all` re-links; a plain `all` never does. The mechanism and the templates: `personal/_templates/README.md`.
 
 ## Leak guard
 

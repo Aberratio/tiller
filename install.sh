@@ -8,14 +8,17 @@
 #   ./install.sh [--target claude|codex|all] all              # install every skill
 #   ./install.sh [--target claude|codex|all] <skill-name>…    # install specific skills
 #   ./install.sh --personal <owner> all | <skill-name>…       # install from personal/<owner>/skills
-#   ./install.sh --setup-personal <owner>                     # generate personal skills, then link them
+#   ./install.sh --setup-personal <owner> [--answers <f.json>] # generate personal skills, then link them
+#   ./install.sh --profile <name> all | <skill-name>…         # install from profiles/<name>/skills
 #   ./install.sh --agents                                     # write the harness roles to ~/.claude/agents
 #
 # --setup-personal asks for the person's details and renders every template in personal/_templates/
 # into personal/<owner>/ (git-ignored), then links the result. Re-running reuses the stored answers
 # and never overwrites a generated skill that was edited since (see personal/_templates/README.md).
 #
-# `all` never reaches personal/: one person's skills are installed only when asked for by owner.
+# `all` never reaches personal/ or profiles/: one person's or one project's skills are installed
+# only when asked for by owner or profile name. `--profile <name> all` also links the profile's
+# agents/*.md into ~/.claude/agents (override: CLAUDE_AGENTS_DIR).
 #
 # --target selects which tool(s) to install for (default: claude):
 #   claude   ~/.claude/skills   (override: CLAUDE_SKILLS_DIR)
@@ -34,7 +37,8 @@ CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-$HOME/.agents/skills}"
 
 usage() {
   echo "Usage: $0 [--target claude|codex|all] [--personal <owner>] all | <skill-name>…"
-  echo "       $0 [--target claude|codex|all] --setup-personal <owner>"
+  echo "       $0 [--target claude|codex|all] --setup-personal <owner> [--answers <file.json>]"
+  echo "       $0 [--target claude|codex|all] --profile <name> all | <skill-name>…"
   echo
   echo "Targets (default: claude):"
   echo "  claude   $CLAUDE_SKILLS_DIR"
@@ -48,10 +52,10 @@ usage() {
   exit 1
 }
 
-# link_skill <skill-name> <target-dir>
+# link_skill <skill-name> <target-dir> [<source-dir>]
 link_skill() {
   local skill="$1" skills_dir="$2"
-  local src="$REPO_DIR/$skill"
+  local src="${3:-$REPO_DIR}/$skill"
   local dest="$skills_dir/$skill"
 
   if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
@@ -67,6 +71,8 @@ link_skill() {
 target="claude"
 personal=""
 setup_personal=""
+profile=""
+answers=""
 
 # Parse a leading --target/-t flag; the rest are the skill selector.
 if [ "${1:-}" = "--agents" ]; then
@@ -81,9 +87,22 @@ while [ $# -ge 1 ]; do
     --personal|-p) personal="${2:-}"; shift 2 ;;
     --setup-personal=*) setup_personal="${1#*=}"; shift ;;
     --setup-personal) setup_personal="${2:-}"; shift 2 ;;
+    --profile=*) profile="${1#*=}"; shift ;;
+    --profile) profile="${2:-}"; shift 2 ;;
+    --answers=*) answers="${1#*=}"; shift ;;
+    --answers) answers="${2:-}"; shift 2 ;;
     *) break ;;
   esac
 done
+
+if [ -n "$profile" ] && { [ -n "$personal" ] || [ -n "$setup_personal" ]; }; then
+  echo "error: --profile cannot be combined with --personal or --setup-personal" >&2
+  exit 1
+fi
+if [ -n "$answers" ] && [ -z "$setup_personal" ]; then
+  echo "error: --answers only applies to --setup-personal" >&2
+  exit 1
+fi
 
 if [ -n "$setup_personal" ]; then
   if [ -n "$personal" ] && [ "$personal" != "$setup_personal" ]; then
@@ -92,7 +111,9 @@ if [ -n "$setup_personal" ]; then
   fi
   # Exit 3 means some skills were kept because they were edited by hand; link them anyway.
   rc=0
-  node "$ROOT_DIR/lib/personal/generate.mjs" --user "$setup_personal" --all || rc=$?
+  gen_args=(--user "$setup_personal" --all)
+  [ -n "$answers" ] && gen_args+=(--answers "$answers" --non-interactive)
+  node "$ROOT_DIR/lib/personal/generate.mjs" "${gen_args[@]}" || rc=$?
   if [ "$rc" -ne 0 ] && [ "$rc" -ne 3 ]; then
     echo "error: generating personal skills for '$setup_personal' failed" >&2
     exit "$rc"
@@ -105,6 +126,15 @@ if [ -n "$personal" ]; then
   REPO_DIR="${TILLER_PERSONAL_ROOT:-$ROOT_DIR/personal}/$personal/skills"
   if [ ! -d "$REPO_DIR" ]; then
     echo "error: no personal skills for '$personal' (no $REPO_DIR)" >&2
+    exit 1
+  fi
+fi
+
+if [ -n "$profile" ]; then
+  PROFILE_DIR="${TILLER_PROFILES_ROOT:-$ROOT_DIR/profiles}/$profile"
+  REPO_DIR="$PROFILE_DIR/skills"
+  if [ ! -d "$REPO_DIR" ]; then
+    echo "error: no skills in profile '$profile' (no $REPO_DIR)" >&2
     exit 1
   fi
 fi
@@ -140,6 +170,24 @@ for skills_dir in "${target_dirs[@]}"; do
     link_skill "$skill" "$skills_dir"
   done
 done
+
+# A profile's agents are linked on `all` only; they belong to the profile like its skills do.
+if [ -n "$profile" ] && [ "$1" = "all" ] && [ -d "$PROFILE_DIR/agents" ]; then
+  agents_dir="${CLAUDE_AGENTS_DIR:-$HOME/.claude/agents}"
+  mkdir -p "$agents_dir"
+  for f in "$PROFILE_DIR/agents"/*.md; do
+    [ -e "$f" ] || continue
+    name="$(basename "$f")"
+    if [ -L "$agents_dir/$name" ] && [ "$(readlink "$agents_dir/$name")" = "$f" ]; then
+      echo "ok:      agent $name (already linked)"
+    elif [ -e "$agents_dir/$name" ] || [ -L "$agents_dir/$name" ]; then
+      echo "skipped: agent $name ($agents_dir/$name already exists and is not a link to this profile)" >&2
+    else
+      ln -s "$f" "$agents_dir/$name"
+      echo "linked:  agent $name -> $agents_dir/$name"
+    fi
+  done
+fi
 
 echo
 echo "Restart the affected tool (or start a new session) to pick up new skills."
