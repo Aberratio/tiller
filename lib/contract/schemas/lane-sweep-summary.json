@@ -1,0 +1,102 @@
+{
+  "$id": "lane-sweep-summary",
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "regressions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "questions": {
+      "type": "array",
+      "description": "open questions the resolver may still settle",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "description": "evidence: path, quote, SHA, command output"
+          }
+        },
+        "required": [
+          "question",
+          "options",
+          "recommendation",
+          "why"
+        ]
+      }
+    },
+    "awaiting": {
+      "type": "array",
+      "description": "items only a human or nobody can move; not questions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "harness-blocked",
+              "premise",
+              "question",
+              "manual-qa"
+            ],
+            "description": "harness-blocked: tool, permission or classifier denial"
+          },
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "description": "evidence; for harness-blocked the literal denial text"
+          },
+          "reversalCost": {
+            "type": "string"
+          },
+          "blocks": {
+            "type": "string",
+            "description": "what waits on it"
+          }
+        },
+        "required": [
+          "kind",
+          "question",
+          "why",
+          "blocks"
+        ]
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "summary",
+    "regressions",
+    "awaiting"
+  ]
+}

@@ -1,0 +1,7 @@
+{"version": 1, "mode": "sweep", "at": "2026-09-30T06:00:00+02:00",
+ "tickets": [
+   {"key": "FIX-10", "status": "In Progress", "blockedBy": ["FIX-2", "FIX-3"]},
+   {"key": "FIX-11", "status": "Selected for Development",
+    "blockedBy": [{"key": "FIX-4", "verdict": "open", "blockerStatus": "In QA", "measuredAt": "2026-09-29T06:00:00+02:00"}]},
+   {"key": "FIX-12", "status": "In Progress", "blockedBy": []}
+ ]}

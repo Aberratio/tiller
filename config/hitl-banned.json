@@ -1,0 +1,29 @@
+{
+  "description": "Internal tokens a person who did not watch the run cannot read. A hit passes only when the request's glossary explains the term. A profile extends this list; it never shortens it.",
+  "patterns": [
+    "c[0-9]+_\\w+",
+    "[A-Z]{2,5}\\d*-D\\d+",
+    "D\\d{1,2}(?:\\.\\d+)?",
+    "TC\\d+",
+    "AC\\d+",
+    "OPS-\\d+",
+    "OP\\d+",
+    "phase[A-Z]?",
+    "lanes?",
+    "waves?",
+    "checkpoints?",
+    "ceilings?",
+    "resolvers?",
+    "owner[- ]proxy",
+    "inviolables?",
+    "decisions?\\.jsonl",
+    "awaiting",
+    "harness",
+    "verify-claim",
+    "touched-paths",
+    "changed-files",
+    "review-bot",
+    "ci-fix",
+    "fix-round"
+  ]
+}

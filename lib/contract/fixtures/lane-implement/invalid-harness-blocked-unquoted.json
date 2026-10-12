@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "headSha": "f74e71fa",
+  "commits": ["f74e71fa"],
+  "testCommand": "npm test",
+  "testResult": "pass",
+  "awaiting": [
+    {
+      "kind": "harness-blocked",
+      "question": "Confirm the full-suite failures in the front-new container before merge",
+      "why": "no `.env.worktree` (`ls: .env.worktree: No such file or directory`)",
+      "blocks": "Nothing on this branch"
+    }
+  ]
+}

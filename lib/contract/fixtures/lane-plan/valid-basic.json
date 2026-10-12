@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "ticketKind": "code",
+  "premiseVerdict": "holds",
+  "planPath": "/tmp/plan.md",
+  "planSummary": "add a guard",
+  "authorisedFiles": [
+    "src/a.ts",
+    "test/a.test.ts"
+  ],
+  "awaiting": []
+}

@@ -1,0 +1,9 @@
+{"kind":"verdict","id":"r1:premise:premise:ticket:verdict","runId":"r1","phase":"premise","lane":"premise","model":"sonnet","tier":"T2","field":"verdict","value":"holds","evidenceStatus":"claimed","at":"2026-10-08T10:00:00.000Z"}
+{"kind":"verdict","id":"r1:implement:implement:tdd:testResult","runId":"r1","phase":"implement","lane":"implement","model":"opus","tier":"T3","field":"testResult","value":"pass","evidenceStatus":"claimed","at":"2026-10-08T10:10:00.000Z"}
+{"kind":"verdict","id":"r1:implement:implement:tdd:headSha","runId":"r1","phase":"implement","lane":"implement","model":"opus","tier":"T3","field":"headSha","value":"abc1234","evidenceStatus":"claimed","at":"2026-10-08T10:10:00.000Z"}
+{"kind":"verdict","id":"r1:confidence:confidence-dim:correctness:finding:F1","runId":"r1","phase":"confidence","lane":"confidence-dim","model":"opus","tier":"T3","field":"finding:F1","value":"high","evidenceStatus":"claimed","at":"2026-10-08T10:20:00.000Z"}
+{"kind":"overturned","verdictId":"r1:implement:implement:tdd:testResult","runId":"r1","by":"script","source":"verify-claim","evidence":"the test command fails","at":"2026-10-08T10:12:00.000Z"}
+{"kind":"overturned","verdictId":"r1:confidence:confidence-dim:correctness:finding:F1","runId":"r1","by":"lane","source":"reverify","evidence":"refuted","at":"2026-10-08T10:25:00.000Z"}
+{"kind":"overturned","verdictId":"r1:confidence:confidence-dim:correctness:finding:F1","runId":"r1","by":"lane","source":"reverify","evidence":"refuted again on a replay","at":"2026-10-08T10:26:00.000Z"}
+{"kind":"verdict","id":"r2:premise:premise:ticket:verdict","runId":"r2","phase":"premise","lane":"premise","model":"sonnet","tier":"T2","field":"verdict","value":"holds","evidenceStatus":"claimed","at":"2026-10-08T11:00:00.000Z"}
+{"kind":"overturned","verdictId":"r2:premise:premise:ticket:verdict","runId":"r2","by":"lane","source":"plan","evidence":"premise falsified by the plan","at":"2026-10-08T11:05:00.000Z"}

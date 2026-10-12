@@ -1,0 +1,48 @@
+{
+  "schema": "hitl-request/1",
+  "id": "ABC-101-D5",
+  "title": "Practice screen shows the camera hint",
+  "kind": "ci-fix cap",
+  "situation": "Two merge checks are failing on the latest commit. The build job was cancelled by its 25-minute time limit.",
+  "ask": "Should a fresh run fix the failing checks?",
+  "options": [
+    {
+      "key": "A",
+      "label": "Fix in a fresh run",
+      "gain": "No one has to touch the branch.",
+      "loss": "Another hour of build time.",
+      "reversalCost": {
+        "level": "low",
+        "how": "Stop the run; the pull request stays open."
+      },
+      "recommended": true
+    },
+    {
+      "key": "B",
+      "label": "Take over the branch yourself",
+      "gain": "The fix lands today.",
+      "loss": "Your afternoon goes to build failures.",
+      "reversalCost": {
+        "level": "low",
+        "how": "Hand the branch back with a comment."
+      },
+      "recommended": false
+    }
+  ],
+  "ifNoAnswer": {
+    "happens": "The pull request stays open and falls behind main.",
+    "by": "2026-10-08T09:00:00Z",
+    "defaultKey": "A"
+  },
+  "links": [
+    {
+      "text": "Pull request 251",
+      "url": "https://github.com/o/r/pull/251"
+    }
+  ],
+  "run": {
+    "ticket": "ABC-101",
+    "runUrl": "https://example.com/runs/day-2026-10-06",
+    "prUrl": "https://github.com/o/r/pull/251"
+  }
+}

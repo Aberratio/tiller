@@ -1,0 +1,1 @@
+Claude requested permissions to use Bash, permission denied

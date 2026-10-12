@@ -1,0 +1,48 @@
+{
+  "order": ["harness-blocked", "usage-limit", "rate-limit", "ci-infra"],
+  "kinds": {
+    "harness-blocked": [
+      "permission to use .* has been denied",
+      "permission denied by (the )?(user|policy|classifier)",
+      "tool use was blocked",
+      "this (tool call|command) (was|is) (blocked|refused) by",
+      "blocked by (the )?classifier",
+      "not allowed by (tool )?policy",
+      "blocked by policy",
+      "requires (manual )?approval before it can run",
+      "claude requested permissions to use",
+      "refused: compound commands? (are|is) not permitted",
+      "operation not permitted by sandbox"
+    ],
+    "usage-limit": [
+      "\\busage limit\\b",
+      "you.ve hit your (usage|weekly|session) limit",
+      "usage cap (has been )?reached",
+      "weekly (usage )?limit",
+      "session limit reached",
+      "limit resets? (at|in|on)",
+      "you can resume (this session |)?(at|after)"
+    ],
+    "rate-limit": [
+      "rate limit(ed)?\\b",
+      "\\b429\\b",
+      "too many requests",
+      "please retry after",
+      "rate-limited",
+      "exceeded (the )?rate limit",
+      "review rate limited"
+    ],
+    "ci-infra": [
+      "econnrefused",
+      "enotfound",
+      "no such host",
+      "cannot connect to the docker daemon",
+      "missing .*credentials",
+      "runner (has )?(lost|gone|terminated|offline)",
+      "could not connect to the runner",
+      "network is unreachable",
+      "timed out waiting for (a |the )?runner",
+      "container (failed to start|creds? issue)"
+    ]
+  }
+}

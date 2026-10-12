@@ -1,0 +1,8 @@
+{
+  "decision": "keep the endpoint",
+  "park": false,
+  "rationale": "public per docs/api.md:12",
+  "reversalCost": "low",
+  "inviolable": "",
+  "awaiting": []
+}

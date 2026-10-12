@@ -1,0 +1,1 @@
+Error: you've hit your weekly limit. Limit resets on Monday.

@@ -1,0 +1,22 @@
+{
+  "tiers": { "T1": "haiku", "T2": "sonnet", "T3": "opus" },
+  "budgetsUsd": { "T1": 1, "T2": 4, "T3": 15 },
+  "concurrency": 3,
+  "lanes": {
+    "exec": { "tier": "T1" },
+    "premise": { "tier": "T2" },
+    "pr-description": { "tier": "T2" },
+    "log-prose": { "tier": "T2" },
+    "sweep-summary": { "tier": "T2" },
+    "plan": { "tier": "T3", "gate": true },
+    "implement": { "tier": "T3", "gate": true },
+    "fix": { "tier": "T3", "gate": true },
+    "review-axis": { "tier": "T3", "gate": true },
+    "confidence-dim": { "tier": "T3", "gate": true },
+    "reverify": { "tier": "T3", "gate": true },
+    "conflict": { "tier": "T3", "gate": true },
+    "qa-judge": { "tier": "T3", "gate": true },
+    "resolver": { "tier": "T3", "gate": true },
+    "owner-proxy": { "tier": "T3", "gate": true }
+  }
+}

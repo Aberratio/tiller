@@ -1,0 +1,36 @@
+{
+  "$id": "lane-exec",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "command": {
+      "type": "string",
+      "description": "the command exactly as given"
+    },
+    "ran": {
+      "type": "boolean",
+      "description": "false when the tool call was refused"
+    },
+    "exitCode": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "null when ran is false"
+    },
+    "stdout": {
+      "type": "string",
+      "description": "verbatim, untrimmed, unparsed"
+    },
+    "denial": {
+      "type": "string",
+      "description": "literal refusal text when ran is false"
+    }
+  },
+  "required": [
+    "command",
+    "ran",
+    "exitCode",
+    "stdout"
+  ]
+}

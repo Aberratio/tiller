@@ -1,0 +1,17 @@
+{
+  "runId": "r",
+  "ticket": "ABC-12",
+  "phase": "pr",
+  "lane": "pr-description",
+  "model": "sonnet",
+  "tier": "T2",
+  "turns": 2,
+  "in": 10,
+  "out": 800,
+  "cacheRead": 9000,
+  "cacheCreate": 0,
+  "startedAt": "2026-09-28T10:00:00Z",
+  "endedAt": "2026-09-28T10:04:12Z",
+  "outcome": "ok",
+  "escalatedFrom": "haiku"
+}

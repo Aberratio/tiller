@@ -1,0 +1,166 @@
+{
+  "$id": "lane-owner-proxy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "act",
+        "park"
+      ]
+    },
+    "mandate": {
+      "type": "string",
+      "enum": [
+        "",
+        "approve-day-queue",
+        "start-next-ticket",
+        "approve-peer-step",
+        "resume-run",
+        "lift-cap-once",
+        "undraft-pr"
+      ],
+      "description": "the mandate entry relied on; empty when parking"
+    },
+    "step": {
+      "type": "string",
+      "description": "the step taken or refused, imperatively"
+    },
+    "parkReason": {
+      "type": "string",
+      "enum": [
+        "",
+        "no-proxy",
+        "not-in-mandate",
+        "hard-stop-channel",
+        "hard-stop-path",
+        "signature",
+        "inviolable",
+        "condition-unmet"
+      ],
+      "description": "empty when acting"
+    },
+    "conditions": {
+      "type": "array",
+      "description": "each condition checked by command or file read, never assumed",
+      "items": {
+        "type": "object",
+        "properties": {
+          "condition": {
+            "type": "string"
+          },
+          "met": {
+            "type": "boolean"
+          },
+          "evidence": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "condition",
+          "met",
+          "evidence"
+        ]
+      }
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "reversalCost": {
+      "type": "string"
+    },
+    "questions": {
+      "type": "array",
+      "description": "open questions the resolver may still settle",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "description": "evidence: path, quote, SHA, command output"
+          }
+        },
+        "required": [
+          "question",
+          "options",
+          "recommendation",
+          "why"
+        ]
+      }
+    },
+    "awaiting": {
+      "type": "array",
+      "description": "items only a human or nobody can move; not questions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "harness-blocked",
+              "premise",
+              "question",
+              "manual-qa"
+            ],
+            "description": "harness-blocked: tool, permission or classifier denial"
+          },
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "description": "evidence; for harness-blocked the literal denial text"
+          },
+          "reversalCost": {
+            "type": "string"
+          },
+          "blocks": {
+            "type": "string",
+            "description": "what waits on it"
+          }
+        },
+        "required": [
+          "kind",
+          "question",
+          "why",
+          "blocks"
+        ]
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action",
+    "mandate",
+    "step",
+    "parkReason",
+    "conditions",
+    "rationale",
+    "reversalCost",
+    "awaiting"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "action": "act",
+  "mandate": "resume-run",
+  "step": "resume the stopped run",
+  "parkReason": "",
+  "conditions": [
+    { "condition": "usage window reset", "met": false, "evidence": "quota get: resetAt 2026-09-28T15:00:00Z" }
+  ],
+  "rationale": "r",
+  "reversalCost": "low",
+  "awaiting": []
+}

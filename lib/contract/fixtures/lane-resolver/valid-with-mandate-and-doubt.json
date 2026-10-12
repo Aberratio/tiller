@@ -1,0 +1,11 @@
+{
+  "decision": "lift the fix cap by one round",
+  "park": false,
+  "rationale": "one finding left, the fix is a two-line rename; splitting costs a ticket",
+  "reversalCost": "low: one extra fix round",
+  "inviolable": "",
+  "mandate": "lift-cap-once",
+  "sources": ["state.mjs counter ABC-12 fixRounds -> 2"],
+  "doubt": { "why": "rests on interpretation of the finding's scope", "settle": "the review axis re-run on the fix commit" },
+  "awaiting": []
+}

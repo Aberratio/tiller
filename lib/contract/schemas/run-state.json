@@ -1,0 +1,109 @@
+{
+  "$id": "run-state",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "runId": {
+      "type": "string"
+    },
+    "profile": {
+      "type": "string"
+    },
+    "ticket": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "merged",
+        "open-pr",
+        "ready-to-sign",
+        "parked",
+        "paused-usage",
+        "died"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "lastPhase": {
+      "type": "string",
+      "enum": [
+        "start",
+        "premise",
+        "plan",
+        "implement",
+        "review",
+        "pr",
+        "ci",
+        "review-bot",
+        "confidence",
+        "gate",
+        "merge",
+        "qa",
+        "cleanup",
+        "logs"
+      ]
+    },
+    "headSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$"
+    },
+    "prUrl": {
+      "type": "string"
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fixRounds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ciFix": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "confidencePasses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rebase": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resumes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "fixRounds",
+        "ciFix",
+        "confidencePasses",
+        "rebase",
+        "resumes"
+      ]
+    },
+    "incKeys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "idempotency keys of applied counter increments, <runId>:<phase>:<seq>"
+    },
+    "updatedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    }
+  },
+  "required": [
+    "runId",
+    "profile",
+    "ticket",
+    "status",
+    "counters",
+    "updatedAt"
+  ]
+}

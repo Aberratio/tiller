@@ -1,0 +1,7 @@
+.DS_Store
+
+# Per-project profiles and per-person skills are local. Only their templates are tracked.
+/profiles/*
+!/profiles/_template/
+/personal/*
+!/personal/_templates/

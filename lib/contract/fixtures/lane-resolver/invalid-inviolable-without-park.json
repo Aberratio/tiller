@@ -1,0 +1,8 @@
+{
+  "decision": "record the frames for the repro",
+  "park": false,
+  "rationale": "needed for debugging",
+  "reversalCost": "high",
+  "inviolable": "Data minimisation",
+  "awaiting": []
+}

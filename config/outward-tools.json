@@ -1,0 +1,16 @@
+{
+  "description": "Tools removed from every supervised child, per outward channel. A channel a profile narrows out of its hard-stop list keeps its tools. A bare server name removes the whole server.",
+  "channels": {
+    "chat-send": ["mcp__claude_ai_Slack__slack_send_message"],
+    "chat-schedule": ["mcp__claude_ai_Slack__slack_schedule_message"],
+    "email-send": ["mcp__claude_ai_Gmail"],
+    "email-draft": ["mcp__claude_ai_Gmail"],
+    "calendar-write": [
+      "mcp__claude_ai_Google_Calendar__create_event",
+      "mcp__claude_ai_Google_Calendar__update_event",
+      "mcp__claude_ai_Google_Calendar__delete_event",
+      "mcp__claude_ai_Google_Calendar__respond_to_event"
+    ],
+    "public-comment": []
+  }
+}

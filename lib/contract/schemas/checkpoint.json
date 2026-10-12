@@ -1,0 +1,70 @@
+{
+  "$id": "checkpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "runId": {
+      "type": "string"
+    },
+    "ticket": {
+      "type": "string"
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "start",
+        "premise",
+        "plan",
+        "implement",
+        "review",
+        "pr",
+        "ci",
+        "review-bot",
+        "confidence",
+        "gate",
+        "merge",
+        "qa",
+        "cleanup",
+        "logs"
+      ]
+    },
+    "lane": {
+      "type": "string",
+      "enum": [
+        "exec",
+        "premise",
+        "pr-description",
+        "log-prose",
+        "sweep-summary",
+        "plan",
+        "implement",
+        "fix",
+        "review-axis",
+        "confidence-dim",
+        "reverify",
+        "conflict",
+        "qa-judge",
+        "resolver",
+        "owner-proxy"
+      ]
+    },
+    "headSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$"
+    },
+    "at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "output": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "runId",
+    "ticket",
+    "phase",
+    "at",
+    "output"
+  ]
+}

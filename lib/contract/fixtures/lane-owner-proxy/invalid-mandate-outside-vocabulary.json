@@ -1,0 +1,10 @@
+{
+  "action": "act",
+  "mandate": "merge-pr",
+  "step": "merge the PR",
+  "parkReason": "",
+  "conditions": [],
+  "rationale": "gates green",
+  "reversalCost": "revert commit",
+  "awaiting": []
+}

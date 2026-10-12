@@ -1,0 +1,17 @@
+{
+  "id": "x",
+  "runId": "r",
+  "ticket": "ABC-12",
+  "kind": "harness-blocked",
+  "status": "open",
+  "question": "q",
+  "options": [
+    "retry",
+    "skip"
+  ],
+  "recommendation": "retry",
+  "reversalCost": "none",
+  "why": "w",
+  "blocks": "b",
+  "at": "2026-09-28T10:00:00Z"
+}

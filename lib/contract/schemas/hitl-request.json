@@ -1,0 +1,69 @@
+{
+  "$id": "hitl-request",
+  "type": "object",
+  "additionalProperties": false,
+  "description": "What a person is asked. Lengths, option count (2-4) and wording are enforced by lib/hitl/lint.mjs.",
+  "required": ["schema", "id", "situation", "ask", "options", "ifNoAnswer", "links", "run"],
+  "properties": {
+    "schema": { "type": "string", "enum": ["hitl-request/1"] },
+    "id": { "type": "string" },
+    "title": { "type": "string", "description": "ticket or PR title, shown next to every id; max 80" },
+    "situation": { "type": "string", "description": "plain words, at most two sentences: what is stuck and why a person is needed; max 300" },
+    "ask": { "type": "string", "pattern": "\\?$", "description": "one question; max 160" },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "label", "gain", "loss", "reversalCost", "recommended"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[A-D]$" },
+          "label": { "type": "string" },
+          "gain": { "type": "string" },
+          "loss": { "type": "string" },
+          "reversalCost": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["level", "how"],
+            "properties": {
+              "level": { "type": "string", "enum": ["none", "low", "medium", "high", "irreversible"] },
+              "how": { "type": "string" }
+            }
+          },
+          "recommended": { "type": "boolean" }
+        }
+      }
+    },
+    "ifNoAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["happens", "by"],
+      "properties": {
+        "happens": { "type": "string" },
+        "by": { "type": "string", "pattern": "^(never|\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:\\d{2}))$" },
+        "defaultKey": { "type": "string", "pattern": "^[A-D]$" }
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "url"],
+        "properties": { "text": { "type": "string" }, "url": { "type": "string", "pattern": "^https?://" } }
+      }
+    },
+    "glossary": { "type": "object", "description": "term -> plain meaning, max 140 each" },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ticket", "runUrl"],
+      "properties": {
+        "ticket": { "type": "string" },
+        "runUrl": { "type": "string", "pattern": "^https?://" },
+        "prUrl": { "type": "string", "pattern": "^https?://" }
+      }
+    },
+    "kind": { "type": "string", "description": "machine key from kinds.json; never rendered raw" }
+  }
+}

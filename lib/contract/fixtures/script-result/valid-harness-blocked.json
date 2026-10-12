@@ -1,0 +1,5 @@
+{
+  "status": "blocked",
+  "kind": "harness-blocked",
+  "reason": "Permission denied: gh pr merge"
+}

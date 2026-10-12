@@ -1,0 +1,6 @@
+{
+  "command": "'/repo/lib/forge/pr-state' '42'",
+  "ran": true,
+  "exitCode": 0,
+  "stdout": "{\"status\":\"ok\",\"state\":\"OPEN\"}\n"
+}

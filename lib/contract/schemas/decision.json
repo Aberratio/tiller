@@ -1,0 +1,115 @@
+{
+  "$id": "decision",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "runId": {
+      "type": "string"
+    },
+    "key": {
+      "type": "string"
+    },
+    "ticket": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "usage-limit",
+        "rate-limit",
+        "quota",
+        "context-exhaustion",
+        "harness-blocked",
+        "no-progress",
+        "ready-to-sign",
+        "schema",
+        "ci-red",
+        "ci-infra",
+        "ci-timeout",
+        "conflict",
+        "toolchain",
+        "claim-mismatch",
+        "premise",
+        "run-died",
+        "split",
+        "confidence-cap",
+        "gate-red",
+        "question",
+        "manual-qa",
+        "ceiling",
+        "policy",
+        "duplicate",
+        "script-error"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "resolved",
+        "withdrawn"
+      ]
+    },
+    "question": {
+      "type": "string"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "why": {
+      "type": "string"
+    },
+    "reversalCost": {
+      "type": "string"
+    },
+    "blocks": {
+      "type": "string"
+    },
+    "at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "resolution": {
+      "type": "string"
+    },
+    "resolvedBy": {
+      "type": "string",
+      "description": "a role, never a person name"
+    },
+    "resolvedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "request": {
+      "type": "object",
+      "description": "a hitl-request that passed the linter"
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "linter rules the request broke; recorded instead of padding"
+    }
+  },
+  "required": [
+    "id",
+    "runId",
+    "ticket",
+    "kind",
+    "status",
+    "question",
+    "why",
+    "blocks",
+    "at"
+  ]
+}

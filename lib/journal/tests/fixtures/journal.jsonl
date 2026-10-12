@@ -1,0 +1,5 @@
+{"type":"spawn","agentId":"a1","key":"k1","label":"plan:plan:T3","phase":"plan","transcript":"a1.jsonl"}
+{"type":"result","agentId":"a1","outcome":"ok","escalatedFrom":null}
+{"type":"spawn","agentId":"a2","key":"k2","label":"pr:pr-description:T2","phase":"pr","transcript":"a2.jsonl"}
+{"type":"spawn","agentId":"a3","key":"k3","label":"start:exec:T1","phase":"start","transcript":"a3.jsonl"}
+{"type":"result","agentId":"a3","outcome":"ok","escalatedFrom":null}

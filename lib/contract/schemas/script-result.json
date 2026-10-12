@@ -1,0 +1,63 @@
+{
+  "$id": "script-result",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "error",
+        "pending",
+        "blocked",
+        "refused",
+        "no-progress",
+        "paused-usage"
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "usage-limit",
+        "rate-limit",
+        "quota",
+        "context-exhaustion",
+        "harness-blocked",
+        "stop-hour",
+        "no-progress",
+        "ready-to-sign",
+        "schema",
+        "ci-red",
+        "ci-infra",
+        "ci-timeout",
+        "conflict",
+        "toolchain",
+        "claim-mismatch",
+        "premise",
+        "run-died",
+        "split",
+        "confidence-cap",
+        "gate-red",
+        "question",
+        "manual-qa",
+        "ceiling",
+        "policy",
+        "duplicate",
+        "script-error"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "retryAfter": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "artifact": {
+      "type": "string",
+      "description": "absolute path of a payload too large for stdout"
+    }
+  },
+  "required": [
+    "status"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "statuses": {
+    "ok": 0,
+    "error": 1,
+    "pending": 2,
+    "blocked": 3,
+    "refused": 4,
+    "no-progress": 5,
+    "paused-usage": 6
+  },
+  "escalate": {
+    "never": "listed in run/day state only; no resolver, no owner proxy, no human question",
+    "chain": "resolver, then owner proxy, then human, as docs/harness.md describes",
+    "sign": "ready-to-sign list; only a human signature moves it"
+  },
+  "kinds": {
+    "usage-limit":        { "exit": 6,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "wait-reset", "cap": "usageWaitsPerDay" } },
+    "rate-limit":         { "exit": 3,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "backoff", "cap": "backoffAttempts" } },
+    "quota":              { "exit": 3,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "wait-reset", "max": 0 } },
+    "context-exhaustion": { "exit": null, "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "split-agent", "max": 1 } },
+    "harness-blocked":    { "exit": 3,    "escalate": "never", "ceiling": false, "agentMayEmit": true,  "retry": { "mode": "identical", "max": 1 } },
+    "stop-hour":          { "exit": 3,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "no-progress":        { "exit": 5,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "ready-to-sign":      { "exit": 4,    "escalate": "sign",  "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "schema":             { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "escalate-tier", "max": 2 } },
+    "ci-red":             { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "fix-round", "cap": "ciFix" } },
+    "ci-infra":           { "exit": 3,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "rerun", "cap": "ciInfraRerun" } },
+    "ci-timeout":         { "exit": 2,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "recall", "cap": "waitCiRecalls" } },
+    "conflict":           { "exit": 3,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "rebase", "cap": "rebase" } },
+    "toolchain":          { "exit": 3,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "claim-mismatch":     { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "fix-round", "cap": "fixRounds" } },
+    "premise":            { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": true,  "retry": { "mode": "none", "max": 0 } },
+    "run-died":           { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "resume", "cap": "resumes" } },
+    "split":              { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "confidence-cap":     { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "gate-red":           { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "question":           { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": true,  "retry": { "mode": "none", "max": 0 } },
+    "manual-qa":          { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": true,  "retry": { "mode": "none", "max": 0 } },
+    "ceiling":            { "exit": null, "escalate": "chain", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "policy":             { "exit": 4,    "escalate": "chain", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "duplicate":          { "exit": 4,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "script-error":       { "exit": 1,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } }
+  },
+  "caps": {
+    "fixRounds":         { "default": 2, "max": 3 },
+    "ciFix":             { "default": 2 },
+    "ciInfraRerun":      { "default": 1 },
+    "confidencePasses":  { "default": 2 },
+    "reverifyPerPass":   { "default": 8 },
+    "rebase":            { "default": 2 },
+    "resumes":           { "default": 2 },
+    "usageWaitsPerDay":  { "default": 3 },
+    "usageWaitMinutes":  { "default": 90 },
+    "backoffAttempts":   { "default": 5 },
+    "backoffFirstSeconds": { "default": 30 },
+    "backoffMaxSeconds": { "default": 480 },
+    "waitCiSeconds":     { "default": 540 },
+    "waitCiRecalls":     { "default": 6 },
+    "supervisorSpawns":  { "default": 8 },
+    "noProgressSpawns":  { "default": 2 },
+    "schemaBytes":       { "default": 3500 },
+    "execStdoutBytes":   { "default": 4096 }
+  },
+  "lanes": [
+    "exec", "premise", "pr-description", "log-prose", "sweep-summary",
+    "plan", "implement", "fix", "review-axis", "confidence-dim", "reverify",
+    "conflict", "qa-judge", "resolver", "owner-proxy"
+  ],
+  "phases": [
+    "start", "premise", "plan", "implement", "review", "pr", "ci", "review-bot",
+    "confidence", "gate", "merge", "qa", "cleanup", "logs"
+  ],
+  "tiers": ["T0", "T1", "T2", "T3"],
+  "callOutcomes": ["ok", "invalid", "blocked", "harness-blocked", "error"],
+  "runStatuses": ["running", "merged", "open-pr", "ready-to-sign", "parked", "paused-usage", "died"],
+  "decisionStatuses": ["open", "resolved", "withdrawn"],
+  "gateStates": ["green", "red", "blocked"],
+  "authorities": ["agent", "human", "unconfirmed"],
+  "mandates": ["approve-day-queue", "start-next-ticket", "approve-peer-step", "resume-run", "lift-cap-once", "undraft-pr"],
+  "outwardChannels": ["chat-send", "chat-schedule", "email-send", "email-draft", "calendar-write", "public-comment"],
+  "parkReasons": ["no-proxy", "not-in-mandate", "hard-stop-channel", "hard-stop-path", "signature", "inviolable", "condition-unmet", "evidence"],
+  "awaiting": {
+    "refusals": ["permission denied:\\s*\\S"],
+    "prose": ["pr-description", "log-prose", "sweep-summary"]
+  }
+}

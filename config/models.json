@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "models": {
+    "haiku": {
+      "runtime": "claude",
+      "modelId": "claude-haiku-4-5",
+      "status": "active",
+      "contextWindow": 200000,
+      "priceUsdPerMtok": {
+        "in": 1,
+        "out": 5
+      },
+      "features": {
+        "structuredOutput": "schema",
+        "toolUse": true
+      },
+      "dataPolicy": "no-train",
+      "pinnedLanes": [
+        "exec"
+      ],
+      "capability": {}
+    },
+    "opus": {
+      "runtime": "claude",
+      "modelId": "claude-opus-5-5",
+      "status": "active",
+      "contextWindow": 1000000,
+      "priceUsdPerMtok": {
+        "in": 4,
+        "out": 20
+      },
+      "features": {
+        "structuredOutput": "schema",
+        "toolUse": true
+      },
+      "dataPolicy": "no-train",
+      "pinnedLanes": [
+        "plan",
+        "implement",
+        "fix",
+        "review-axis",
+        "confidence-dim",
+        "reverify",
+        "conflict",
+        "qa-judge",
+        "resolver",
+        "owner-proxy",
+        "premise",
+        "pr-description",
+        "log-prose",
+        "sweep-summary"
+      ],
+      "capability": {}
+    },
+    "sonnet": {
+      "runtime": "claude",
+      "modelId": "claude-sonnet-5-5",
+      "status": "active",
+      "contextWindow": 1000000,
+      "priceUsdPerMtok": {
+        "in": 2,
+        "out": 10
+      },
+      "features": {
+        "structuredOutput": "schema",
+        "toolUse": true
+      },
+      "dataPolicy": "no-train",
+      "pinnedLanes": [
+        "exec",
+        "premise",
+        "pr-description",
+        "log-prose",
+        "sweep-summary"
+      ],
+      "capability": {}
+    }
+  }
+}

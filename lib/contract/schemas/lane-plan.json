@@ -1,0 +1,134 @@
+{
+  "$id": "lane-plan",
+  "type": "object",
+  "properties": {
+    "ok": {
+      "type": "boolean"
+    },
+    "ticketKind": {
+      "type": "string",
+      "enum": [
+        "code",
+        "data-ops",
+        "pipeline-tooling",
+        "bug-after-diagnosis"
+      ]
+    },
+    "premiseVerdict": {
+      "type": "string",
+      "enum": [
+        "holds",
+        "corrected-with-oracle",
+        "corrected-without-oracle",
+        "falsified"
+      ]
+    },
+    "premiseEvidence": {
+      "type": "string"
+    },
+    "planPath": {
+      "type": "string"
+    },
+    "planSummary": {
+      "type": "string"
+    },
+    "authorisedFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "paths or globs later fix rounds may touch"
+    },
+    "questions": {
+      "type": "array",
+      "description": "open questions the resolver may still settle",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "description": "evidence: path, quote, SHA, command output"
+          }
+        },
+        "required": [
+          "question",
+          "options",
+          "recommendation",
+          "why"
+        ]
+      }
+    },
+    "awaiting": {
+      "type": "array",
+      "description": "items only a human or nobody can move; not questions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "harness-blocked",
+              "premise",
+              "question",
+              "manual-qa"
+            ],
+            "description": "harness-blocked: tool, permission or classifier denial"
+          },
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "description": "evidence; for harness-blocked the literal denial text"
+          },
+          "reversalCost": {
+            "type": "string"
+          },
+          "blocks": {
+            "type": "string",
+            "description": "what waits on it"
+          }
+        },
+        "required": [
+          "kind",
+          "question",
+          "why",
+          "blocks"
+        ]
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "ok",
+    "ticketKind",
+    "premiseVerdict",
+    "planPath",
+    "planSummary",
+    "authorisedFiles",
+    "awaiting"
+  ]
+}

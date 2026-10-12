@@ -1,0 +1,10 @@
+{
+  "action": "park",
+  "mandate": "",
+  "step": "send the status message",
+  "parkReason": "",
+  "conditions": [],
+  "rationale": "r",
+  "reversalCost": "none",
+  "awaiting": []
+}

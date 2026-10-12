@@ -1,0 +1,17 @@
+{
+  "id": "ABC-12-D1",
+  "runId": "r",
+  "ticket": "ABC-12",
+  "kind": "split",
+  "status": "open",
+  "question": "Split the open findings?",
+  "options": [
+    "split to a follow-up",
+    "lift the cap once"
+  ],
+  "recommendation": "split to a follow-up",
+  "why": "fix cap 2 reached; STD-3 open",
+  "reversalCost": "low",
+  "blocks": "merge",
+  "at": "2026-09-28T10:00:00Z"
+}

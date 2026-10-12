@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "gateFloor": 0.85,
+  "estTokens": {
+    "in": 200000,
+    "out": 20000
+  },
+  "dataPolicies": [
+    "no-train"
+  ],
+  "escalation": {
+    "sameModelRetries": 1,
+    "verifierSteps": 1,
+    "identicalRetries": 1,
+    "notModelFailures": [
+      "harness-blocked",
+      "blocked",
+      "died"
+    ]
+  },
+  "lanes": {
+    "exec": {
+      "class": "mechanical",
+      "gate": false,
+      "minCapability": 0.6,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 100000,
+      "maxCostUsdPerCall": 1,
+      "maxLadderSteps": 1
+    },
+    "premise": {
+      "class": "probe",
+      "gate": false,
+      "minCapability": 0.7,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 100000,
+      "maxCostUsdPerCall": 4,
+      "maxLadderSteps": 1
+    },
+    "pr-description": {
+      "class": "prose",
+      "gate": false,
+      "minCapability": 0.6,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 100000,
+      "maxCostUsdPerCall": 4,
+      "maxLadderSteps": 1
+    },
+    "log-prose": {
+      "class": "prose",
+      "gate": false,
+      "minCapability": 0.6,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 100000,
+      "maxCostUsdPerCall": 4,
+      "maxLadderSteps": 1
+    },
+    "sweep-summary": {
+      "class": "prose",
+      "gate": false,
+      "minCapability": 0.6,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 100000,
+      "maxCostUsdPerCall": 4,
+      "maxLadderSteps": 1
+    },
+    "plan": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    },
+    "implement": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    },
+    "fix": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    },
+    "review-axis": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    },
+    "confidence-dim": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    },
+    "reverify": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    },
+    "conflict": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    },
+    "qa-judge": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    },
+    "resolver": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    },
+    "owner-proxy": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 0
+    }
+  }
+}

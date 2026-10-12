@@ -1,0 +1,18 @@
+{
+  "ticket": "ABC-101",
+  "kind": "ci-red",
+  "key": "confidence:3",
+  "question": "CI stays red on a78545e943bd0004957a873edae16df7a183289d after 2 fix attempts: Publish static assets: skipped; Build and push Docker image: skipped; Deploy to staging: skipped; Web app - lint, typecheck, test and build: cancelled; Consistency gate: skipped; Quality gate: skipped. Take over or split?",
+  "why": "ci-fix cap reached",
+  "blocks": "ABC-101 confidence",
+  "options": [
+    "a human takes over the red checks",
+    "split the failing part into a separate ticket"
+  ],
+  "recommendation": "a human takes over the red checks",
+  "reversalCost": "low",
+  "runId": "day-2026-10-06",
+  "status": "open",
+  "at": "2026-10-06T13:04:10Z",
+  "id": "ABC-101-D4"
+}

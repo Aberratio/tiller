@@ -1,0 +1,18 @@
+{
+  "ticket": "ABC-101",
+  "kind": "gate-red",
+  "key": "merge:1",
+  "question": "The gate is not green on a78545e943bd0004957a873edae16df7a183289d: ci (red), touched-paths (blocked), verify-claim (red), changed-files (blocked). Fix forward or take over?",
+  "why": "ci: Publish static assets: skipped; Build and push Docker image: skipped; Deploy to staging: skipped; Web app - lint, typecheck, test and build: cancelled; Consistency gate: skipped; Quality gate: skipped; touched-paths: no changed files known; authority cannot be derived from the paths, so it is unconfirmed (signature required); verify-claim: the test com",
+  "blocks": "merge of https://github.com/example-org/acme-web/pull/251",
+  "options": [
+    "fix forward in a fresh run",
+    "a human takes over the branch"
+  ],
+  "recommendation": "fix forward in a fresh run",
+  "reversalCost": "low: the PR stays open",
+  "runId": "day-2026-10-06",
+  "status": "open",
+  "at": "2026-10-06T13:16:38Z",
+  "id": "ABC-101-D5"
+}

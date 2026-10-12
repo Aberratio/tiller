@@ -1,0 +1,16 @@
+{
+  "runId": "r",
+  "profile": "example",
+  "ticket": "ABC-12",
+  "status": "running",
+  "lastPhase": "review",
+  "headSha": "3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39",
+  "counters": {
+    "fixRounds": 1,
+    "ciFix": 0,
+    "confidencePasses": 0,
+    "rebase": 0,
+    "resumes": 0
+  },
+  "updatedAt": "2026-09-28T10:00:00Z"
+}

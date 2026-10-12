@@ -1,0 +1,5 @@
+{
+  "status": "blocked",
+  "kind": "stop-hour",
+  "reason": "stop hour 20 reached"
+}

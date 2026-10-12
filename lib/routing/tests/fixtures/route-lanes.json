@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "gateFloor": 0.85,
+  "estTokens": { "in": 100000, "out": 10000 },
+  "dataPolicies": ["no-train", "local"],
+  "escalation": { "sameModelRetries": 1, "verifierSteps": 1, "identicalRetries": 1, "notModelFailures": ["harness-blocked", "blocked", "died"] },
+  "lanes": {
+    "implement": { "class": "judgment", "gate": true, "minCapability": 0.85, "needs": { "tools": true, "structuredOutput": "schema" }, "minContext": 200000, "maxCostUsdPerCall": 15, "maxLadderSteps": 2 },
+    "premise": { "class": "probe", "gate": false, "minCapability": 0.7, "needs": { "tools": true, "structuredOutput": "schema" }, "minContext": 100000, "maxCostUsdPerCall": 4, "maxLadderSteps": 2 },
+    "log-prose": { "class": "prose", "gate": false, "minCapability": 0.6, "needs": { "tools": false, "structuredOutput": "none" }, "minContext": 32000, "maxCostUsdPerCall": 1, "maxLadderSteps": 2 }
+  }
+}

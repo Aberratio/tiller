@@ -1,0 +1,7 @@
+{
+  "command": "'/repo/lib/forge/pr-merge' '42'",
+  "ran": false,
+  "exitCode": null,
+  "stdout": "",
+  "denial": "Permission to use Bash has been denied by the classifier"
+}

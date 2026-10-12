@@ -1,0 +1,758 @@
+{
+ "ticket": "ABC-102",
+ "runId": "wf_d9f75bdd-7d4",
+ "recordedAt": "2026-09-29",
+ "terminal": {
+  "status": "parked",
+  "reason": "gate: review-bot blocked, harness blocked, changed-files blocked",
+  "prUrl": "https://github.com/example-org/acme-web/pull/223",
+  "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+  "gate": [
+   {
+    "name": "ci",
+    "state": "green"
+   },
+   {
+    "name": "review-bot",
+    "state": "blocked"
+   },
+   {
+    "name": "static-checks",
+    "state": "green"
+   },
+   {
+    "name": "harness",
+    "state": "blocked"
+   },
+   {
+    "name": "review",
+    "state": "green"
+   },
+   {
+    "name": "confidence",
+    "state": "green"
+   },
+   {
+    "name": "verify-claim",
+    "state": "green"
+   },
+   {
+    "name": "changed-files",
+    "state": "blocked"
+   }
+  ]
+ },
+ "counts": {
+  "agents": 60,
+  "lanes": 13,
+  "execs": 17,
+  "liveInReplay": 23,
+  "dropped": 7
+ },
+ "dropped": [
+  {
+   "label": "review:exec:T1:verify-claim",
+   "outcome": "invalid",
+   "why": "command altered"
+  },
+  {
+   "label": "review:exec:T1:verify-claim",
+   "outcome": "invalid",
+   "why": "command altered"
+  },
+  {
+   "label": "review:exec:T2:verify-claim",
+   "outcome": "harness-blocked",
+   "why": "harness-blocked"
+  },
+  {
+   "label": "review-bot:exec:T1:bot-review-bot",
+   "outcome": "invalid",
+   "why": "stdout is not a script-result line"
+  },
+  {
+   "label": "review-bot:exec:T1:bot-review-bot",
+   "outcome": "harness-blocked",
+   "why": "harness-blocked"
+  },
+  {
+   "label": "cleanup:exec:T1:checkpoint",
+   "outcome": "invalid",
+   "why": "command altered"
+  },
+  {
+   "label": "logs:exec:T1:checkpoint",
+   "outcome": "invalid",
+   "why": "command altered"
+  }
+ ],
+ "lanes": [
+  {
+   "key": "premise:premise:ticket",
+   "occurrence": 1,
+   "label": "premise:premise:T2:ticket",
+   "result": {
+    "verdict": "holds",
+    "evidence": "Ticket ABC-102 describes a real, still-present bug in client-new/src/features/referenceExtraction/ExtractReferenceScreen.tsx.\n\n`buildError` is local component state (line 204: `const [buildError, setBuildError] = useState<string | null>(null)`), rendered as an Alert titled \"This window cannot be ex…",
+    "awaiting": []
+   }
+  },
+  {
+   "key": "premise:premise:tracker",
+   "occurrence": 1,
+   "label": "premise:premise:T2:tracker",
+   "result": {
+    "verdict": "holds",
+    "evidence": "Jira getJiraIssue for ABC-102 (cloudId 00000000-0000-0000-0000-000000000000) returns status.name = \"In Progress\" (status id 10085, category \"indeterminate\"), already assigned to <email> No transition call was needed since the ticket already sits in the target status — the only tracker write of this…",
+    "awaiting": [],
+    "notes": "No ledger entry was written since no decision or deviation was made (status was already correct, confirmed by direct read, no premise-check ambiguity encountered). Did not re-verify against decisions.jsonl (grep returned no output/exit 2, likely file absent or empty for this ticket) since the tracke…"
+   }
+  },
+  {
+   "key": "plan:plan:plan",
+   "occurrence": 1,
+   "label": "plan:plan:T3:plan",
+   "result": {
+    "ok": true,
+    "ticketKind": "code",
+    "premiseVerdict": "holds",
+    "planPath": "<ROOT>/worktrees/ABC-102-run-638ca90c/docs/plans/ABC-102-build-error-follows-selection.md",
+    "planSummary": "The plan stores the build error together with the selection it came from (the confirmed window's startT, endT and the cycleJoint). The alert shows only while that same selection is current. So it disappears when the author picks another detected window, draws one, moves a boundary or changes the joi…",
+    "authorisedFiles": [
+     "client-new/src/features/referenceExtraction/ExtractReferenceScreen.tsx",
+     "client-new/src/routes/source-videos_.$sourceVideoId_.extract.test.tsx",
+     "docs/decisions/ABC-102.md"
+    ],
+    "awaiting": [],
+    "premiseEvidence": "The code on c7defcee (origin/main) matches the ticket: buildError is plain useState, set in extract()'s catch and cleared only after a later successful build. `git log --grep ABC-102 origin/main` returns only 4d9ce8e3, which is ABC-106's ledger line deferring this exact bug to ABC-102. The ticket…",
+    "notes": "No decisions.jsonl exists for this run, so there were no rulings to apply. resolve-profile.sh matched no glob for this run-state worktree path. I used TILLER_PROFILE=acme because the worktree's origin is example-org/acme-web, and recorded that in the ledger. The ledger is at <ROOT>/worktrees/ABC-102-r…"
+   }
+  },
+  {
+   "key": "implement:implement:tdd",
+   "occurrence": 1,
+   "label": "implement:implement:T3:tdd",
+   "result": {
+    "ok": true,
+    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "commits": [
+     "83137f9a [ABC-102] fix(reference-extraction): show the build error only for the selection that failed"
+    ],
+    "testCommand": "cd web-app && npx vitest run 'src/routes/source-videos_.$sourceVideoId_.extract.test.tsx' && npm run typecheck && npm run lint && npm run check && npm run check:boundaries && npm test",
+    "testResult": "pass",
+    "awaiting": [],
+    "questions": [],
+    "notes": "No rulings: decisions.jsonl does not exist for this run. I followed plan D1–D5, and D5 means docs/plans/ABC-102-build-error-follows-selection.md is left untracked and uncommitted. The commit is local only and was not pushed.\n\nWhat changed: in ExtractReferenceScreen.tsx the build error is now stored…"
+   }
+  },
+  {
+   "key": "review:review-axis:standards",
+   "occurrence": 1,
+   "label": "review:review-axis:T3:standards",
+   "result": {
+    "axis": "standards",
+    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "skipped": false,
+    "findings": [
+     {
+      "id": "STD-1",
+      "axis": "standards",
+      "severity": "low",
+      "summary": "Judgement call (baseline smell: Duplicated Code). The diff adds a `withFailingBuild` helper that sets `build.fails` and resets it in `finally`. The existing test 'says why a window with no body in it cannot be extracted, and sends nothing' in the same file still does the same set-and-reset inline wi…",
+      "locations": [
+       "client-new/src/routes/source-videos_.$sourceVideoId_.extract.test.tsx:121-128",
+       "client-new/src/routes/source-videos_.$sourceVideoId_.extract.test.tsx:328-343"
+      ]
+     }
+    ],
+    "report": "Standards axis, main..83137f9a (3 files: ExtractReferenceScreen.tsx, extract route test, ABC-102 ledger). No rule documented in the repo is broken. Sources read: the root CLAUDE.md (Code comments, Testing hygiene, cross-cutting contracts), the Shape section of client-new/CLAUDE.md, and .claude/rule…",
+    "awaiting": [],
+    "notes": "decisions.jsonl was not found at <ROOT>/decisions.jsonl, so there are no binding rulings for ABC-102 to apply. The flow-code-review brief (Standards section) comes from ~/Other Repos/tiller/skills/flow-code-review/references/subagent-briefs.md."
+   }
+  },
+  {
+   "key": "review:review-axis:spec",
+   "occurrence": 1,
+   "label": "review:review-axis:T3:spec",
+   "result": {
+    "axis": "spec",
+    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "skipped": false,
+    "findings": [],
+    "report": "Spec axis, main..83137f9a, checked against the ABC-102 ticket (fetched from Jira, no comments on it), the plan (D1-D5) and the branch ledger. There are no findings.\n\n(a) Nothing asked for is missing. The ticket's scope says the error \"is either tied to that selection and shown only while it stays s…",
+    "awaiting": [],
+    "notes": "decisions.jsonl does not exist at the stated path, so there were no rulings to apply. The ticket was fetched via the Atlassian MCP. I did not write to the ledger because this is a report-only review lane."
+   }
+  },
+  {
+   "key": "pr:pr-description:prose",
+   "occurrence": 1,
+   "label": "pr:pr-description:T2:prose",
+   "result": {
+    "title": "PR prose for ABC-102 (main..83137f9a)",
+    "body": "Title and body of the PR for ABC-102 (nie push/open, tylko tekst):\n\n---\n\n**Title:**\n[ABC-102] fix(reference-extraction): show the build error only for the selection that failed\n\n**Body:**\n\n## Change\nThe extraction-request build error in `ExtractReferenceScreen` is now stored together with the window and j…",
+    "awaiting": []
+   }
+  },
+  {
+   "key": "pr:owner-proxy:undraft-pr",
+   "occurrence": 1,
+   "label": "pr:owner-proxy:T3:undraft-pr",
+   "result": {
+    "action": "park",
+    "mandate": "",
+    "step": "Leave PR #223 in draft. Do not run gh pr ready until the PR title and body match the prepared description.",
+    "parkReason": "condition-unmet",
+    "conditions": [
+     {
+      "condition": "undraft-pr is in the profile Mandate list",
+      "met": true,
+      "evidence": "profiles/profile.md ## owner proxy: Mandate: start-next-ticket, approve-peer-step, resume-run, undraft-pr; 'gh pr ready in example-org/acme-web is standing permission'"
+     },
+     {
+      "condition": "PR is open, draft, head at 83137f9a, authored by the run's account",
+      "met": true,
+      "evidence": "gh pr view 223: state OPEN, isDraft true, headRefOid 83137f9a88ea6ecdb09235749e854e1bbfdeda0a, author the-author == gh api user the-author"
+     },
+     {
+      "condition": "Review round closed at this SHA with no open blocker/high findings",
+      "met": true,
+      "evidence": "checkpoints/0005-review.json: reviewedSha == headSha 83137f9a, open: [], missing: [], harness: [], typecheck/lint/test green exit 0"
+     },
+     {
+      "condition": "The PR on the forge carries the prepared title and description, so undrafting shows reviewers the reviewed artefact",
+      "met": false,
+      "evidence": "Live PR title is 'PR prose for ABC-102 (main..83137f9a)', not the commit-format title '[ABC-102] fix(reference-extraction): show the build error only for the selection that failed'. The live body starts with Polish lane meta-text 'Title and body of the PR for ABC-102 (nie push/open, tylko tekst):', wraps…"
+     },
+     {
+      "condition": "CI on the head SHA finished",
+      "met": false,
+      "evidence": "statusCheckRollup: 'Frontend - lint, typecheck, test and build' is IN_PROGRESS. The other checks are SUCCESS or SKIPPED."
+     },
+     {
+      "condition": "No inviolable touched by the diff",
+      "met": true,
+      "evidence": "Changed files: client-new/src/features/referenceExtraction/ExtractReferenceScreen.tsx, client-new/src/routes/source-videos_.$sourceVideoId_.extract.test.tsx, docs/decisions/ABC-102.md. None are under docs/compliance/** or validation/**, there is no new dependency, and the change is erro…"
+     },
+     {
+      "condition": "No binding ruling for ABC-102 in the run decisions file or doubt log",
+      "met": true,
+      "evidence": "decisions.jsonl does not exist at run-state/acme/ABC-102-2026-09-29-phaseA/. grep 8779 in $STATE_DIR/decisions.md finds nothing."
+     }
+    ],
+    "rationale": "Everything else about the mandate holds: the step is in the list, the PR is ours, and the review is closed with nothing open at 83137f9a. The problem is the forge copy. Its title and body are the lane's raw answer, with Polish meta-text and a note saying no PR was opened. They are not the English de…",
+    "reversalCost": "Nil. The PR stays in draft and nothing is published or merged. Undrafting later takes one command.",
+    "awaiting": [],
+    "notes": "No ruling id applied: decisions.jsonl is missing for this run. Report line: PR #223 left in draft — forge title/body are the pr lane's raw meta-answer, not the reviewed description; frontend CI still running — reversal: nil. Merge authority is not in play: undrafting is not merging. Once ready, all …"
+   }
+  },
+  {
+   "key": "confidence:confidence-dim:correctness",
+   "occurrence": 1,
+   "label": "confidence:confidence-dim:T3:correctness",
+   "result": {
+    "dimension": "correctness",
+    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "findings": [],
+    "acCoverage": [
+     {
+      "ac": "AC1 picking another detected window clears the build alert",
+      "status": "covered",
+      "evidence": "ExtractReferenceScreen.tsx:220-227 renders the alert only while sameSelection(buildError.selection, selection) holds, and rep 2 has other bounds; test 'is gone once another detected window is picked' (extract.test.tsx:347-355)"
+     },
+     {
+      "ac": "AC2 drawing a window clears the build alert",
+      "status": "covered",
+      "evidence": "A drawn window has its own startT/endT, so the selection comparison fails (ExtractReferenceScreen.tsx:220-227); test 'is gone once a window is drawn' (extract.test.tsx:357-366). Boundary drags on either edge are covered as well (extract.test.tsx:383-400)"
+     },
+     {
+      "ac": "AC3 changing the cycle joint clears the build alert",
+      "status": "covered",
+      "evidence": "cycleJoint is part of Selection (ExtractReferenceScreen.tsx:182-193, 220-223); tests 'is gone once the cycle joint changes' (extract.test.tsx:368-381) and the drawn-window case with unchanged bounds that isolates the joint field (extract.test.tsx:402-425)"
+     },
+     {
+      "ac": "AC4 going back shows the error only for the exact selection that failed; Extract on a failing selection shows it again",
+      "status": "covered",
+      "evidence": "The error is stored as {selection, message} and set again on each failed build (ExtractReferenceScreen.tsx:245-250); test at extract.test.tsx:427-444 checks that it reappears on rep 1, is set again on rep 2 and that no CREATE call is sent"
+     },
+     {
+      "ac": "AC5 the route test proves AC1-3 and fails if the error stays",
+      "status": "covered",
+      "evidence": "Seven route-level tests in routes/source-videos_.$sourceVideoId_.extract.test.tsx:345-444. The ledger records a mutation map (4 of 4 mutations caught) and that reverting the implementation reddens the plan-named tests. Tests were not re-run in this review (execution is left to CI)"
+     }
+    ],
+    "report": "Correctness review of main..83137f9a (PR #223, ABC-102): no defects found. The build error is now stored with the selection it came from (startT, endT, cycleJoint), and it is shown only while that exact selection is current. `extract()` guards on the same `selection` object it records, so the recor…",
+    "awaiting": [],
+    "notes": "Read-only slice: no ledger lines added, since no judgment call was taken. The open decision ABC-102-D1 (take PR #223 out of draft, blocked by a bad PR title and body) is about the PR text on the forge, not code correctness, and is outside this dimension. The ACs were taken from the Traceability tab…"
+   }
+  },
+  {
+   "key": "confidence:confidence-dim:spec-coverage",
+   "occurrence": 1,
+   "label": "confidence:confidence-dim:T3:spec-coverage",
+   "result": {
+    "dimension": "spec-coverage",
+    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "findings": [],
+    "acCoverage": [
+     {
+      "ac": "AC1: after a failed build, picking a different detected window removes the error alert",
+      "status": "covered",
+      "evidence": "client-new/src/features/referenceExtraction/ExtractReferenceScreen.tsx:220-227 renders the error only while sameSelection(buildError.selection, selection) holds, and startT/endT differ for another candidate. Route test: client-new/src/routes/source-videos_.$sourceVideoId_.extract.test.tsx:347-355 ('…"
+     },
+     {
+      "ac": "AC2: after a failed build, drawing a new window removes the error alert",
+      "status": "covered",
+      "evidence": "ExtractReferenceScreen.tsx:220-227 (the drawn window's bounds are not the failed selection's). Test: extract.test.tsx:357-366 ('is gone once a window is drawn'). A moved start or end boundary is also pinned by the it.each tests at extract.test.tsx:383-399."
+     },
+     {
+      "ac": "AC3: after a failed build, changing the joint removes the error alert",
+      "status": "covered",
+      "evidence": "cycleJoint is part of Selection and sameSelection (ExtractReferenceScreen.tsx:182-194). Tests: extract.test.tsx:368-381 (detected window) and 401-424 (drawn window that keeps its bounds, so only the joint differs)."
+     },
+     {
+      "ac": "AC4: returning to the failed window and joint without clicking Extract again shows the error only as the result of that exact selection; clicking Extract on a failing selection shows the error again",
+      "status": "covered",
+      "evidence": "This takes the ticket's second allowed branch (ledger D2). The stored error is kept with its selection and shows again only when the exact startT/endT/cycleJoint match (ExtractReferenceScreen.tsx:217-227). A new failing Extract replaces it with that selection's error (ExtractReferenceScreen.tsx:246-…"
+     },
+     {
+      "ac": "AC5: a route test proves criteria 1 to 3 and fails if the error is left on screen after the selection changes",
+      "status": "covered",
+      "evidence": "The tests mount the real route tree at /source-videos/7/extract through renderApp (extract.test.tsx:9, 99-100) and assert buildAlert() is null after each change (extract.test.tsx:345-444). The ledger's mutation map reports that reverting ExtractReferenceScreen.tsx turns the 5 plan-named tests red, a…"
+     }
+    ],
+    "report": "All 5 acceptance criteria of ABC-102 are covered by main..83137f9a, and there are no spec-coverage findings. The build error is now stored with the selection it was built from (window start, window end, cycle joint). It is shown only while that exact selection is current. This meets AC1 to AC3, and…",
+    "awaiting": [],
+    "notes": "The ACs come from Jira ABC-102 (the description's numbered list); the ticket has no comments. The subagent-prompts.md dimension extras list spec-alignment but not spec-coverage, so I applied the spec-alignment extras. This was a read-only review, so nothing was added to the ledger and no tests were…"
+   }
+  },
+  {
+   "key": "confidence:confidence-dim:regression-risk",
+   "occurrence": 1,
+   "label": "confidence:confidence-dim:T3:regression-risk",
+   "result": {
+    "dimension": "regression-risk",
+    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "findings": [],
+    "acCoverage": [
+     {
+      "ac": "AC1 picking a different detected window removes the error alert",
+      "status": "covered",
+      "evidence": "ExtractReferenceScreen.tsx:225-228 (shownBuildError gated on sameSelection); test 'is gone once another detected window is picked' in client-new/src/routes/source-videos_.$sourceVideoId_.extract.test.tsx:347"
+     },
+     {
+      "ac": "AC2 drawing a new window removes the error alert",
+      "status": "covered",
+      "evidence": "test 'is gone once a window is drawn' extract.test.tsx:357"
+     },
+     {
+      "ac": "AC3 changing the joint removes the error alert",
+      "status": "covered",
+      "evidence": "tests 'is gone once the cycle joint changes' (extract.test.tsx:368) and 'joint changes under a drawn window that keeps its bounds' (extract.test.tsx:401)"
+     },
+     {
+      "ac": "AC4 returning to the failed selection shows the error only as that selection's result; Extract on a failing selection shows it again",
+      "status": "covered",
+      "evidence": "second branch of AC4 chosen (ledger D2); test 'shows again only on the exact selection that failed, and on the next failing Extract' extract.test.tsx:426, also asserts no CREATE call"
+     },
+     {
+      "ac": "AC5 route test proves AC1-3 and fails if the error stays after the selection changes",
+      "status": "covered",
+      "evidence": "7 route tests through the real route file; ledger mutation map: each dropped comparison reddens its own test, dropping the guard reddens all 7; CI 'Frontend - lint, typecheck, test and build' success at 83137f9a"
+     }
+    ],
+    "report": "Regression-risk on main..83137f9a (1 production file, +34/-8, plus route tests and ledger): no findings. The `extract()` guard changes from `!confirmed || !cycleJoint` to `!selection`. These are equivalent, because `selection` is null under exactly the same condition. The request payload is built fr…",
+    "awaiting": [],
+    "notes": "Tooling: tiller/skills/flow-confidence-check/references/subagent-prompts.md has no 'regression-risk' extras section, and its output contract lists only spec-alignment|defect-sanity|test-quality|security. This review used the common preamble plus the obvious reading of the dimension: which exist…"
+   }
+  },
+  {
+   "key": "confidence:confidence-dim:operability",
+   "occurrence": 1,
+   "label": "confidence:confidence-dim:T3:operability",
+   "result": {
+    "dimension": "operability",
+    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "findings": [
+     {
+      "id": "OPS-1",
+      "axis": "operability",
+      "severity": "high",
+      "source": "harness",
+      "summary": "PR #223 on the forge carries the PR lane's raw answer, not a PR description. The title is 'PR prose for ABC-102 (main..83137f9a)'. The body opens with Polish meta-text ('Tytuł i treść PR ... (nie push/open, tylko tekst)') and ends with 'Brak push/otwierania PR — sama treść jak proszono.' The real E…",
+      "locations": [
+       "<ROOT>/tickets/ABC-102/pr-body.md:1-29",
+       "https://github.com/example-org/acme-web/pull/223"
+      ]
+     }
+    ],
+    "acCoverage": [
+     {
+      "ac": "AC1 picking another detected window clears the build-error alert",
+      "status": "covered",
+      "evidence": "ExtractReferenceScreen.tsx:220-226 derives the alert from sameSelection(buildError.selection, selection), and the alert renders at :279-286. Test: extract.test.tsx:347 'is gone once another detected window is picked'"
+     },
+     {
+      "ac": "AC2 drawing a window clears the alert",
+      "status": "covered",
+      "evidence": "ExtractReferenceScreen.tsx:224-226. Test: extract.test.tsx:357 'is gone once a window is drawn'"
+     },
+     {
+      "ac": "AC3 changing the cycle joint clears the alert",
+      "status": "covered",
+      "evidence": "ExtractReferenceScreen.tsx:193-194 compares cycleJoint. Tests: extract.test.tsx:368, and :401, which covers a drawn window that keeps its bounds. Boundary moves are covered by :383 (it.each Window start/Window end)"
+     },
+     {
+      "ac": "AC4 the alert shows again only on the exact failed selection, and on the next failing Extract",
+      "status": "covered",
+      "evidence": "ExtractReferenceScreen.tsx:246-250 stores {selection, message}. Test: extract.test.tsx:425 checks the alert is back on rep 1, shows again on a failing Extract of rep 2, and that no CREATE call is made"
+     },
+     {
+      "ac": "AC5 a route test proves AC1-3 and fails if the error stays",
+      "status": "covered",
+      "evidence": "The route-level describe block is at extract.test.tsx:346-445. Ledger lines report a revert that reddens 5 plan-named tests and a 4/4 mutation map. CI job 'Frontend - lint, typecheck, test and build' is green on 83137f9a (checkpoint 0007-ci.json)"
+     }
+    ],
+    "awaiting": [],
+    "questions": [],
+    "report": "Operability review of main..83137f9a (PR #223): the code has no operability findings, and the PR artifact has one high finding from the run's tooling.\n\n1. The change is client-only UI state in `ExtractReferenceScreen.tsx`. There are no new dependencies, network calls, env vars, feature gates, loggin…",
+    "notes": "`flow-confidence-check/references/subagent-prompts.md` defines no \"operability\" dimension. It only has spec-alignment, defect-sanity, test-quality, security and combined. This slice was graded against the common preamble plus a general operability lens: failure modes, observability, state recovery, …"
+   }
+  },
+  {
+   "key": "logs:log-prose:summary",
+   "occurrence": 1,
+   "label": "logs:log-prose:T2:summary",
+   "result": {
+    "text": "Not executing the 'computed task' instruction. The field says itself that a script generated it, it carries no user authority, and it conflicts with the actual request (running flow-run-ticket on 3 tickets); per the harness instruction the relayed request wins in such a conflict…",
+    "awaiting": [
+     {
+      "kind": "premise",
+      "question": "Did the ABC-102 run (PR #223, SHA 83137f9a, gates review-bot/harness/changed-files blocked) actually happen, and where is its log or journal to verify?",
+      "why": "No trace of ABC-102 anywhere under the harness state directory; the 'computed task' declares itself a non-authoritative script.",
+      "blocks": "writing the three-sentence summary of this run"
+     },
+     {
+      "kind": "question",
+      "question": "Where do the day's briefing and the repo come from to run flow-run-ticket on 3 tickets?",
+      "why": "This task runs in a different working directory (not a git repo) with no access to the repo worktree or to the day's plan.",
+      "blocks": "carrying out the actual request",
+      "options": [
+       "give the path to the repo worktree and the day plan file",
+       "run this task in a new session with the right cwd"
+      ],
+      "recommendation": "run in a new session with cwd set to the repo worktree"
+     }
+    ]
+   }
+  }
+ ],
+ "execs": [
+  {
+   "key": "start:worktree:worktree.mjs",
+   "occurrence": 1,
+   "label": "start:exec:T1:worktree",
+   "name": "worktree.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "path": "<ROOT>/worktrees/ABC-102-run-638ca90c",
+    "branch": "ABC-102-run-638ca90c",
+    "headSha": "c7defcee0b5314b6c49d7b7b923f3dfe94b49aee",
+    "created": true
+   }
+  },
+  {
+   "key": "review:verify-claim:verify-claim.mjs",
+   "occurrence": 1,
+   "label": "review:exec:T2:verify-claim",
+   "name": "verify-claim.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "acme-web",
+    "command": "cd web-app && npm test",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "artifact": "<TMP>/verify-claim-fd8X4W/output.txt"
+   }
+  },
+  {
+   "key": "review:static-check:verify-claim.mjs",
+   "occurrence": 1,
+   "label": "review:exec:T1:static-check",
+   "name": "verify-claim.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "typecheck",
+    "command": "cd web-app && npm run typecheck",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "output": "> typecheck\n> tsc --noEmit && tsc --noEmit -p packages/practice/tsconfig.typecheck.json"
+   }
+  },
+  {
+   "key": "review:static-check:verify-claim.mjs",
+   "occurrence": 2,
+   "label": "review:exec:T1:static-check",
+   "name": "verify-claim.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "lint",
+    "command": "cd web-app && npm run lint",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "output": "> lint\n> eslint"
+   }
+  },
+  {
+   "key": "review:static-check:verify-claim.mjs",
+   "occurrence": 3,
+   "label": "review:exec:T1:static-check",
+   "name": "verify-claim.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "test",
+    "command": "cd web-app && npm test",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "artifact": "<TMP>/verify-claim-UihVNq/output.txt"
+   }
+  },
+  {
+   "key": "pr:push:push",
+   "occurrence": 1,
+   "label": "pr:exec:T1:push",
+   "name": "push",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "branch": "ABC-102-run-638ca90c",
+    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a"
+   }
+  },
+  {
+   "key": "pr:pr-open:pr-open.mjs",
+   "occurrence": 1,
+   "label": "pr:exec:T1:pr-open",
+   "name": "pr-open.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "prUrl": "https://github.com/example-org/acme-web/pull/223",
+    "number": 223,
+    "draft": true
+   }
+  },
+  {
+   "key": "ci:wait-ci:wait-ci.mjs",
+   "occurrence": 1,
+   "label": "ci:exec:T1:wait-ci",
+   "name": "wait-ci.mjs",
+   "exitCode": 2,
+   "result": {
+    "status": "pending",
+    "sha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reason": "checks not settled within timeout"
+   }
+  },
+  {
+   "key": "ci:wait-ci:wait-ci.mjs",
+   "occurrence": 2,
+   "label": "ci:exec:T1:wait-ci",
+   "name": "wait-ci.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "sha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "state": "green",
+    "checks": [
+     {
+      "name": "Publish to S3 and invalidate CloudFront",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Accuracy gate",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Deploy with ArgoCD",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "MVP frontend contract",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Request specs, coverage and OpenAPI document",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Rubocop",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Build and push Docker image",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Detector and readiness gate agree",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Frontend - lint, typecheck, test and build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Detect relevant changes",
+      "conclusion": "success"
+     },
+     {
+      "name": "Detect relevant changes",
+      "conclusion": "success"
+     },
+     {
+      "name": "Detect relevant changes",
+      "conclusion": "success"
+     }
+    ]
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot:review-bot-green.mjs",
+   "occurrence": 1,
+   "label": "review-bot:exec:T1:bot-review-bot",
+   "name": "review-bot-green.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot:review-bot-green.mjs",
+   "occurrence": 2,
+   "label": "review-bot:exec:T1:bot-review-bot",
+   "name": "review-bot-green.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot:review-bot-green.mjs",
+   "occurrence": 3,
+   "label": "review-bot:exec:T1:bot-review-bot",
+   "name": "review-bot-green.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot:review-bot-green.mjs",
+   "occurrence": 4,
+   "label": "review-bot:exec:T1:bot-review-bot",
+   "name": "review-bot-green.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot:review-bot-green.mjs",
+   "occurrence": 5,
+   "label": "review-bot:exec:T1:bot-review-bot",
+   "name": "review-bot-green.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot:review-bot-green.mjs",
+   "occurrence": 6,
+   "label": "review-bot:exec:T1:bot-review-bot",
+   "name": "review-bot-green.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "gate:changed-files:diff-since-review.mjs",
+   "occurrence": 1,
+   "label": "gate:exec:T1:changed-files",
+   "name": "diff-since-review.mjs",
+   "exitCode": 1,
+   "result": {
+    "status": "error",
+    "kind": "script-error",
+    "reason": "no script-result line from diff-since-review.mjs"
+   }
+  },
+  {
+   "key": "gate:verify-claim:verify-claim.mjs",
+   "occurrence": 1,
+   "label": "gate:exec:T1:verify-claim",
+   "name": "verify-claim.mjs",
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "acme-web",
+    "command": "cd web-app && npm test",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "artifact": "<TMP>/verify-claim-tS1ddm/output.txt"
+   }
+  }
+ ]
+}

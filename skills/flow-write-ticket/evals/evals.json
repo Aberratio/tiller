@@ -1,0 +1,221 @@
+{
+  "skill_name": "flow-write-ticket",
+  "evals": [
+    {
+      "id": 1,
+      "name": "feature-user-facing",
+      "prompt": "Working directory resolves to lib/testing/fixtures/acme/profile.md. Help me write a ticket for a new bulk-assign wizard that lets operators apply a saved template to multiple end users at once. Power users have been asking for this via support since Q1, and three of our top-10 accounts cited it on CS calls last week.",
+      "expected_output": "A Feature/Story ticket. User-story shaped with Operator persona and a 'so that' clause. At least 3 acceptance criteria in Given-When-Then form. Component and Project come from the acme profile's ## ticket conventions: Component=Panel, Project=ABC, the key validated against getVisibleJiraProjects. Out-of-scope section populated. Zero class names, file paths, or framework prescriptions in the description.",
+      "assertions": [
+        "Skill resolved the project profile before drafting and read its ## ticket conventions",
+        "Ticket type is Feature (or Story)",
+        "Description contains 'As an Operator' (specific persona, not 'user')",
+        "Description contains a 'so that' clause in the user story",
+        "At least 3 acceptance criteria use Given-When-Then form",
+        "Component is exactly 'Panel' (the acme profile's component for operator web work)",
+        "Project is 'ABC', and the skill confirmed the key is in the getVisibleJiraProjects response before using it",
+        "Description contains an 'Out of scope' or 'Non-goals' section",
+        "Description contains zero class names (no PascalCase Foo::Bar patterns)",
+        "Description contains zero file paths (no 'app/', 'client/', 'lib/' references)",
+        "Description contains zero framework prescriptions (no 'Sidekiq', 'pgvector', 'React component')",
+        "Skill ran a duplicate-check via searchJiraIssuesUsingJql before previewing",
+        "Skill showed a preview and waited for confirmation before calling createJiraIssue"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "bug-mobile-upload",
+      "prompt": "Working directory resolves to lib/testing/fixtures/acme/profile.md. End users can't upload profile photos over 5MB on iOS — the app freezes for 30 seconds and then the upload fails silently with no error message. I need a ticket for this. We've had ~40 reports in the last 30 days, all on iPhone 13 and iPhone 14 Pro running iOS 17.4+.",
+      "expected_output": "A Bug ticket. Summary describes user-visible symptom. Steps to reproduce are numbered. Actual and expected behavior both stated. Environment section is complete (iOS version, device, app version). Impact section gives scale (~40 users) and frequency. Component=Mobile per the acme profile. The profile's routing says MOB for mobile, but the live tracker has MOBT: the skill offers MOBT and names the drift once. Priority=High (real user impact, silent failure). At least one AC includes a verification approach.",
+      "assertions": [
+        "Ticket type is Bug",
+        "Description contains 'Steps to reproduce' with numbered steps",
+        "Description contains 'Actual behavior' and 'Expected behavior' sections distinctly",
+        "Description contains an 'Environment' section",
+        "Description contains an 'Impact' section with scale/frequency",
+        "Component is exactly 'Mobile' (per the acme profile)",
+        "Project is 'MOBT', offered after the skill found the profile's 'MOB' missing from getVisibleJiraProjects; the drift is mentioned, and 'MOB' is never passed to createJiraIssue",
+        "Priority is 'High' or 'Highest' (the acme profile's scheme), proposed as a default and confirmed by the user",
+        "At least one acceptance criterion mentions verification (regression test, monitoring, or similar)",
+        "Description does NOT prescribe a fix (no 'fix the upload handler' or 'increase Nginx limit' or class names)",
+        "Skill ran a duplicate-check before previewing",
+        "Skill showed a preview and waited for confirmation before creating"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "technical-perf-baseline",
+      "prompt": "Working directory resolves to lib/testing/fixtures/acme/profile.md. We need a ticket to reduce catalogue search latency on the Panel before we add the hybrid vector search work. Current p95 is around 1.2s during peak; we want it under 400ms. We're on the OPS-2741-create-vector-hybrid-search-endpoint branch right now but the perf work itself isn't hybrid — it's a baseline improvement.",
+      "expected_output": "A Technical/Maintenance ticket. Objective is a measurable outcome (NOT 'refactor search'). Why-now references the upcoming hybrid work. Success criteria are quantitative (p95 target, error rate, measurement window). Constraints section names the API contract stability and no-downtime requirement. Non-goals lists 'hybrid search' explicitly so the two efforts don't merge. Component=API or Panel from the acme profile's component table (engineer's call, ask if unclear). Project=ABC. Critically: the branch name OPS-2741 is a hint not a decision — the skill must not auto-route to OPS just because the branch contains it, since this baseline work is distinct.",
+      "assertions": [
+        "Ticket type is Technical or Task (NOT Feature, NOT Bug)",
+        "Description contains a measurable Objective with a latency target (e.g. 'p95 < 400ms')",
+        "Description contains 'Success criteria' or 'Verification' with quantitative targets",
+        "Description contains a 'Constraints' or 'Non-goals' section that explicitly excludes hybrid search",
+        "Description does NOT prescribe a specific implementation (no 'batch hydration', no class names, no 'switch to')",
+        "Component is one of the acme profile's API, Panel",
+        "Skill surfaced the branch hint (OPS-2741) but did NOT auto-select OPS as the project",
+        "Skill checked what the ticket's siblings carry before setting a Component",
+        "Skill showed a preview and waited for confirmation before creating"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "implementation-leakage-rejection",
+      "prompt": "Create a ticket: implement Search::Catalogue::HybridSearcher in app/services/search/catalogue/ that uses cosine similarity with a 0.7 threshold and falls back to Typesense BM25 when the semantic score is below threshold. Use Sidekiq for re-indexing on item update.",
+      "expected_output": "The skill MUST detect the implementation leakage (class name, file path, framework prescriptions, specific tunable) and surface it BEFORE creating the ticket. It should quote the leakage, explain the staleness risk in one sentence, and propose an outcome-shaped rewrite focusing on user-observable behavior: 'Catalogue search returns results that combine semantic relevance and keyword matching. When semantic signal is weak, lexical matching guarantees recall doesn't drop below today's baseline.' It should then ask the user to confirm the rewrite or keep the original. The final ticket (whether the rewrite is accepted or not) is a Technical ticket with Objective-led structure.",
+      "assertions": [
+        "Skill explicitly flagged the implementation leakage before previewing",
+        "Skill quoted at least one leaking phrase from the user's input (class name, file path, or framework)",
+        "Skill explained the staleness risk in plain language",
+        "Skill proposed an outcome-shaped rewrite",
+        "Skill asked the user to confirm rewrite vs keep original (did not silently strip)",
+        "Final preview, if the rewrite was accepted, contains no class names, file paths, framework names, or specific tunables (no '0.7', no 'Sidekiq', no 'BM25' unless framed as current baseline reference)",
+        "Ticket type is Technical or Task"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "epic-deflection",
+      "prompt": "I have a Confluence spec for a whole new end-user onboarding flow — invitation email, account setup, consent capture, first-plan assignment. Can you help me create a ticket for it?",
+      "expected_output": "The skill must recognize this is a multi-ticket initiative with an existing spec and DEFLECT to a spec-to-backlog skill (atlassian:spec-to-backlog when installed) instead of trying to author it as a single Epic. It should explain WHY (spec-to-backlog is purpose-built for spec → Epic + children decomposition, and duplicating that workflow here would diverge over time) and offer to hand off. Only if the user explicitly insists on a single Epic with no children should the skill proceed using the Epic template.",
+      "assertions": [
+        "Skill recognized the work spans multiple tickets / sprints",
+        "Skill named a spec-to-backlog skill (atlassian:spec-to-backlog when installed)",
+        "Skill explained why spec-to-backlog is the right tool for this case",
+        "Skill offered to hand off rather than silently proceeding",
+        "Skill did NOT immediately start drafting an Epic body"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "update-existing-ticket-leakage",
+      "prompt": "Clean up ticket ABC-9876 — the description names a bunch of classes and file paths, the acceptance criteria are written as test steps ('POST /v2/foo returns 201'), and there's no out-of-scope section. Bring it into line with our standards. The ticket is currently In Progress.",
+      "expected_output": "Skill enters update mode. Fetches the ticket via getJiraIssue. Confirms it is not closed (status: In Progress). Identifies the ticket type and loads the matching template. Produces a four-bucket audit (missing / leaking / fine-as-is / unclear) BEFORE drafting. Asks the user to pick rewrite scope (full / description-only / targeted). Drafts a rewrite that preserves the original author's intent, never invents acceptance criteria (asks the user if the original implies them ambiguously), preserves all links and references, and relocates the stripped implementation specifics into an 'Implementation notes (non-binding, may go stale)' section. Shows a section-by-section BEFORE/AFTER diff. Waits for explicit confirmation. Applies via editJiraIssue sending only changed fields. Returns the issue URL.",
+      "assertions": [
+        "Skill called getJiraIssue to fetch the current state before suggesting any change",
+        "Skill checked the ticket status and confirmed it is not closed/done",
+        "Skill produced an audit grouped into missing / leaking / fine-as-is / unclear before drafting",
+        "Skill asked the user to choose between full rewrite / description-only / targeted scope",
+        "Skill did NOT invent new acceptance criteria (either preserved originals, rewrote them outcome-shaped, or asked the user when intent was ambiguous)",
+        "Skill preserved all links / references / screenshot URLs from the original description",
+        "Stripped implementation specifics were relocated into an 'Implementation notes (non-binding, may go stale)' section rather than silently dropped",
+        "Skill showed a section-by-section BEFORE/AFTER diff before any write",
+        "Skill waited for explicit confirmation ('apply', 'ship it', 'looks good') before calling editJiraIssue",
+        "Skill called editJiraIssue with only the changed fields, not the entire record",
+        "Skill did NOT change Component / Project / Priority / Assignee without flagging the change explicitly",
+        "Skill did NOT rewrite comments or sub-tasks"
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "update-closed-ticket-refusal",
+      "prompt": "Can you clean up OPS-1234? It's the ticket we shipped last sprint but it's not compliant with our standards.",
+      "expected_output": "Skill fetches the ticket via getJiraIssue, sees the status indicates the ticket has shipped (Done, Closed, Resolved, or similar), and REFUSES to apply changes. Explains that rewriting a shipped ticket destroys the historical record of what was actually delivered. Offers an alternative: file a follow-up Question or new ticket capturing the gap, or use comments on the closed ticket to add context. Stops without calling editJiraIssue unless the user overrides explicitly.",
+      "assertions": [
+        "Skill called getJiraIssue to fetch the current state",
+        "Skill detected the closed/shipped status",
+        "Skill refused to apply changes by default and did NOT call editJiraIssue silently",
+        "Skill explained why rewriting closed tickets is problematic (history preservation)",
+        "Skill offered an alternative path (follow-up ticket, new ticket, or comment-only)",
+        "Skill stopped cleanly after the refusal unless the user explicitly overrode"
+      ],
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "create-references-become-real-links",
+      "prompt": "Help me write a ticket for a new end-user consent flow. It's part of the platform Epic ABC-201 (Outcome 4). There's a Notion decision log called 'Consent Flow Decision Log' the team already agreed on, and a Confluence spec titled 'Dev Framework Guide' with open decisions we still need from the team. This also depends on OPS-3102 (data residency migration) landing first.",
+      "expected_output": "A Feature/Story ticket. The Epic is set via the `parent` field at creation time — it is NOT restated as text anywhere in the description (no 'Parent epic: ABC-201' bullet). OPS-3102 is wired up as a real `createIssueLink` (blocks/blocked-by or a similar directional type, since this ticket depends on it landing first) rather than left as a bare key in References. The Notion decision log and the Confluence spec are resolved to their actual URLs (via notion-search / searchConfluenceUsingCql, or by asking the user if they can't be found) and rendered as real hyperlinks in References — never a bare name like 'Notion: Consent Flow Decision Log'.",
+      "assertions": [
+        "Ticket type is Feature (or Story)",
+        "Skill passed the Epic key via the `parent` field on createJiraIssue rather than only writing it into the description",
+        "Description does NOT contain a 'Parent epic' (or equivalent) text line naming ABC-201",
+        "Skill called createIssueLink for OPS-3102 with a directional relationship reflecting the dependency (not merely mentioned as text in References)",
+        "Skill attempted to resolve 'Consent Flow Decision Log' and 'Dev Framework Guide' to real URLs (via notion-search/searchConfluenceUsingCql) or explicitly asked the user for the links",
+        "Final References section contains hyperlink markup (e.g. '[Display text](https://...)') for the resolved docs, not bare doc names",
+        "Skill showed a preview and waited for confirmation before calling createJiraIssue"
+      ],
+      "files": []
+    },
+    {
+      "id": 9,
+      "name": "update-bare-references-to-real-links",
+      "prompt": "Audit ABC-205 against our standards. Right now its References section just says: 'Notion: Dev Framework Guide — Decisions needed from the team', 'Notion: Widget Decision log', and 'Parent epic: ABC-201 (Outcome 4)'.",
+      "expected_output": "Skill enters update mode, fetches the ticket via getJiraIssue, and flags the bare References section under the 'leaking' bucket of the audit (anti-pattern: references that aren't real links). It proposes: (1) dropping the 'Parent epic: ABC-201' line entirely since that relationship already lives in the ticket's `parent`/Epic Link field, not duplicating it as text; (2) resolving both Notion mentions to real URLs (via notion-search, or asking the user for the links if they can't be found) and rendering them as hyperlinks. Shows a before/after diff for the References section and waits for explicit confirmation before calling editJiraIssue.",
+      "assertions": [
+        "Skill called getJiraIssue before proposing any change",
+        "Audit places the bare 'Notion: ...' mentions and the 'Parent epic: ABC-201' line in the 'leaking' bucket",
+        "Skill proposed removing the 'Parent epic' text line entirely rather than just rewording it",
+        "Skill did not claim the Epic relationship was being dropped — only that the redundant text mention goes, while the structural parent/Epic Link field is preserved",
+        "Skill attempted to resolve both Notion doc names to real URLs (via notion-search) or explicitly asked the user for the links",
+        "Skill showed a section-by-section BEFORE/AFTER diff for the References section",
+        "Skill waited for explicit confirmation before calling editJiraIssue",
+        "Skill called editJiraIssue with only the changed fields, not the entire record"
+      ],
+      "files": []
+    },
+    {
+      "id": 10,
+      "name": "tracker-none-writes-spec-file",
+      "prompt": "Working directory resolves to a profile whose ## tracker is `- Kind: `none``, and the repo has a docs/specs/ directory. Write me a ticket for letting users export their workout history as CSV.",
+      "expected_output": "The skill runs the same create workflow, but the artefact is a spec file, not a tracker issue. It proposes docs/specs/<slug>.md and lets the user confirm the path, greps docs/specs/ for a duplicate, previews the whole spec, and writes the file only after confirmation. No Jira tool is called and no project, component, priority or assignee is asked for. The spec carries user story, Given-When-Then acceptance criteria and out of scope, so flow-run-ticket --spec can run it.",
+      "assertions": [
+        "Skill resolved the profile and read ## tracker Kind none",
+        "Skill called no Atlassian MCP tool",
+        "Skill proposed a path under docs/specs/ and let the user confirm it",
+        "Skill checked docs/specs/ for an existing spec on the same work before writing",
+        "Skill did not ask for Project, Component, Priority or Assignee",
+        "Spec contains a user story with a 'so that' clause and Given-When-Then acceptance criteria",
+        "Skill showed the full spec and waited for confirmation before writing the file",
+        "Skill did not claim a ticket was filed"
+      ],
+      "files": []
+    },
+    {
+      "id": 11,
+      "name": "no-profile-stops",
+      "prompt": "Working directory has no profile that resolve-profile.sh can find. Draft a bug ticket: the login page shows a blank screen on Safari 17.",
+      "expected_output": "The skill stops at Step −1 and says no profile resolved. It does not borrow Components, project keys or a priority scheme from any other profile or from memory, and calls no tracker tool.",
+      "assertions": [
+        "Skill ran resolve-profile.sh before anything else",
+        "Skill stopped and said no profile resolved",
+        "Skill did not propose a Component, project key or priority from another project",
+        "Skill called no createJiraIssue"
+      ],
+      "files": []
+    },
+    {
+      "id": 12,
+      "name": "no-ticket-conventions-uses-tracker-fields-only",
+      "prompt": "Working directory resolves to a profile with ## tracker Kind jira and no ## ticket conventions section. Write a ticket to add rate limiting to the public API.",
+      "expected_output": "A Technical ticket. With no ## ticket conventions, the tracker's own required fields are the only convention: the skill reads the project's issue types and fields from Jira, does not invent a component list or priority scheme, and still runs the anti-pattern scan, duplicate check, preview and confirmation.",
+      "assertions": [
+        "Skill noticed ## ticket conventions is absent and said the tracker's required fields are the only convention",
+        "Skill did not propose Component values that do not come from the live project",
+        "Skill did not apply a priority scheme that the profile does not name",
+        "Ticket type is Technical or Task, with a measurable Objective",
+        "Skill ran a duplicate check and showed a preview before creating"
+      ],
+      "files": []
+    },
+    {
+      "id": 13,
+      "name": "internal-vocabulary-from-profile",
+      "prompt": "Working directory resolves to lib/testing/fixtures/acme/profile.md. File a ticket for the accuracy follow-up: 'raised by flow-confidence-check as F-A, needs a D7 signature, evidence in ~/.claude/qa-evidence/2026-08-17.png'.",
+      "expected_output": "The anti-pattern scan flags each term the acme profile lists as internal vocabulary (a skill name, private decision numbering, a ~/.claude/ path), quotes them, and proposes impersonal rewrites ('raised by the pre-PR review', 'needs a human signature before merge', the evidence described or linked where others can open it) before the preview.",
+      "assertions": [
+        "Skill flagged 'flow-confidence-check', 'D7' and the ~/.claude/ path before previewing",
+        "Skill proposed a rewrite for each that names the activity, not the tool or number",
+        "Final preview contains none of the flagged terms"
+      ],
+      "files": []
+    }
+  ]
+}

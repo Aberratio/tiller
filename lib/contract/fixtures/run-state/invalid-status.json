@@ -1,0 +1,14 @@
+{
+  "runId": "r",
+  "profile": "example",
+  "ticket": "ABC-12",
+  "status": "done",
+  "counters": {
+    "fixRounds": 0,
+    "ciFix": 0,
+    "confidencePasses": 0,
+    "rebase": 0,
+    "resumes": 0
+  },
+  "updatedAt": "2026-09-28T10:00:00Z"
+}

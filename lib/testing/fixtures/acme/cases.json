@@ -1,0 +1,23 @@
+{
+  "cases": [
+    { "path": "client-new/packages/practice/src/WidgetPractice.tsx", "who": "human" },
+    { "path": "client-new/packages/practice/src/rep-counting/counter.ts", "who": "human" },
+    { "path": "client-new/packages/practice/src/theme/colors.ts", "who": "agent" },
+    { "path": "client-new/packages/practice/scripts/build.mjs", "who": "agent" },
+    { "path": "client-new/lib/pose/angles.ts", "who": "human" },
+    { "path": "client-new/scripts/accuracy-check.mjs", "who": "human" },
+    { "path": "client/lib/legacy.js", "who": "human" },
+    { "path": "client-new/src/App.tsx", "who": "agent" },
+    { "path": "server-new/src/index.ts", "who": "agent" },
+    { "path": "server/app.py", "who": "agent" },
+    { "path": ".github/workflows/ci.yml", "who": "agent" },
+    { "path": "validation/baseline.json", "who": "human" },
+    { "path": "validation/references/squat.json", "who": "human" },
+    { "path": "validation/recordings/a.mp4", "who": "human" },
+    { "path": "docs/compliance/soup-inventory.md", "who": "human" },
+    { "path": "docs/decisions/ABC-1.md", "who": "agent" },
+    { "path": "docs/plans/x.md", "who": "human" },
+    { "path": "docker-compose.yml", "who": "human" },
+    { "path": "swagger.yaml", "who": "human" }
+  ]
+}

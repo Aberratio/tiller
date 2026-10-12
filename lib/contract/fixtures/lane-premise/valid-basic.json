@@ -1,0 +1,5 @@
+{
+  "verdict": "holds",
+  "evidence": "git branch --merged main: branch absent",
+  "awaiting": []
+}

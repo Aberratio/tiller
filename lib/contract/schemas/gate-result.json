@@ -1,0 +1,73 @@
+{
+  "$id": "gate-result",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "headSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$"
+    },
+    "authority": {
+      "type": "string",
+      "enum": [
+        "agent",
+        "human",
+        "unconfirmed"
+      ],
+      "description": "strictest authority over the touched paths"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "green",
+              "red",
+              "blocked"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "state",
+          "source",
+          "evidence"
+        ]
+      }
+    },
+    "humanPaths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "touched paths whose authority is not agent"
+    },
+    "mergeAllowed": {
+      "type": "boolean"
+    },
+    "readyToSign": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "headSha",
+    "authority",
+    "conditions",
+    "humanPaths",
+    "mergeAllowed",
+    "readyToSign"
+  ]
+}

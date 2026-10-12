@@ -1,0 +1,15 @@
+{
+  "ok": false,
+  "headSha": "4a88dc64",
+  "commits": [],
+  "testCommand": "npm test",
+  "testResult": "not run",
+  "awaiting": [
+    {
+      "kind": "harness-blocked",
+      "question": "The container test run was refused",
+      "why": "Permission to use Bash has been denied.",
+      "blocks": "implement phase"
+    }
+  ]
+}

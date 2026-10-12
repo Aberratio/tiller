@@ -1,0 +1,5 @@
+{
+  "status": "refused",
+  "kind": "duplicate",
+  "reason": "ABC-12 already has PR #41 (OPEN) on abc-12-earlier"
+}

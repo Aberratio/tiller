@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "models": {
+    "strong": { "runtime": "claude", "status": "active", "contextWindow": 1000000, "priceUsdPerMtok": { "in": 4, "out": 20 },
+      "features": { "structuredOutput": "schema", "toolUse": true }, "dataPolicy": "no-train", "pinnedLanes": ["implement"],
+      "capability": { "judgment": { "score": 0.95, "evalRun": "ev-1", "n": 100 }, "premise": { "score": 0.9, "evalRun": "ev-1", "n": 30 }, "prose": { "score": 0.9, "evalRun": "ev-1", "n": 30 } } },
+    "mid": { "runtime": "claude", "status": "active", "contextWindow": 1000000, "priceUsdPerMtok": { "in": 2, "out": 10 },
+      "features": { "structuredOutput": "schema", "toolUse": true }, "dataPolicy": "no-train", "pinnedLanes": [],
+      "capability": { "judgment": { "score": 0.99, "evalRun": "ev-1", "n": 100 }, "premise": { "score": 0.8, "evalRun": "ev-1", "n": 30 }, "prose": { "score": 0.8, "evalRun": "ev-1", "n": 30 } } },
+    "cheap": { "runtime": "claude", "status": "active", "contextWindow": 200000, "priceUsdPerMtok": { "in": 1, "out": 5 },
+      "features": { "structuredOutput": "schema", "toolUse": true }, "dataPolicy": "no-train", "pinnedLanes": [],
+      "capability": { "premise": { "score": 0.72, "evalRun": "ev-1", "n": 30 }, "prose": { "score": 0.7, "evalRun": "ev-1", "n": 30 } } },
+    "local": { "runtime": "openai-compat", "status": "trial", "contextWindow": 128000, "priceUsdPerMtok": { "in": 0.1, "out": 0.1 },
+      "features": { "structuredOutput": "json-mode", "toolUse": false }, "dataPolicy": "local", "pinnedLanes": [],
+      "capability": { "prose": { "score": 0.75, "evalRun": "ev-1", "n": 30 } } }
+  }
+}

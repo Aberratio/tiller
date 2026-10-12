@@ -1,0 +1,1 @@
+refused: compound command is not permitted, single command would pass

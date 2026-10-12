@@ -1,0 +1,1 @@
+{"issues":{"nodes":[{"key":"FIX-1","fields":{"status":{"name":"Done","statusCategory":{"key":"done"}}}},{"key":"FIX-2","fields":{"status":{"name":"In Progress","statusCategory":{"key":"indeterminate"}}}},{"key":"FIX-3","fields":{"status":{"name":"Won't Do","statusCategory":{"key":"done"}}}},{"key":"FIX-4","fields":{"status":{"name":"Done","statusCategory":{"key":"done"}}}}]}}

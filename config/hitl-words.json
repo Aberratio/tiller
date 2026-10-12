@@ -1,0 +1,7 @@
+{
+  "stopwords": {
+    "en": ["the", "is", "are", "of", "and", "on", "in", "by", "its", "was", "be", "it", "this", "that", "with", "for", "not", "has", "have", "should", "will", "your", "you", "after", "before", "when", "stays", "which", "from"],
+    "pl": ["i", "w", "na", "nie", "się", "jest", "z", "do", "że", "czy", "jak", "po", "za", "od", "ale", "już", "tak", "który", "która", "które", "są", "być", "został", "została", "ten", "ta"]
+  },
+  "stateWords": ["stays?", "remains?", "waits?", "parks?", "parked", "open", "closed?", "merged?", "blocked", "paused", "stops?", "stopped", "expires?", "continues?", "behind", "cancell?ed", "skipped", "draft", "unchanged", "zostaje", "czeka", "otwart\\w*", "zamkni\\w*", "wstrzyman\\w*", "zablokowan\\w*"]
+}

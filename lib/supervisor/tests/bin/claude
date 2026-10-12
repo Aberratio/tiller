@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Stub `claude`: records its arguments, counts calls, then runs the behaviour script the test chose.
+set -u
+n=$(( $(cat "$STUB_DIR/calls" 2>/dev/null || echo 0) + 1 ))
+echo "$n" >"$STUB_DIR/calls"
+printf '%s\0' "$@" >"$STUB_DIR/args-$n"
+export STUB_CALL="$n"
+exec bash "$STUB_BEHAVIOR"

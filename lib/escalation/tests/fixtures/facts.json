@@ -1,0 +1,40 @@
+{
+  "with-proxy": {
+    "profilePath": "/fixture/profile.md",
+    "inviolables": [
+      "**Data minimisation.** Personal data the product collects is never logged, exported or kept past its use. Source: `docs/privacy.md`",
+      "**Access gates.** Never weaken a condition that decides whether a feature is available in order to make something pass. Source: `docs/security.md`"
+    ],
+    "ownerProxy": {
+      "role": "flow-owner-proxy",
+      "mandate": ["start-next-ticket", "approve-peer-step", "lift-cap-once", "undraft-pr"],
+      "hardStopChannels": "every outward channel",
+      "hardStopPaths": "every merge-authority row whose who is not agent"
+    },
+    "dayRunAllowed": true,
+    "escalation": { "doubtLog": "/fixture/doubts.md", "human": "the project owner" }
+  },
+  "no-proxy": {
+    "profilePath": "/fixture/profile.md",
+    "inviolables": [
+      "**Data minimisation.** Personal data the product collects is never logged, exported or kept past its use. Source: `docs/privacy.md`"
+    ],
+    "ownerProxy": null,
+    "dayRunAllowed": false,
+    "escalation": { "doubtLog": "/fixture/doubts.md", "human": "the project owner" }
+  },
+  "decision": {
+    "id": "ABC-12-D1",
+    "runId": "r1",
+    "ticket": "ABC-12",
+    "kind": "question",
+    "status": "open",
+    "question": "Keep the deprecated endpoint or remove it in this ticket?",
+    "options": ["keep it", "remove it"],
+    "recommendation": "keep it",
+    "why": "ticket silent; two callers found by grep",
+    "reversalCost": "low",
+    "blocks": "plan",
+    "at": "2026-09-28T10:00:00Z"
+  }
+}

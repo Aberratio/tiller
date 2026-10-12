@@ -1,0 +1,6 @@
+{
+  "cases": [
+    { "path": "src/app/main.ts", "who": "agent" },
+    { "path": "docs/compliance/report.md", "who": "human" }
+  ]
+}

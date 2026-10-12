@@ -1,0 +1,1 @@
+tool_result_is_error: rate limit hit mid-turn, no backoff attempted

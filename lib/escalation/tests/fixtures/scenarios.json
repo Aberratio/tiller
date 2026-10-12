@@ -1,0 +1,200 @@
+[
+  {
+    "name": "answered from sources: no agent is called",
+    "facts": "with-proxy",
+    "answers": { "source": { "answer": "keep it", "source": "docs/api.md:12" } },
+    "stubs": {},
+    "expect": { "route": "decided", "by": "source-cascade", "calls": [], "status": "resolved" }
+  },
+  {
+    "name": "resolver decides a question",
+    "facts": "with-proxy",
+    "stubs": {
+      "resolver": { "decision": "keep the endpoint", "park": false, "rationale": "two callers; removal is out of scope", "reversalCost": "low: one follow-up ticket", "inviolable": "", "awaiting": [] }
+    },
+    "expect": { "route": "decided", "by": "resolver", "calls": ["resolver"], "status": "resolved", "resolution": "keep the endpoint" }
+  },
+  {
+    "name": "resolver decides with a doubt: the doubt carries the profile's doubt log",
+    "facts": "with-proxy",
+    "stubs": {
+      "resolver": { "decision": "keep the endpoint", "park": false, "rationale": "reading of the ticket only", "reversalCost": "low", "inviolable": "", "doubt": { "why": "rests on interpretation", "settle": "the ticket author's comment" }, "awaiting": [] }
+    },
+    "expect": { "route": "decided", "by": "resolver", "calls": ["resolver"], "doubtLog": "/fixture/doubts.md" }
+  },
+  {
+    "name": "resolver decision needs a mandate the profile grants: proxied",
+    "facts": "with-proxy",
+    "decision": { "kind": "split", "question": "Split the open finding or lift the cap once?", "options": ["split to a follow-up", "lift the cap once"], "recommendation": "lift the cap once" },
+    "stubs": {
+      "resolver": { "decision": "lift the fix cap by one round", "park": false, "rationale": "one two-line finding left", "reversalCost": "low", "inviolable": "", "mandate": "lift-cap-once", "awaiting": [] },
+      "owner-proxy": { "action": "act", "mandate": "lift-cap-once", "step": "lift fixRounds by one for ABC-12", "parkReason": "", "conditions": [{ "condition": "cap not lifted before on this ticket", "met": true, "evidence": "state.mjs counter ABC-12 capLifts -> 0" }], "rationale": "resolver decided; mandate granted", "reversalCost": "one extra fix round", "awaiting": [] }
+    },
+    "expect": { "route": "proxied", "by": "owner-proxy", "calls": ["resolver", "owner-proxy"], "status": "resolved" }
+  },
+  {
+    "name": "a mandate step with no question goes straight to the proxy",
+    "facts": "with-proxy",
+    "decision": null,
+    "step": { "mandate": "start-next-ticket", "what": "start the next queued ticket" },
+    "stubs": {
+      "owner-proxy": { "action": "act", "mandate": "start-next-ticket", "step": "start ABC-13", "parkReason": "", "conditions": [{ "condition": "queue approved", "met": true, "evidence": "state.md: queue approved" }], "rationale": "ABC-12 parked on a signature", "reversalCost": "low", "awaiting": [] }
+    },
+    "expect": { "route": "proxied", "by": "owner-proxy", "calls": ["owner-proxy"] }
+  },
+  {
+    "name": "owner proxy none: a mandate step parks for the human and no action is produced",
+    "facts": "no-proxy",
+    "decision": null,
+    "step": { "mandate": "approve-day-queue" },
+    "stubs": {
+      "owner-proxy": { "action": "act", "mandate": "approve-day-queue", "step": "approve", "parkReason": "", "conditions": [], "rationale": "x", "reversalCost": "x", "awaiting": [] }
+    },
+    "expect": { "route": "parked-human", "calls": [], "reason": "no-proxy", "human": "the project owner" }
+  },
+  {
+    "name": "owner proxy none: a resolver decision needing a mandate parks with the recommendation",
+    "facts": "no-proxy",
+    "decision": { "kind": "split", "question": "Split or lift the cap once?", "options": ["split", "lift the cap once"], "recommendation": "split" },
+    "stubs": {
+      "resolver": { "decision": "lift the cap once", "park": false, "rationale": "r", "reversalCost": "low", "inviolable": "", "mandate": "lift-cap-once", "awaiting": [] }
+    },
+    "expect": { "route": "parked-human", "calls": ["resolver"], "reason": "no-proxy", "status": "open", "recommendation": "lift the cap once" }
+  },
+  {
+    "name": "mandate not in the profile's closed list: parks without calling the proxy",
+    "facts": "with-proxy",
+    "decision": null,
+    "step": { "mandate": "approve-day-queue" },
+    "stubs": {},
+    "expect": { "route": "parked-human", "calls": [], "reason": "not-in-mandate" }
+  },
+  {
+    "name": "owner proxy parks: human",
+    "facts": "with-proxy",
+    "decision": null,
+    "step": { "mandate": "approve-peer-step" },
+    "stubs": {
+      "owner-proxy": { "action": "park", "mandate": "", "step": "approve the peer's force-push", "parkReason": "signature", "conditions": [], "rationale": "the peer step merges a human path", "reversalCost": "none", "awaiting": [] }
+    },
+    "expect": { "route": "parked-human", "calls": ["owner-proxy"], "reason": "signature" }
+  },
+  {
+    "name": "owner proxy acts with an unmet condition: fail closed",
+    "facts": "with-proxy",
+    "decision": null,
+    "step": { "mandate": "undraft-pr" },
+    "validStubs": false,
+    "stubs": {
+      "owner-proxy": { "action": "act", "mandate": "undraft-pr", "step": "gh pr ready", "parkReason": "", "conditions": [{ "condition": "required checks green", "met": false, "evidence": "wait-ci: red" }], "rationale": "x", "reversalCost": "low", "awaiting": [] }
+    },
+    "expect": { "route": "parked-human", "calls": ["owner-proxy"], "reason": "condition-unmet" }
+  },
+  {
+    "name": "owner proxy acts on a different mandate than asked: fail closed",
+    "facts": "with-proxy",
+    "decision": null,
+    "step": { "mandate": "undraft-pr" },
+    "stubs": {
+      "owner-proxy": { "action": "act", "mandate": "start-next-ticket", "step": "start ABC-13", "parkReason": "", "conditions": [], "rationale": "x", "reversalCost": "low", "awaiting": [] }
+    },
+    "expect": { "route": "parked-human", "calls": ["owner-proxy"], "reason": "asked for" }
+  },
+  {
+    "name": "outward channel is a hard stop even inside the mandate",
+    "facts": "with-proxy",
+    "decision": null,
+    "step": { "mandate": "approve-peer-step", "channel": "chat-send" },
+    "stubs": {},
+    "expect": { "route": "parked-human", "calls": [], "reason": "hard-stop channel" }
+  },
+  {
+    "name": "merge on a path whose authority is not agent: ready to sign",
+    "facts": "with-proxy",
+    "decision": null,
+    "step": { "mandate": "approve-peer-step", "authority": "human" },
+    "stubs": {},
+    "expect": { "route": "ready-to-sign", "calls": [], "human": "the project owner" }
+  },
+  {
+    "name": "unconfirmed authority is treated as human",
+    "facts": "with-proxy",
+    "decision": null,
+    "step": { "mandate": "approve-peer-step", "authority": "unconfirmed" },
+    "stubs": {},
+    "expect": { "route": "ready-to-sign", "calls": [] }
+  },
+  {
+    "name": "merging someone else's PR parks",
+    "facts": "with-proxy",
+    "decision": null,
+    "step": { "mandate": "approve-peer-step", "foreignPr": true },
+    "stubs": {},
+    "expect": { "route": "parked-human", "calls": [], "reason": "someone else" }
+  },
+  {
+    "name": "ready-to-sign kind goes to the signature list, not the chain",
+    "facts": "with-proxy",
+    "decision": { "kind": "ready-to-sign", "question": "PR #7 touches a signature path", "options": ["sign", "close"], "recommendation": "sign" },
+    "stubs": {},
+    "expect": { "route": "ready-to-sign", "calls": [] }
+  },
+  {
+    "name": "harness block: never escalated, never a question",
+    "facts": "with-proxy",
+    "decision": { "kind": "harness-blocked", "question": "gh pr merge refused", "why": "Permission denied: Bash(gh pr merge:*)", "options": ["retry", "skip"], "recommendation": "retry", "reversalCost": "none" },
+    "stubs": {
+      "resolver": { "decision": "retry", "park": false, "rationale": "x", "reversalCost": "none", "inviolable": "", "awaiting": [] }
+    },
+    "expect": { "route": "no-escalation", "calls": [], "human": null, "noOptions": true }
+  },
+  {
+    "name": "usage limit: a pause, never escalated",
+    "facts": "with-proxy",
+    "decision": { "kind": "usage-limit", "question": "usage window exhausted", "why": "limit reached, resets 15:00" },
+    "stubs": {},
+    "expect": { "route": "no-escalation", "calls": [] }
+  },
+  {
+    "name": "resolver itself hits a harness block: listed, not handed to the proxy or the human",
+    "facts": "with-proxy",
+    "stubs": {
+      "resolver": { "decision": "", "park": true, "rationale": "search tool refused", "reversalCost": "none", "inviolable": "", "awaiting": [{ "kind": "harness-blocked", "question": "tracker search refused", "why": "Permission denied: tracker search", "blocks": "resolver research" }] }
+    },
+    "expect": { "route": "no-escalation", "calls": ["resolver"], "human": null, "harnessBlock": true }
+  },
+  {
+    "name": "question touching a declared inviolable parks",
+    "facts": "with-proxy",
+    "decision": { "question": "Log the request body to debug the flaky test?", "options": ["log it", "use a fixture"], "recommendation": "use a fixture" },
+    "stubs": {
+      "resolver": { "decision": "use a synthetic fixture instead", "park": true, "rationale": "logging the body records personal data", "reversalCost": "none", "inviolable": "Data minimisation", "awaiting": [] }
+    },
+    "expect": { "route": "inviolable-park", "calls": ["resolver"], "reason": "inviolable: Data minimisation", "notReason": "not declared", "status": "open", "recommendation": "use a synthetic fixture instead", "human": "the project owner" }
+  },
+  {
+    "name": "inviolable the profile does not declare still parks, and says so",
+    "facts": "no-proxy",
+    "stubs": {
+      "resolver": { "decision": "", "park": true, "rationale": "r", "reversalCost": "none", "inviolable": "Access gates", "awaiting": [] }
+    },
+    "expect": { "route": "inviolable-park", "calls": ["resolver"], "reason": "not declared" }
+  },
+  {
+    "name": "resolver names an inviolable but claims no park: parked anyway",
+    "facts": "with-proxy",
+    "validStubs": false,
+    "stubs": {
+      "resolver": { "decision": "loosen the feature flag check", "park": false, "rationale": "r", "reversalCost": "low", "inviolable": "Access gates", "awaiting": [] }
+    },
+    "expect": { "route": "inviolable-park", "calls": ["resolver"] }
+  },
+  {
+    "name": "resolver parks on a signature: human, with the recommendation ready",
+    "facts": "with-proxy",
+    "stubs": {
+      "resolver": { "decision": "keep it", "park": true, "rationale": "the change needs a named signer", "reversalCost": "none", "inviolable": "", "awaiting": [] }
+    },
+    "expect": { "route": "parked-human", "calls": ["resolver"], "reason": "resolver parked", "recommendation": "keep it" }
+  }
+]

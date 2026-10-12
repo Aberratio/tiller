@@ -1,0 +1,18 @@
+{
+  "ticket": "ABC-102",
+  "kind": "question",
+  "key": "pr:1",
+  "question": "Sign and merge the ABC-102 PR (plan:1)",
+  "why": "decisions.jsonl plan:1 status open. The branch now contains no app/lib change: the resolver re-scoped AC3, and AC2 is recorded as not met for <REDACTED> (gate 187 vs 65). With no core change, the D7 signature premise is moot and only an agent-path ledger remains.",
+  "blocks": "Merge only; not undraft",
+  "recommendation": "Re-word or close plan:1 as moot: the PR is ledger-only, merge authority is agent (D7.3), but the owner should see that AC2/AC3 ship as not-met/re-scoped before merge.",
+  "options": [
+    "no option offered by the lane",
+    "no second option offered by the lane"
+  ],
+  "reversalCost": "not stated by the lane",
+  "runId": "day-2026-10-07-sts",
+  "status": "open",
+  "at": "2026-10-07T07:44:51Z",
+  "id": "ABC-102-D2"
+}

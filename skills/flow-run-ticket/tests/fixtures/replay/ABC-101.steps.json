@@ -1,0 +1,973 @@
+{
+ "ticket": "ABC-101",
+ "runId": "ABC-101-2026-09-30",
+ "source": "node-steps",
+ "counts": {
+  "steps": 57,
+  "lanes": 16,
+  "execs": 25,
+  "liveInReplay": 16
+ },
+ "lanes": [
+  {
+   "key": "premise:premise:",
+   "occurrence": 1,
+   "result": {
+    "verdict": "holds",
+    "evidence": "All five factual premises of ABC-101 verified against the repo:\n\n1. API refuses null on non-nullable rows with 422 (post-ABC-103): api-app/app/services/configs/validate_overrides.rb:41 — `return (entry.limit.nullable ? nil : NOT_NULLABLE) if value.nil?`; introduced in commit 9df82882 \"[ABC-103…",
+    "awaiting": []
+   }
+  },
+  {
+   "key": "premise:premise:",
+   "occurrence": 2,
+   "result": {
+    "verdict": "holds",
+    "evidence": "transitionJiraIssue(ABC-101, transition 21 \"In Progress\") succeeded; response fields.status = {\"name\":\"In Progress\",\"id\":\"10085\"}. Confirmed via the transition response itself, no separate re-fetch needed.",
+    "awaiting": []
+   }
+  },
+  {
+   "key": "plan:plan:",
+   "occurrence": 1,
+   "result": {
+    "ok": true,
+    "ticketKind": "code",
+    "premiseVerdict": "holds",
+    "planPath": "docs/plans/ABC-101-no-value-only-where-nullable.md",
+    "planSummary": "The CMS config editor's `choice` rows append a \"no value\" option unconditionally, on a comment asserting the API accepts null at any path — false since ABC-103, which refuses an authored null on every row whose limit is not declared nullable (422, \"<path> cannot be null\"). The API already answers t…",
+    "authorisedFiles": [
+     "client-new/src/features/configuration/api.ts",
+     "client-new/src/features/configuration/values.ts",
+     "client-new/src/features/configuration/values.test.ts",
+     "client-new/src/features/configuration/ValueRows.tsx",
+     "client-new/src/features/configuration/useConfigurationEditor.ts",
+     "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx",
+     "docs/plans/ABC-101-no-value-only-where-nullable.md",
+     "docs/decisions/ABC-101.md"
+    ],
+    "awaiting": [],
+    "questions": [],
+    "premiseEvidence": "Verified in the worktree at base c7defcee. (1) api-app/app/services/configs/validate_overrides.rb:41 `return (entry.limit.nullable ? nil : NOT_NULLABLE) if value.nil?`, NOT_NULLABLE = \"cannot be null\" (line 11). (2) api-app/app/serializers/exercise_reference_configuration_serializer.rb:47 `bod…",
+    "notes": "No ruling for ABC-101 in decisions.jsonl (grep on the ticket key returned nothing), so nothing was carried in. Plan and ledger written untracked in the worktree; git status shows only those two files. Nine ledger lines (premise, D1–D7, AC3 scope), all tagged `spec`, autonomous defaults marked `self…"
+   }
+  },
+  {
+   "key": "implement:implement:",
+   "occurrence": 1,
+   "result": {
+    "ok": true,
+    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "commits": [
+     "78f1b802 [ABC-101] fix(configuration): offer \"no value\" only where the limit is nullable",
+     "4b72dc1a [ABC-101] docs(configuration): record the plan and the branch decisions"
+    ],
+    "testCommand": "cd web-app && node node_modules/vitest/vitest.mjs run src/features/configuration/values.test.ts 'src/routes/exercise-references_.$referenceId_.configuration.test.tsx'",
+    "testResult": "pass",
+    "awaiting": [],
+    "notes": "Red→green→refactor per the plan. Step 1 allowsNull in values.ts + unit tests; step 2 nullable?: true on ConfigurationLimit (typecheck clean); step 3 option list narrowed in ValueRows.tsx with working_side fixtures gaining nullable: true (D5); step 4 both stale comments corrected (AC3). Gates on host…"
+   }
+  },
+  {
+   "key": "review:review-axis:axis:standards",
+   "occurrence": 1,
+   "result": {
+    "axis": "standards",
+    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "skipped": false,
+    "findings": [
+     {
+      "id": "STD-1",
+      "axis": "standards",
+      "severity": "low",
+      "summary": "Redundant new route test: the existing \"authors the null as a value\" case already fails if the \"no value\" option is absent, so the added green case pins nothing new.",
+      "locations": [
+       "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:253",
+       "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:213"
+      ],
+      "source": "code"
+     },
+     {
+      "id": "STD-2",
+      "axis": "standards",
+      "severity": "low",
+      "summary": "Misleading boolean at the call site: withSide('left', true) sets `authored`, but the test it feeds is named for the limit declaring itself nullable, which comes from the helper's hard-coded fixture instead.",
+      "locations": [
+       "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:254",
+       "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:176"
+      ],
+      "source": "code"
+     },
+     {
+      "id": "STD-3",
+      "axis": "standards",
+      "severity": "low",
+      "summary": "allowsNull's docstring opens by restating the function name; root CLAUDE.md asks to delete a comment saying what the code already says and keep only the non-obvious why (the second sentence).",
+      "locations": [
+       "client-new/src/features/configuration/values.ts:81-86"
+      ],
+      "source": "code"
+     }
+    ],
+    "report": "Standards axis on main..4b72dc1a. Sources read: root CLAUDE.md (code comments, testing hygiene), client-new/CLAUDE.md (API layer, testing), the branch ledger and the plan, plus the smell baseline.\n\nPrecedent check: the diff adds one trust-boundary read (`limit.nullable` off an API payload). This app…",
+    "awaiting": [],
+    "questions": [],
+    "notes": "No rulings from decisions.jsonl applied — none for ABC-101 bore on the standards axis. All three findings are cosmetic/test-hygiene; none blocks the merge, and STD-1 and STD-2 have a single combined fix (delete the redundant test)."
+   }
+  },
+  {
+   "key": "review:review-axis:axis:spec",
+   "occurrence": 1,
+   "result": {
+    "axis": "spec",
+    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "skipped": false,
+    "findings": [
+     {
+      "id": "SPEC-1",
+      "axis": "spec",
+      "severity": "low",
+      "summary": "The new non-nullable route-test fixture invents a registry path and allowed set the API can never emit (`schema.pacing.profile`, `['steady','ramped']`), against the branch's own D5 rule that fixtures are made accurate rather than convenient.",
+      "locations": [
+       "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:248-259"
+      ]
+     },
+     {
+      "id": "SPEC-2",
+      "axis": "spec",
+      "severity": "low",
+      "summary": "A non-nullable choice row whose value in force is null now renders as a blank Select instead of 'no value' — the exact regression the sibling test 'names the null rather than showing an empty input' pins for nullable rows; declared out of scope by D3 and its unreachability claim verified against the…",
+      "locations": [
+       "client-new/src/features/configuration/ValueRows.tsx:156-161"
+      ]
+     }
+    ],
+    "report": "Spec axis, `main..4b72dc1a`, against ABC-101 (fetched from Jira) plus the nine spec lines of `docs/decisions/ABC-101.md` and the plan.\n\n**(a) Missing or partial requirements — none.** All three ACs land.\n- AC1 (\"on a row whose limit is not nullable, the editor does not offer 'no value'…",
+    "awaiting": [],
+    "questions": [],
+    "notes": "No ruling for ABC-101 in decisions.jsonl (grep on the ticket key returned nothing), so nothing was carried in. Ticket text fetched live from Jira rather than assumed. Static checks were taken as given per the brief and nothing they cover is reported."
+   }
+  },
+  {
+   "key": "pr:pr-description:",
+   "occurrence": 1,
+   "result": {
+    "title": "Offer \"no value\" only where the limit is nullable",
+    "body": "## Description\n\nThe configuration editor's choice rows offered an explicit \"no value\" option on every row, but the API only accepts an authored null where the row's limit declares itself nullable — elsewhere it refuses the write. The editor now reads that flag from the limit and hides the option on …",
+    "notes": "Prose-only deliverable per task instructions: title and body for a PR covering main..4b72dc1a on branch ABC-101-run-50225d8d, produced via the flow-create-pull-request skill's Step 6/7 (why-focused description, ≤15 lines, no attribution, no first person). No push or `gh pr create` was run, per the ex…",
+    "awaiting": []
+   }
+  },
+  {
+   "key": "pr:owner-proxy:",
+   "occurrence": 1,
+   "result": {
+    "action": "act",
+    "mandate": "undraft-pr",
+    "step": "Mark PR example-org/acme-web#231 ready for review with `gh pr ready 231`.",
+    "parkReason": "",
+    "conditions": [
+     {
+      "condition": "PR #231 exists, is a draft, and its head is the SHA named in the mandate",
+      "met": true,
+      "evidence": "gh pr view 231 --json ... -> {\"isDraft\":true,\"headRefOid\":\"4b72dc1a31ee1f95851f3527658a37ebc109a0d4\",\"baseRefName\":\"main\",\"mergeable\":\"MERGEABLE\"}"
+     },
+     {
+      "condition": "Un-drafting in example-org/acme-web is a standing permission and needs no per-PR ask",
+      "met": true,
+      "evidence": "CLAUDE.md skill-routing section: \"`gh pr ready` in `example-org/acme-web` is a standing permission and never waits for a per-PR ask; un-drafting is not merging, every signature gate still applies.\""
+     },
+     {
+      "condition": "No inviolable path is touched by the diff",
+      "met": true,
+      "evidence": "gh pr diff 231 --name-only -> client-new/src/features/configuration/{ValueRows.tsx,api.ts,values.test.ts,values.ts}, client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx, docs/plans/ABC-101-no-value-only-where-nullable.md, docs/decisions/ABC-101.md. No client…"
+     },
+     {
+      "condition": "This run's decisions file holds no binding ruling to carry out",
+      "met": true,
+      "evidence": "grep on <ROOT>/decisions.jsonl -> \"No such file or directory\"; ls of that directory confirms the file is absent."
+     },
+     {
+      "condition": "CI on the head SHA is green",
+      "met": false,
+      "evidence": "statusCheckRollup at 4b72dc1a: CodeRabbit SUCCESS, three \"Detect relevant changes\" SUCCESS, Rails/accuracy jobs SKIPPED, but \"Frontend - lint, typecheck, test and build\" status IN_PROGRESS. Undraft does not gate on this; merge does."
+     },
+     {
+      "condition": "Step executed and verified",
+      "met": true,
+      "evidence": "gh pr ready 231 -> \"✓ Pull request example-org/acme-web#231 is marked as \\\"ready for review\\\"\", exit=0; re-read gh pr view 231 -> {\"isDraft\":false,\"headRefOid\":\"4b72dc1a31ee1f95851f3527658a37ebc109a0d4\"}"
+     }
+    ],
+    "rationale": "The mandate step is exactly the one CLAUDE.md grants as a standing permission for this repo, so no proxy judgement was needed beyond checking that the object is what the mandate says it is: PR #231 was a draft, its head was the mandated SHA, and the diff touches only client-new/src/** and docs/**, n…",
+    "reversalCost": "Near zero and one command: `gh pr convert-to-draft 231` puts it back. No code, branch or Jira state changed; the head SHA is unchanged. The only outward effect is that reviewers and CodeRabbit now see the PR as open for review.",
+    "awaiting": [
+     {
+      "kind": "harness-blocked",
+      "question": "Read the run profile $TILLER_HOME/profiles/acme/profile.md and the flow-owner-proxy skill to confirm no profile-specific precondition applies to this step.",
+      "why": "Two blocks, neither routable: (1) `Skill(flow-owner-proxy)` -> \"Unknown skill: flow-owner-proxy\" — the skill is not installed under ~/.claude/skills/. (2) `cat \"$TILLER_HOME/profiles/acme/profile.md\"` -> \"Operation not permitted\"; the Bash sandbox filesystem policy denies reads under ~ outside…",
+      "blocks": "Nothing in this step — it proceeded on the CLAUDE.md standing permission for `gh pr ready` in example-org/acme-web. It would block any profile-specific precondition that exists only in that file and is not restated in CLAUDE.md or the mandate."
+     }
+    ],
+    "questions": [],
+    "notes": "No ruling id to name: decisions.jsonl for this run does not exist, so no binding ruling was in force. The PR is now ready for review at 4b72dc1a; the merge gate downstream still needs the frontend CI job to finish green, and under the merge authority rules the touched paths (client-new/src/**, docs/superpowers/decisi…"
+   }
+  },
+  {
+   "key": "pr:owner-proxy:",
+   "occurrence": 2,
+   "result": {
+    "action": "act",
+    "mandate": "undraft-pr",
+    "step": "Take no action: PR example-org/acme-web#231 at 4b72dc1a is already out of draft, so the undraft-pr mandate step is already satisfied.",
+    "parkReason": "",
+    "conditions": [
+     {
+      "condition": "The mandate step is within a standing permission",
+      "met": true,
+      "evidence": "the owner's global instructions: \"`gh pr ready` in `example-org/acme-web` is a standing permission and never waits for a per-PR ask; un-drafting is not merging, every signature gate still applies.\""
+     },
+     {
+      "condition": "PR #231 head SHA matches the briefed SHA",
+      "met": true,
+      "evidence": "gh pr view 231 --json headRefOid -> 4b72dc1a31ee1f95851f3527658a37ebc109a0d4, identical to the brief"
+     },
+     {
+      "condition": "PR #231 is still a draft (i.e. the step has work to do)",
+      "met": false,
+      "evidence": "gh pr view 231 --json isDraft -> false; timeline: ready_for_review 2026-09-30T13:17:03Z by the-author. No convert_to_draft event follows."
+     },
+     {
+      "condition": "This run's rulings file exists and was consulted",
+      "met": false,
+      "evidence": "grep ABC-101 <ROOT>/decisions.jsonl -> \"No such file or directory\"; the file is absent from the run-state directory listing."
+     },
+     {
+      "condition": "The named skill and profile are loadable",
+      "met": false,
+      "evidence": "Skill(flow-owner-proxy) -> \"Unknown skill: flow-owner-proxy\"; ls '~/Other Repos/' -> \"Operation not permitted\", so profiles/profile.md could not be read."
+     },
+     {
+      "condition": "Nothing in the step touches an inviolable",
+      "met": true,
+      "evidence": "The step is a GitHub draft-state flip on an already-open PR: no compliance doc, baseline, access gate, dependency or clinical claim is involved."
+     }
+    ],
+    "rationale": "undraft-pr in example-org/acme-web is a standing permission in CLAUDE.md, so the mandate itself carried. Checking state before acting showed the PR was readied for review at 13:17:03Z on the same SHA the brief names, so running `gh pr ready` would change nothing and would only add noise to the PR timeli…",
+    "reversalCost": "Zero — no state was changed. Had the PR still been a draft, `gh pr ready` would have been reversible in one command (`gh pr ready --undo`), costing only a notification to reviewers.",
+    "awaiting": [
+     {
+      "kind": "premise",
+      "question": "The brief names a skill (`flow-owner-proxy`), a profile file and a rulings file that do not exist or are unreadable in this environment — should the run's dispatcher be corrected?",
+      "why": "Skill(flow-owner-proxy) returned \"Unknown skill: flow-owner-proxy\"; `ls '~/Other Repos/'` returned \"Operation not permitted\" so $TILLER_HOME/profiles/acme/profile.md was unreadable; grep on <ROOT>/decisions.jsonl returned \"No such file or directory\".",
+      "blocks": "Nothing on this step, which was a no-op. It would block any future step in this run that depends on a binding ruling, since no rulings can be read."
+     }
+    ],
+    "questions": [],
+    "notes": "No ruling ids to name: the rulings file for this run is absent. PR #231 title \"Offer \\\"no value\\\" only where the limit is nullable\"; head branch ABC-101-run-50225d8d; mergeable MERGEABLE; reviewDecision empty (no review submitted on GitHub). At the time of checking, `Frontend - lint, typecheck,…"
+   }
+  },
+  {
+   "key": "confidence:confidence-dim:dim:spec-coverage",
+   "occurrence": 1,
+   "result": {
+    "dimension": "spec-coverage",
+    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "acCoverage": [
+     {
+      "ac": "AC1: On a row whose limit is not nullable, the editor does not offer \"no value\", or, if it does, the refusal returned by the API is shown next to that row.",
+      "status": "covered",
+      "evidence": "client-new/src/features/configuration/ValueRows.tsx:159 gates the option on allowsNull(row.limit); predicate at client-new/src/features/configuration/values.ts:85 (limit.nullable === true). First disjunct taken (ledger D1). The choice branch is the only null-authoring surface: NO_VALUE occurs only a…"
+     },
+     {
+      "ac": "AC2: Rows whose limit is nullable keep offering \"no value\", and choosing it still saves.",
+      "status": "covered",
+      "evidence": "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:234-240 asserts the option is offered on a nullable:true row; the pre-existing save test at :214-231 (fixture gains nullable:true at :187) asserts the PUT body still carries {path: 'schema.prerequisites.start_position.wo…"
+     },
+     {
+      "ac": "AC3: Any in-code comment that still says every row accepts null is corrected.",
+      "status": "covered",
+      "evidence": "client-new/src/features/configuration/ValueRows.tsx:147-150 and client-new/src/features/configuration/api.ts:115-116 rewritten to scope null to nullable limits. Swept client-new/src/features/configuration/** and api-app/app/services/configs/** plus the serializer: no remaining comment asserts nul…"
+     }
+    ],
+    "findings": [
+     {
+      "id": "SPEC-1",
+      "axis": "spec-coverage",
+      "severity": "low",
+      "summary": "The new non-nullable route-test fixture invents a registry path and allowed set (schema.pacing.profile / ['steady','ramped']); the real non-nullable choice row in that group is schema.prerequisites.adaptation.speed_profile with ['normal','slow'], and the working_side fixture beside it uses real regi…",
+      "locations": [
+       "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:247-262",
+       "api-app/app/services/configs/editable_value_declarations.rb:80-81"
+      ],
+      "source": "code"
+     }
+    ],
+    "report": "All three acceptance criteria of ABC-101 are covered by main..4b72dc1a.\n\nAC1 is satisfied by the \"do not offer\" disjunct rather than the \"show the refusal\" one (ledger D1, overridable). The gate lives in one place — `allowsNull(limit)` in `values.ts:85`, read at `ValueRows.tsx:159` — and the `choic…",
+    "awaiting": [],
+    "questions": [],
+    "notes": "Dimension run as spec-alignment per references/subagent-prompts.md. No binding ruling applied: grep on decisions.jsonl for ABC-101 returned two entries (ABC-101-D1, ABC-101-D2), both status \"open\" with empty resolution, and neither bears on spec coverage. Branch ledger docs/decisions/…"
+   }
+  },
+  {
+   "key": "confidence:confidence-dim:dim:correctness",
+   "occurrence": 1,
+   "result": {
+    "dimension": "correctness",
+    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "findings": [
+     {
+      "id": "CORR-1",
+      "axis": "correctness",
+      "severity": "low",
+      "source": "code",
+      "summary": "The new negative route test invents a registry path that does not exist: `schema.pacing.profile` with allowed `steady|ramped`. The real non-nullable pacing row is `schema.prerequisites.adaptation.speed_profile` with allowed `normal|slow` (editable_value_declarations.rb:80-81). The assertion still ho…",
+      "locations": [
+       "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:243-256"
+      ]
+     },
+     {
+      "id": "CORR-2",
+      "axis": "correctness",
+      "severity": "low",
+      "source": "code",
+      "summary": "Ledger-declared (D3), residual risk only, no fix expected: a non-nullable choice row whose value in force is null now renders as an empty Select, because `valueOption(null)` returns NO_VALUE and that option is no longer in `data`. The row then reads as \"no override\" while the draft still holds a nul…",
+      "locations": [
+       "client-new/src/features/configuration/ValueRows.tsx:161",
+       "client-new/src/features/configuration/ValueRows.tsx:131-132"
+      ]
+     }
+    ],
+    "acCoverage": [
+     {
+      "ac": "AC1 — on a non-nullable row the editor does not offer \"no value\"",
+      "status": "covered",
+      "evidence": "client-new/src/features/configuration/ValueRows.tsx:159 gates the option on `allowsNull(row.limit)`; the predicate is `limit.nullable === true` (values.ts:87) and matches the server rule at api-app/app/services/configs/validate_overrides.rb:41. Pinned by client-new/src/routes/exercise-references_…"
+     },
+     {
+      "ac": "AC2 — nullable rows keep offering \"no value\", and choosing it still saves",
+      "status": "covered",
+      "evidence": "exercise-references_.$referenceId_.configuration.test.tsx:233-239 asserts the option is present on a `nullable: true` row; the pre-existing save test at :214-231 (fixture now carrying `nullable: true`, per ledger D5, which is accurate against editable_value_declarations.rb:60 for `working_side`) sti…"
+     },
+     {
+      "ac": "AC3 — any in-code comment saying every row accepts null is corrected",
+      "status": "covered",
+      "evidence": "ValueRows.tsx:147-150 and api.ts:114-116 now state the rule conditionally; the new predicate carries its own doc comment at values.ts:81-86. Spot-checked the two the plan left alone and both already state the rule correctly: values.ts `outside()` and api-app/app/services/configs/author_overrides.…"
+     }
+    ],
+    "findings_note": "n/a",
+    "report": "Correctness pass over main..4b72dc1a (5 reviewable files, 89 added lines in web-app). No blocker and no high.\n\nThe change is sound. `allowsNull` restates the API's rule exactly rather than approximating it: the client predicate is `limit.nullable === true`, the serializer emits `nullable` only wh…",
+    "awaiting": [],
+    "questions": [],
+    "notes": "No binding ruling applied: both entries for ABC-101 in <ROOT>/decisions.jsonl (ABC-101-D1, ABC-101-D2) are status \"open\" with a null resolution. The branch ledger docs/decisions/ABC-101.md was read and its declarations D1-D7 were honoured: D3 and D4 are reported as a single low note …"
+   }
+  },
+  {
+   "key": "confidence:confidence-dim:dim:regression-risk",
+   "occurrence": 1,
+   "result": {
+    "dimension": "regression-risk",
+    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "findings": [
+     {
+      "id": "REG-1",
+      "axis": "regression-risk",
+      "severity": "low",
+      "summary": "A non-nullable choice row whose value in force is already null now renders as a blank Select instead of showing \"no value\", with nothing telling the author whether the row is null or simply unset.",
+      "locations": [
+       "client-new/src/features/configuration/ValueRows.tsx:159",
+       "client-new/src/features/configuration/ValueRows.tsx:161"
+      ],
+      "source": "code"
+     },
+     {
+      "id": "REG-2",
+      "axis": "regression-risk",
+      "severity": "low",
+      "summary": "Change-history restore() can still put a recorded authored null onto a non-nullable row, so the state this ticket removes from the editor stays reachable and still ends in the unattributed page-level \"Nothing was saved\" refusal.",
+      "locations": [
+       "client-new/src/features/configuration/useConfigurationEditor.ts:154",
+       "client-new/src/features/configuration/ChangeHistory.tsx:89"
+      ],
+      "source": "code"
+     },
+     {
+      "id": "REG-3",
+      "axis": "regression-risk",
+      "severity": "low",
+      "summary": "The route test's describe-block comment still states the pre-ABC-103 rule (\"null is a value the API accepts\"), the same stale claim AC3 corrects two files away.",
+      "locations": [
+       "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:173"
+      ],
+      "source": "code"
+     }
+    ],
+    "acCoverage": [
+     {
+      "ac": "AC1 — on a non-nullable row the editor does not offer \"no value\"",
+      "status": "covered",
+      "evidence": "ValueRows.tsx:159 appends the option only under allowsNull(row.limit); values.ts:86 states the rule once; pinned red-side by the route test 'offers only the values its limit allows' (exercise-references_.$referenceId_.configuration.test.tsx:265-273, queryByText('no value') toBeNull) and by values.te…"
+     },
+     {
+      "ac": "AC2 — nullable rows keep offering \"no value\", and choosing it still saves",
+      "status": "covered",
+      "evidence": "exercise-references_.$referenceId_.configuration.test.tsx:212-231 still asserts the PUT body carries {path: working_side, value: null} with the fixture now flagged nullable: true (:187), and :233-239 pins the option's presence. Serializer emits the flag for all four nullable choice paths (editable_v…"
+     },
+     {
+      "ac": "AC3 — any in-code comment saying every row accepts null is corrected",
+      "status": "partial",
+      "evidence": "ValueRows.tsx:147-150 and api.ts:114-116 are corrected. The route test's describe comment at exercise-references_.$referenceId_.configuration.test.tsx:173 still reads \"`null` is a value the API accepts\" — defensible as path-scoped (working_side is nullable) but it is the same sentence AC3 removes el…"
+     }
+    ],
+    "report": "Regression-risk review of main..4b72dc1a (PR #231). Verdict: low residual risk, nothing that should hold the branch.\n\nBlast radius is narrow and matches the plan. Five code/test files, all under client-new/src/features/configuration plus one route test; the other two changed paths are docs/plans and…",
+    "awaiting": [],
+    "questions": [],
+    "notes": "No binding ruling applied: decisions.jsonl carries only ABC-101-D1 and ABC-101-D2, both status \"open\" with no resolution. Ledger lines D1-D7 and the three process/test lines were read and used as declared deviations — REG-1 corresponds to D3 and REG-2 to D4, both reported as residual risk rather t…"
+   }
+  },
+  {
+   "key": "confidence:confidence-dim:dim:operability",
+   "occurrence": 1,
+   "result": {
+    "dimension": "operability",
+    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "findings": [
+     {
+      "id": "OPS-1",
+      "axis": "operability",
+      "severity": "medium",
+      "source": "code",
+      "summary": "An override authored as null at a now-non-nullable path — writable on staging between 2026-09-22 (aaebba6e) and 2026-09-25 (9df82882) — is still re-sent by authoredMapFrom on every save and still 422s, but after this change its row renders as a blank Select indistinguishable from an unauthored one, …",
+      "locations": [
+       "client-new/src/features/configuration/ValueRows.tsx:156-161",
+       "client-new/src/features/configuration/values.ts:40-50"
+      ]
+     },
+     {
+      "id": "OPS-2",
+      "axis": "operability",
+      "severity": "low",
+      "source": "code",
+      "summary": "The client now depends on a field the API may stop emitting: a api-app rollback past 9a84195c drops limit.nullable from the serializer, allowsNull() then returns false everywhere, and \"no value\" silently disappears from the ten genuinely nullable rows including start_position.working_side — no er…",
+      "locations": [
+       "client-new/src/features/configuration/values.ts:81-87",
+       "api-app/app/serializers/exercise_reference_configuration_serializer.rb:47"
+      ]
+     }
+    ],
+    "acCoverage": [
+     {
+      "ac": "AC1 — on a non-nullable row the editor does not offer \"no value\"",
+      "status": "covered",
+      "evidence": "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:238-274 ('offers only the values its limit allows'); runs green on this SHA in CI ('Frontend - lint, typecheck, test and build' SUCCESS, run 36720401240) and locally (29/29). Operationally it needs no deploy coordina…"
+     },
+     {
+      "ac": "AC2 — nullable rows keep offering \"no value\", and choosing it still saves",
+      "status": "covered",
+      "evidence": "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:234-240 ('offers the null on a row whose limit declares it nullable') plus the pre-existing save assertion at :230, both on the D5 fixture carrying nullable: true. The fixture matches production data: api-app/app/serv…"
+     },
+     {
+      "ac": "AC3 — any in-code comment saying every row accepts null is corrected",
+      "status": "covered",
+      "evidence": "client-new/src/features/configuration/ValueRows.tsx:147-150 and client-new/src/features/configuration/api.ts:114-116 both now state the nullable-only rule. No operability surface — nothing deploys, runs or degrades on a comment."
+     }
+    ],
+    "findings_note": "n/a",
+    "report": "## Operability — ABC-101 @ 4b72dc1a, PR #231\n\n**Verdict: operable as it stands.** Nothing in this branch needs coordination at deploy time, and the one operational risk it carries is pre-existing data rather than new behaviour.\n\n### What was verified, with output\n- **CI on this exact SHA:** `gh pr …",
+    "questions": [
+     {
+      "question": "Should the staging sweep for pre-existing authored nulls at non-nullable paths (OPS-1) gate the merge, or follow it?",
+      "options": [
+       "Merge now, sweep after — query the stored config overrides on acme-api-staging for a null at any path editable_value_declarations.rb does not mark nullable, and withdraw whatever turns up",
+       "Block the merge until the sweep comes back empty"
+      ],
+      "recommendation": "Merge now, sweep after. The sweep needs staging data access this lane does not have, and it costs exactly the same before or after the merge — while the branch itself makes the condition impossible to create going forward. The affected population is at most the overrides authored in a three-day wind…",
+      "why": "Window bounded by aaebba6e (2026-09-22, editor ships with the option on every row) and 9df82882 (2026-09-25, API starts refusing); both ancestors of origin/main. Save body composed from every authored row at client-new/src/features/configuration/values.ts:46, validated per path at api-app/app/ser…"
+     }
+    ],
+    "awaiting": [],
+    "notes": "No binding ruling applied: both entries for ABC-101 in <ROOT>/decisions.jsonl (ABC-101-D1, ABC-101-D2) are status \"open\" with no resolution. Note that ABC-101-D2 asks whether to take PR #231 out of draft — `gh pr view 231` reports `isDraft: false`, so that question has already been overtaken by …"
+   }
+  },
+  {
+   "key": "confidence:resolver:dim:operability",
+   "occurrence": 1,
+   "result": {
+    "decision": "Merge now, sweep after. The OPS-1 staging sweep for pre-existing authored nulls at non-nullable paths does not gate the merge of ABC-101; it is recorded as a follow-up obligation to be run against acme-api-staging once the branch is in, withdrawing whatever it turns up.",
+    "park": false,
+    "rationale": "The condition OPS-1 hunts for was created by a bounded, closed window: aaebba6e (2026-09-22, the editor ships offering \"no value\" on every row) to 9df82882 (2026-09-25, the API starts refusing a null on a non-nullable row) — both verified ancestors of origin/main. The refusal itself is in force on s…",
+    "reversalCost": "Low. Merging does not delete or rewrite any stored override — a stale authored null stays exactly as it is in the configs store and stays addressable by the sweep afterwards. If the sweep comes back non-empty, the remedy (re-author or withdraw the offending override) is the same action it would have…",
+    "notes": "Carried out as ruling for this run's confidence phase. Existing rulings ABC-101-D1 (premise: dispatcher names an unloadable skill/profile) and ABC-101-D2 (take PR #231 out of draft) are both still status \"open\" in decisions.jsonl and were consulted — neither is binding on this question. Note for w…",
+    "mandate": "",
+    "awaiting": [],
+    "questions": [],
+    "sources": [
+     "git log -1 aaebba6e → aaebba6e 2026-09-22 [ABC-105] feat(cms): edit a Reference's configuration values beside what was measured",
+     "git log -1 9df82882 → 9df82882 2026-09-25 [ABC-103] fix(configs): refuse a null override on rows that are not nullable",
+     "git merge-base --is-ancestor aaebba6e origin/main → exit 0 (ancestor)",
+     "git merge-base --is-ancestor 9df82882 origin/main → exit 0 (ancestor)",
+     "api-app/app/services/configs/validate_overrides.rb:41 → `return (entry.limit.nullable ? nil : NOT_NULLABLE) if value.nil?`",
+     "docs/decisions/ABC-101.md → review/operability line grading the stale-authored-null case medium, not blocking, and naming the same three-day window",
+     "docs/decisions/ABC-101.md → D4 (restore() from change history unguarded; page-level \"Nothing was saved\" refusal is the answer), D7 (merge path expected agent-side)",
+     "<ROOT>/decisions.jsonl → ABC-101-D1 and ABC-101-D2, both status \"open\""
+    ]
+   }
+  },
+  {
+   "key": "confidence:confidence-dim:dim:operability",
+   "occurrence": 2,
+   "result": {
+    "dimension": "operability",
+    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "findings": [
+     {
+      "id": "OPS-1",
+      "axis": "operability",
+      "severity": "medium",
+      "summary": "A row already holding an authored null at a non-nullable path loses the labelled \"no value\" option and now renders as a blank Select, so the row that makes every save of that reference 422 is no longer named on screen.",
+      "locations": [
+       "client-new/src/features/configuration/ValueRows.tsx:156-161",
+       "api-app/app/services/configs/validate_overrides.rb:41"
+      ],
+      "source": "code"
+     },
+     {
+      "id": "OPS-2",
+      "axis": "operability",
+      "severity": "low",
+      "summary": "The new regression test pins the narrowing to a fixture path that does not exist in the registry (schema.pacing.profile, allowed steady|ramped); the real non-nullable choice row is schema.prerequisites.adaptation.speed_profile, allowed normal|slow, so a registry change making that row nullable would…",
+      "locations": [
+       "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx:238-262",
+       "api-app/app/services/configs/editable_value_declarations.rb:80-81"
+      ],
+      "source": "code"
+     },
+     {
+      "id": "OPS-3",
+      "axis": "operability",
+      "severity": "low",
+      "summary": "nullable is carried on the type but read only in the choice branch, so the registry's nullable numeric and free-text paths still have no way to author a null from the CMS, and nothing records that the gap stays open.",
+      "locations": [
+       "client-new/src/features/configuration/ValueRows.tsx:181-230",
+       "api-app/app/services/configs/editable_value_declarations.rb:39-79"
+      ],
+      "source": "code"
+     },
+     {
+      "id": "OPS-4",
+      "axis": "operability",
+      "severity": "low",
+      "summary": "PR #231 is MERGEABLE but BEHIND main; the branch needs an update before merge and its green MVP frontend CI ran against the older base.",
+      "locations": [
+       "https://github.com/example-org/acme-web/pull/231"
+      ],
+      "source": "code"
+     }
+    ],
+    "report": "Operability of this change is sound. It is a client-only narrowing with no migration, no stored-shape change, no new dependency and no flag: reverting the two commits fully restores the previous behaviour, and the API field it reads (limit.nullable) has been live since ABC-103 merged to main (9a841…",
+    "acCoverage": [
+     {
+      "ac": "On a non-nullable row the editor does not offer \"no value\"",
+      "status": "covered",
+      "evidence": "ValueRows.tsx:159 appends the option only where allowsNull(row.limit); allowsNull is limit.nullable === true (values.ts:85) and the serializer emits the key only when true (exercise_reference_configuration_serializer.rb:47, on main via 9a84195c, so the field is live on acme-api-staging). Pinned…"
+     },
+     {
+      "ac": "Nullable rows keep offering \"no value\", and choosing it still saves",
+      "status": "covered",
+      "evidence": "Route test 'offers the null on a row whose limit declares it nullable' plus the pre-existing save test on start_position.working_side, whose fixture gains nullable: true to match the registry (editable_value_declarations.rb:60-63). MVP frontend CI green at 13:33:57Z including e2e."
+     },
+     {
+      "ac": "Any in-code comment saying every row accepts null is corrected",
+      "status": "covered",
+      "evidence": "ValueRows.tsx:147-150 and api.ts:114-116 both rewritten to say null is authored only where the limit declares itself nullable; values.ts outside() and author_overrides.rb:6 already read correctly and were left alone. Non-behavioural, review-only, as the plan states."
+     }
+    ],
+    "awaiting": [],
+    "questions": [
+     {
+      "question": "Should OPS-3 - the nullable numeric and free-text paths that still cannot be authored null from the CMS - be filed as its own ticket, or left unrecorded?",
+      "options": [
+       "File a follow-up ticket under ABC-107 covering the number and text branches",
+       "Leave it; the nullable paths that matter in practice are the choice rows"
+      ],
+      "recommendation": "File it. The gap is invisible from the code now that the flag is carried but read in one branch only, and the same failure is reachable from the other direction - an author who needs a null at min_amplitude has no way to express it and no message saying why.",
+      "why": "editable_value_declarations.rb:39-79 declares ten nullable paths, of which only the four allowed: rows are reachable from the choice branch that reads the flag; ValueRows.tsx:181-230 withdraws on empty in both the number and text branches by design (ticket decision D2)."
+     }
+    ],
+    "notes": "Carried out the resolver's OPS-1 ruling (merge now, sweep after) and recorded it as a binding line in docs/decisions/ABC-101.md. The ruling arrived in the brief, not as an id in decisions.jsonl, which carries only ABC-101-D1 and ABC-101-D2, both still open and both about the run's own…"
+   }
+  },
+  {
+   "key": "logs:log-prose:",
+   "occurrence": 1,
+   "result": {
+    "text": "Run ABC-101 is parked pending resolution of a review-bot gate block. Pull request https://github.com/example-org/acme-web/pull/231 stands at head 4b72dc1a31ee1f95851f3527658a37ebc109a0d4. Three decisions remain open: ABC-101-D1, ABC-101-D2, and ABC-101-D3.",
+    "awaiting": []
+   }
+  }
+ ],
+ "execs": [
+  {
+   "key": "start:worktree",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "path": "<ROOT>/worktrees/ABC-101-run-50225d8d",
+    "branch": "ABC-101-run-50225d8d",
+    "headSha": "c7defcee0b5314b6c49d7b7b923f3dfe94b49aee",
+    "created": true
+   }
+  },
+  {
+   "key": "start:worktree-setup",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "install",
+    "command": "cd web-app && npm ci",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "output": "added 545 packages, and audited 547 packages in 4s\n\n190 packages are looking for funding\n  run `npm fund` for details\n\n7 vulnerabilities (2 moderate, 5 high)\n\nTo address all issues, run:\n  npm audit fix\n\nRun `npm audit` for details."
+   }
+  },
+  {
+   "key": "review:verify-claim",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "acme-web",
+    "command": "cd web-app && npm test",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "artifact": "<TMP>/verify-claim-hmtqGn/output.txt"
+   }
+  },
+  {
+   "key": "review:static-check",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "typecheck",
+    "command": "cd web-app && npm run typecheck",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "output": "> typecheck\n> tsc --noEmit && tsc --noEmit -p packages/practice/tsconfig.typecheck.json"
+   }
+  },
+  {
+   "key": "review:static-check",
+   "occurrence": 2,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "lint",
+    "command": "cd web-app && npm run lint",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "output": "> lint\n> eslint"
+   }
+  },
+  {
+   "key": "review:static-check",
+   "occurrence": 3,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "test",
+    "command": "cd web-app && npm test",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "artifact": "<TMP>/verify-claim-QPctu8/output.txt"
+   }
+  },
+  {
+   "key": "pr:pr-body",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "artifact": "<ROOT>/tickets/ABC-101/pr-body.md",
+    "bytes": 727
+   }
+  },
+  {
+   "key": "pr:push",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "branch": "ABC-101-run-50225d8d",
+    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4"
+   }
+  },
+  {
+   "key": "pr:pr-open",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "prUrl": "https://github.com/example-org/acme-web/pull/231",
+    "number": 231,
+    "draft": true
+   }
+  },
+  {
+   "key": "ci:wait-ci",
+   "occurrence": 1,
+   "exitCode": 2,
+   "result": {
+    "status": "pending",
+    "sha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reason": "checks not settled within timeout"
+   }
+  },
+  {
+   "key": "ci:wait-ci",
+   "occurrence": 2,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "sha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "state": "green",
+    "checks": [
+     {
+      "name": "Publish to S3 and invalidate CloudFront",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Deploy with ArgoCD",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Build and push Docker image",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Rubocop",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "MVP frontend contract",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Request specs, coverage and OpenAPI document",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Detector and readiness gate agree",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Accuracy gate",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Frontend - lint, typecheck, test and build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Detect relevant changes",
+      "conclusion": "success"
+     },
+     {
+      "name": "Detect relevant changes",
+      "conclusion": "success"
+     },
+     {
+      "name": "Detect relevant changes",
+      "conclusion": "success"
+     }
+    ]
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-wait",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "slept": 540
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot",
+   "occurrence": 2,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-wait",
+   "occurrence": 2,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "slept": 540
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot",
+   "occurrence": 3,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-wait",
+   "occurrence": 3,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "slept": 540
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot",
+   "occurrence": 4,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-wait",
+   "occurrence": 4,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "slept": 540
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot",
+   "occurrence": 5,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null
+   }
+  },
+  {
+   "key": "review-bot:bot-wait",
+   "occurrence": 5,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "slept": 540
+   }
+  },
+  {
+   "key": "review-bot:bot-review-bot",
+   "occurrence": 6,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewed": false,
+    "green": false,
+    "reviewId": null,
+    "reviewCommit": null,
+    "matchedSkipPattern": null,
+    "matchedSkipBody": null
+   }
+  },
+  {
+   "key": "review-bot:bot-wait",
+   "occurrence": 6,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "slept": 540
+   }
+  },
+  {
+   "key": "gate:changed-files",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "pin": "c7defcee0b5314b6c49d7b7b923f3dfe94b49aee",
+    "head": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "artifact": "<ROOT>/diffs/ABC-101-full.diff",
+    "bytes": 19696,
+    "changedFiles": [
+     "client-new/src/features/configuration/ValueRows.tsx",
+     "client-new/src/features/configuration/api.ts",
+     "client-new/src/features/configuration/values.test.ts",
+     "client-new/src/features/configuration/values.ts",
+     "client-new/src/routes/exercise-references_.$referenceId_.configuration.test.tsx",
+     "docs/plans/ABC-101-no-value-only-where-nullable.md",
+     "docs/decisions/ABC-101.md"
+    ]
+   }
+  },
+  {
+   "key": "gate:verify-claim",
+   "occurrence": 1,
+   "exitCode": 0,
+   "result": {
+    "status": "ok",
+    "match": "acme-web",
+    "command": "cd web-app && npm test",
+    "claim": "pass",
+    "actual": "pass",
+    "exitCode": 0,
+    "mismatch": false,
+    "artifact": "<TMP>/verify-claim-Uu05VB/output.txt"
+   }
+  }
+ ]
+}

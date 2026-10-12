@@ -1,0 +1,7 @@
+{
+  "description": "USD per million tokens, keyed <runtime>/<model>; <runtime>/* is that runtime's default. A model with no entry cannot run under a USD budget. The openai-compat default assumes a self-hosted endpoint; a hosted one needs its own entry. limits cap every harness-budgeted lane, priced or not.",
+  "models": {
+    "openai-compat/*": { "in": 0, "out": 0, "cacheRead": 0, "cacheCreate": 0 }
+  },
+  "limits": { "maxTokens": 2000000, "maxTurns": 60, "wallClockMs": 1800000 }
+}

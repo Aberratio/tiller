@@ -1,0 +1,5 @@
+{
+  "status": "pending",
+  "kind": "ci-timeout",
+  "reason": "CI not settled after 540 s"
+}

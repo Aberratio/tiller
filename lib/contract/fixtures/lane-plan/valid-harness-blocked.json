@@ -1,0 +1,16 @@
+{
+  "ok": false,
+  "ticketKind": "code",
+  "premiseVerdict": "holds",
+  "planPath": "",
+  "planSummary": "",
+  "authorisedFiles": [],
+  "awaiting": [
+    {
+      "kind": "harness-blocked",
+      "question": "Write to the worktree was refused",
+      "why": "Permission denied: Bash(rm -rf:*) is not allowed",
+      "blocks": "implement phase"
+    }
+  ]
+}

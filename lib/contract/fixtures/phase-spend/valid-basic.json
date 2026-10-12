@@ -1,0 +1,17 @@
+{
+  "runId": "r",
+  "ticket": "ABC-12",
+  "phase": "review",
+  "lane": "review-axis",
+  "model": "opus",
+  "tier": "T3",
+  "turns": 14,
+  "in": 1200,
+  "out": 5400,
+  "cacheRead": 1288000,
+  "cacheCreate": 42000,
+  "startedAt": "2026-09-28T10:00:00Z",
+  "endedAt": "2026-09-28T10:04:12Z",
+  "outcome": "ok",
+  "escalatedFrom": null
+}

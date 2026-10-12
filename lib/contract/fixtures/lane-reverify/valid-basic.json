@@ -1,0 +1,6 @@
+{
+  "findingId": "SEC-1",
+  "verdict": "refuted",
+  "rationale": "src/a.ts:9 escapes input before use",
+  "awaiting": []
+}

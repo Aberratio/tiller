@@ -1,0 +1,9 @@
+{
+  "command": "x",
+  "ran": true,
+  "exitCode": 0,
+  "stdout": "",
+  "parsed": {
+    "status": "ok"
+  }
+}

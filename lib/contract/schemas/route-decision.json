@@ -1,0 +1,104 @@
+{
+  "$id": "route-decision",
+  "type": "object",
+  "additionalProperties": false,
+  "description": "one routed dispatch: which model route() chose for a lane call and why the others were not",
+  "properties": {
+    "lane": {
+      "type": "string",
+      "enum": [
+        "exec",
+        "premise",
+        "pr-description",
+        "log-prose",
+        "sweep-summary",
+        "plan",
+        "implement",
+        "fix",
+        "review-axis",
+        "confidence-dim",
+        "reverify",
+        "conflict",
+        "qa-judge",
+        "resolver",
+        "owner-proxy"
+      ]
+    },
+    "model": {
+      "type": "string"
+    },
+    "runtime": {
+      "type": "string",
+      "enum": [
+        "claude",
+        "codex",
+        "copilot",
+        "openai-compat"
+      ]
+    },
+    "decisionId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$",
+      "description": "hash of route() inputs"
+    },
+    "rejectedCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "escalatedFrom": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "model of the failed attempt"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "rejected": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "trial",
+              "runtime-down",
+              "cooldown",
+              "no-tools",
+              "structured-output",
+              "context",
+              "data-policy",
+              "not-pinned",
+              "gate-floor",
+              "unmeasured",
+              "below-min",
+              "cost",
+              "budget"
+            ]
+          }
+        },
+        "required": [
+          "model",
+          "why"
+        ]
+      }
+    }
+  },
+  "required": [
+    "lane",
+    "model",
+    "runtime",
+    "decisionId",
+    "rejectedCount",
+    "escalatedFrom",
+    "attempt"
+  ]
+}

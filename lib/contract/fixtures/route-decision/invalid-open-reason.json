@@ -1,0 +1,1 @@
+{"lane":"plan","model":"opus","runtime":"claude","decisionId":"0123456789abcdef","rejectedCount":1,"escalatedFrom":null,"attempt":1,"rejected":[{"model":"haiku","why":"too-slow"}]}

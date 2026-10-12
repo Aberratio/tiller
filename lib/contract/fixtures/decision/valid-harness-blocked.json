@@ -1,0 +1,11 @@
+{
+  "id": "ABC-12-D2",
+  "runId": "r",
+  "ticket": "ABC-12",
+  "kind": "harness-blocked",
+  "status": "open",
+  "question": "gh pr merge refused",
+  "why": "Permission denied: Bash(gh pr merge:*)",
+  "blocks": "merge",
+  "at": "2026-09-28T10:00:00Z"
+}

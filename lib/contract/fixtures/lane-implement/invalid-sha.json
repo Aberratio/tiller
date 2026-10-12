@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "headSha": "HEAD",
+  "commits": [],
+  "testCommand": "npm test",
+  "testResult": "",
+  "awaiting": []
+}

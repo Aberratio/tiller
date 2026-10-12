@@ -1,0 +1,17 @@
+{
+  "id": "x",
+  "runId": "r",
+  "ticket": "ABC-12",
+  "kind": "parked",
+  "status": "open",
+  "question": "q",
+  "options": [
+    "a",
+    "b"
+  ],
+  "recommendation": "a",
+  "why": "w",
+  "reversalCost": "low",
+  "blocks": "b",
+  "at": "2026-09-28T10:00:00Z"
+}

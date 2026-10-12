@@ -1,0 +1,188 @@
+{
+  "$id": "lane-review-axis",
+  "type": "object",
+  "properties": {
+    "axis": {
+      "type": "string"
+    },
+    "reviewedSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$"
+    },
+    "skipped": {
+      "type": "boolean",
+      "description": "true only when the axis could not run; reason in notes"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "axis or dimension prefix: STD-1, SPEC-2"
+          },
+          "axis": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "blocker",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "path:line or path:from-to"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "code",
+              "harness",
+              "verify-claim",
+              "exec",
+              "toolchain"
+            ],
+            "description": "who the finding is about: the code under review (default) or the run's own tooling; tooling findings go to blocked, never to a fix round"
+          }
+        },
+        "required": [
+          "id",
+          "axis",
+          "severity",
+          "summary",
+          "locations"
+        ]
+      }
+    },
+    "report": {
+      "type": "string"
+    },
+    "resolved": {
+      "type": "array",
+      "description": "re-pin pass: ids of this axis now closed",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string",
+            "description": "command + output, test + result, path:line"
+          }
+        },
+        "required": [
+          "id",
+          "evidence"
+        ]
+      }
+    },
+    "stillOpen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "questions": {
+      "type": "array",
+      "description": "open questions the resolver may still settle",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "description": "evidence: path, quote, SHA, command output"
+          }
+        },
+        "required": [
+          "question",
+          "options",
+          "recommendation",
+          "why"
+        ]
+      }
+    },
+    "awaiting": {
+      "type": "array",
+      "description": "items only a human or nobody can move; not questions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "harness-blocked",
+              "premise",
+              "question",
+              "manual-qa"
+            ],
+            "description": "harness-blocked: tool, permission or classifier denial"
+          },
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "description": "evidence; for harness-blocked the literal denial text"
+          },
+          "reversalCost": {
+            "type": "string"
+          },
+          "blocks": {
+            "type": "string",
+            "description": "what waits on it"
+          }
+        },
+        "required": [
+          "kind",
+          "question",
+          "why",
+          "blocks"
+        ]
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "axis",
+    "reviewedSha",
+    "skipped",
+    "findings",
+    "report",
+    "awaiting"
+  ]
+}

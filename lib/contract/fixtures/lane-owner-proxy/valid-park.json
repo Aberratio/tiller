@@ -1,0 +1,10 @@
+{
+  "action": "park",
+  "mandate": "",
+  "step": "approve the day queue",
+  "parkReason": "not-in-mandate",
+  "conditions": [],
+  "rationale": "approve-day-queue is not in the profile mandate",
+  "reversalCost": "none: nothing was done",
+  "awaiting": []
+}

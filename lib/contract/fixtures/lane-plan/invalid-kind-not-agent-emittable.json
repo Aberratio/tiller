@@ -1,0 +1,22 @@
+{
+  "ok": false,
+  "ticketKind": "code",
+  "premiseVerdict": "holds",
+  "planPath": "",
+  "planSummary": "",
+  "authorisedFiles": [],
+  "awaiting": [
+    {
+      "kind": "usage-limit",
+      "question": "Keep the old endpoint alive?",
+      "options": [
+        "keep it",
+        "remove it"
+      ],
+      "recommendation": "keep it",
+      "why": "docs/api.md:12 lists it as public",
+      "reversalCost": "low - one revert",
+      "blocks": "plan phase"
+    }
+  ]
+}

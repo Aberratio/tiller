@@ -1,0 +1,12 @@
+# Terms from this project that must never reach the harness's tracked files.
+# One case-insensitive extended regex (grep -E) per line; `#` starts a comment, blank lines are skipped.
+# lib/leak-guard.sh reads every profiles/*/leak-terms.txt and refuses a tracked file or path that matches.
+# List: product and company names, repo names, people's names and handles, hosts, chat channels,
+# the tracker site, real access codes, and the ticket key pattern.
+#
+# examples (replace with this project's own):
+# acme
+# acme-(web|api)
+# staging\.acme\.io
+# \bABC-[0-9]+
+# \bjane\b

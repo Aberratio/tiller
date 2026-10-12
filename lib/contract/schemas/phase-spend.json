@@ -1,0 +1,131 @@
+{
+  "$id": "phase-spend",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "runId": {
+      "type": "string"
+    },
+    "ticket": {
+      "type": "string"
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "start",
+        "premise",
+        "plan",
+        "implement",
+        "review",
+        "pr",
+        "ci",
+        "review-bot",
+        "confidence",
+        "gate",
+        "merge",
+        "qa",
+        "cleanup",
+        "logs"
+      ]
+    },
+    "lane": {
+      "type": "string",
+      "enum": [
+        "exec",
+        "premise",
+        "pr-description",
+        "log-prose",
+        "sweep-summary",
+        "plan",
+        "implement",
+        "fix",
+        "review-axis",
+        "confidence-dim",
+        "reverify",
+        "conflict",
+        "qa-judge",
+        "resolver",
+        "owner-proxy"
+      ]
+    },
+    "model": {
+      "type": "string"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "T0",
+        "T1",
+        "T2",
+        "T3"
+      ]
+    },
+    "turns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "in": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "out": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cacheRead": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cacheCreate": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "startedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "endedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "invalid",
+        "blocked",
+        "harness-blocked",
+        "error"
+      ]
+    },
+    "escalatedFrom": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "model of the failed attempt"
+    },
+    "costUsd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "from the lane's own claude -p --output-format json result; absent from transcript-joined records"
+    }
+  },
+  "required": [
+    "runId",
+    "ticket",
+    "phase",
+    "lane",
+    "model",
+    "tier",
+    "turns",
+    "in",
+    "out",
+    "cacheRead",
+    "cacheCreate",
+    "startedAt",
+    "endedAt",
+    "outcome",
+    "escalatedFrom"
+  ]
+}

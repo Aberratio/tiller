@@ -1,0 +1,20 @@
+{
+  "id": "ABC-12-D3",
+  "runId": "r",
+  "ticket": "ABC-12",
+  "kind": "question",
+  "status": "resolved",
+  "question": "q",
+  "options": [
+    "a",
+    "b"
+  ],
+  "recommendation": "a",
+  "why": "w",
+  "reversalCost": "low",
+  "blocks": "plan",
+  "at": "2026-09-28T10:00:00Z",
+  "resolution": "a",
+  "resolvedBy": "resolver",
+  "resolvedAt": "2026-09-28T10:04:12Z"
+}

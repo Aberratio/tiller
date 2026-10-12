@@ -1,0 +1,12 @@
+{
+  "action": "act",
+  "mandate": "start-next-ticket",
+  "step": "start the next queued ticket",
+  "parkReason": "",
+  "conditions": [
+    { "condition": "queue approved at launch", "met": true, "evidence": "state.md: queue approved 2026-09-28T07:02:11Z" }
+  ],
+  "rationale": "previous ticket parked on a signature; the queue is approved",
+  "reversalCost": "low: stop the run, one worktree to remove",
+  "awaiting": []
+}
