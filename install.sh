@@ -10,7 +10,7 @@
 #   ./install.sh --personal <owner> all | <skill-name>…       # install from personal/<owner>/skills
 #   ./install.sh --setup-personal <owner> [--answers <f.json>] # generate personal skills, then link them
 #   ./install.sh --profile <name> all | <skill-name>…         # install from profiles/<name>/skills
-#   ./install.sh --agents                                     # write the harness roles to ~/.claude/agents
+#   ./install.sh --agents [--profile <profile.md>]            # write the harness roles to ~/.claude/agents
 #
 # --setup-personal asks for the person's details and renders every template in personal/_templates/
 # into personal/<owner>/ (git-ignored), then links the result. Re-running reuses the stored answers
@@ -76,7 +76,7 @@ answers=""
 
 # Parse a leading --target/-t flag; the rest are the skill selector.
 if [ "${1:-}" = "--agents" ]; then
-  exec node "$ROOT_DIR/lib/agents/install-agents.mjs" ${CLAUDE_AGENTS_DIR:+--dir "$CLAUDE_AGENTS_DIR"}
+  exec node "$ROOT_DIR/lib/agents/install-agents.mjs" ${CLAUDE_AGENTS_DIR:+--dir "$CLAUDE_AGENTS_DIR"} "${@:2}"
 fi
 
 while [ $# -ge 1 ]; do

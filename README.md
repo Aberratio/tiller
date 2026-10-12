@@ -49,7 +49,7 @@ git config core.hooksPath .githooks          # leak guard on every commit
 
 # 2. Shared skills and harness roles
 ./install.sh all                              # symlink every flow-* skill into ~/.claude/skills
-./install.sh --agents                         # write flow-resolver, flow-owner-proxy, flow-pm to ~/.claude/agents
+./install.sh --agents [--profile <file>]      # write flow-resolver, flow-owner-proxy, flow-pm to ~/.claude/agents
 
 # 3. One profile per project (see Profiles below)
 lib/new-profile.sh acme                       # also seeds profiles/acme/leak-terms.txt with the name

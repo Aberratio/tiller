@@ -15,6 +15,9 @@ user-invocable: true
 Read two sections of the profile it names:
 
 - `## tracker` — Kind, Site, project key. It decides where the ticket goes.
+- `## tools` (optional) — which server the tracker role uses. Tracker calls below are role ops
+  (`tracker.get`, `tracker.search`, `tracker.create`, `tracker.edit`, `tracker.link`) from
+  `$TILLER_HOME/config/tool-kinds.json`; `references/trackers/<kind>.md` maps them to tool calls.
 - `## ticket conventions` — components, project routing, issue types, priority scheme, labels,
   personas, browse URL, internal vocabulary, and any product-knowledge or board-snapshot source.
   Its `Source:` line names the written canon it was copied from; **when the two disagree, the canon
@@ -30,8 +33,8 @@ convention; skip every step below that reads it.
 
 | `## tracker` Kind | Tracker tools | What this skill produces |
 |---|---|---|
-| `jira` | Atlassian MCP available | the ticket, created or edited in Jira |
-| `jira` | Atlassian MCP unavailable | the full draft in chat, fields listed, for the user to paste — nothing is claimed as filed |
+| `jira` | the tracker role's tools available | the ticket, created or edited in Jira |
+| `jira` | the tracker role's tools unavailable | the full draft in chat, fields listed, for the user to paste — nothing is claimed as filed |
 | `none` | — | a **spec file** (see below) |
 
 **Kind none writes a spec file**, because a flow run in spec mode (`flow-run-ticket --spec <path>`)
@@ -123,39 +126,16 @@ Re-read the draft against `references/anti-patterns.md`:
 Show every finding as a diff — the raw phrasing and the outcome-shaped rewrite — with one sentence
 of why. The user insists on the original → keep it, state the trade-off in one sentence, move on.
 
-### 6. Resolve the required fields (Kind `jira`)
+### 6. Resolve the required fields
 
-In parallel where possible. Pass the `## tracker` Site as `cloudId`; the MCP accepts a site host or
-a cloud id. It fails → `getAccessibleAtlassianResources` once and cache the id.
-
-- **Project — validate against the live tracker before offering it.** Call `getVisibleJiraProjects` once
-  and keep the live key list. Each key the profile's routing suggests must be in it: routing tables
-  are copied from a written guide and **drift**. A missing key → offer the closest live key by
-  project name and say so in one line. **Never pass an unvalidated key to `createJiraIssue`** — it
-  fails with "No project could be found". Skip live projects whose name marks them deprecated. The
-  profile may record the drift it already knows; re-measure rather than trust it.
-- **Issue type.** `getJiraProjectIssueTypesMetadata` for the chosen project. A type may simply not
-  exist there: `createJiraIssue` rejects an unknown type with `allowedValues` in the error body —
-  read that list, do not retry blind. With no Question type, file a decision ticket as **Task** whose
-  first line says it is a decision, not build work — otherwise someone estimates it (precedent: ABC-231).
-- **Component — check the siblings first.** Read what the ticket's siblings actually carry. Being
-  the only child of an epic with a Component is a deviation, not tidiness, and it makes board
-  filters disagree (every child of ABC-206 had `components: []`). Then follow the profile's
-  components rule; "exactly one" means work spanning two surfaces is **two linked tickets**.
-- **Priority.** The profile's scheme. Suggest a default from its signals; the user confirms.
-- **Assignee.** Only if the user named someone — `lookupJiraAccountId`.
-- **Epic.** Only if the user named a parent.
-
-### 6b. Cost warning before searching the tracker
-
-**`searchJiraIssuesUsingJql` ignores `fields` — it returns full descriptions regardless** (measured: five children of one epic, `summary` and `status` requested, tens of thousands of
-characters back, `remainingCount: 55`). Keep duplicate-check JQL narrow — search the keys you
-suspect, not `parent = EPIC`. For titles of many keys prefer single `getJiraIssue` calls (`fields` is
-honoured there), or the profile's **Board snapshot**, if it names one — mind the coverage it states.
+Project, issue type, component, priority, assignee (only if the user named someone) and epic (only if
+the user named a parent), each validated against the live tracker, never copied from the profile
+alone: routing tables drift. The per-kind procedure, including what a search costs, is in
+`references/trackers/<kind>.md` (`jira.md` for Kind `jira`). Read it before the first tracker call.
 
 ### 7. Duplicate check
 
-`searchJiraIssuesUsingJql` in the chosen project, keyword-matching the proposed title; show the top 3
+`tracker.search` in the chosen project, keyword-matching the proposed title; show the top 3
 with status. No match → preview. Likely duplicate → proceed / comment on the existing one / abort.
 Related but distinct → continue and propose `relates to` in step 9.
 
@@ -174,11 +154,10 @@ Edits → back to step 4 or 5.
 
 ### 9. Create
 
-`createJiraIssue` with `cloudId`, `projectKey`, `issueTypeName`, `summary`, `description`,
-`components` (per the profile's rule), `priority`, and `assignee` / `parent` when set. Then turn
-every relationship into a real link:
+`tracker.create` with the fields resolved in step 6 (call shape per kind in
+`references/trackers/<kind>.md`). Then turn every relationship into a real link:
 
-- `createIssueLink` for each blocks / is blocked by / relates to / causes / is caused by /
+- `tracker.link` for each blocks / is blocked by / relates to / causes / is caused by /
   duplicates the user named, rationale in the link's `comment`, not the body. A component split
   gets its two halves linked `relates to` automatically.
 - The parent is not duplicated as text anywhere in the body.
@@ -217,7 +196,7 @@ rewrite, audit, or bring it in line. Same principle, plus **respect for existing
 scope and intent, change only the framing.
 
 1. **Resolve the key.** From a URL, extract it; from a description, search and confirm first.
-2. **Fetch** with `getJiraIssue`: summary, description, issuetype, components, project, priority,
+2. **Fetch** with `tracker.get`: summary, description, issuetype, components, project, priority,
    status, assignee, parent, labels.
 3. **Refuse if shipped** (Done, Closed, Resolved, Won't Do): rewriting it destroys the record of
    what was delivered. Offer a follow-up ticket instead; stop unless the user overrides explicitly.
@@ -255,7 +234,7 @@ scope and intent, change only the framing.
    ```
    Unchanged sections read `(unchanged)`; metadata as `Component: BEFORE Mobile → AFTER App`.
 10. **Confirm explicitly** ("apply", "ship it"). Tweaks → step 8.
-11. **Apply** with `editJiraIssue`, sending ONLY the changed fields; then the issue links flagged in
+11. **Apply** with `tracker.edit`, sending ONLY the changed fields; then the issue links flagged in
     the audit. The body drops a bare mention once its structural link exists.
 12. **Return the URL** and a one-line summary of what changed. Stop.
 

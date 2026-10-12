@@ -36,10 +36,11 @@ Tracker kind `none` → there is no ticket to fetch or move: the user names a sp
 
 ## Step 1 — Resolve the ticket
 
-The calls below are for tracker kind `jira` (Atlassian MCP); another kind uses its own equivalents.
+The calls below are tracker role ops from `$TILLER_HOME/config/tool-kinds.json`; the profile's tracker
+Kind picks the tools, and `references/trackers/<kind>.md` gives each call's shape (`jira.md` for Kind `jira`).
 
-- Ticket key given → `getJiraIssue` (fields: summary, description, status, assignee, parent, issuetype, priority).
-- "the next ticket" / no key → `searchJiraIssuesUsingJql` over the repo's project (and epic, if the repo pins one): unresolved Backlog/To Do issues, ordered by priority then rank. Show the top few (key, summary, status) and let the user pick. Never silently pick for them.
+- Ticket key given → `tracker.get` (fields: summary, description, status, assignee, parent, issuetype, priority).
+- "the next ticket" / no key → `tracker.search` over the repo's project (and epic, if the repo pins one): unresolved Backlog/To Do issues, ordered by priority then rank. Show the top few (key, summary, status) and let the user pick. Never silently pick for them.
 
 ## Step 2 — Sanity-check before starting
 
@@ -71,8 +72,8 @@ git checkout -b <branch> origin/<main>
 
 ## Step 4 — Update the tracker
 
-- Assign the ticket to the user (`atlassianUserInfo` → account id) unless it's already theirs.
-- Transition to In Progress: `getTransitionsForJiraIssue` → pick the transition whose target status is In Progress → `transitionJiraIssue`. If no such transition exists from the current status, say so and leave the status alone — never force a different transition.
+- Assign the ticket to the user (`tracker.me` → account id) unless it's already theirs.
+- Transition to In Progress: `tracker.transitions` → pick the transition whose target status is In Progress → `tracker.transition`. If no such transition exists from the current status, say so and leave the status alone — never force a different transition.
 
 ## Step 5 — Plan, briefly
 

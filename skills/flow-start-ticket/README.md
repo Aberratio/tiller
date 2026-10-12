@@ -19,5 +19,5 @@ The opening bookend of the ticket lifecycle. `flow-create-commit` and `flow-crea
 
 ## Requirements
 
-- For tracker kind `jira`: Atlassian MCP tools (`getJiraIssue`, `searchJiraIssuesUsingJql`, `transitionJiraIssue`, …)
+- The tracker role's tools (`tracker.get`, `tracker.search`, `tracker.transition`, …); for kind `jira`, the Atlassian MCP
 - `git` with an `origin` remote

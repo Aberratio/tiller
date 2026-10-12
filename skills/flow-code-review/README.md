@@ -49,7 +49,7 @@ Restart Claude Code (or start a new session). No configuration — it learns eac
 
 - Claude Code with sub-agent support
 - `git` with an `origin` remote
-- Atlassian MCP or `gh` for automatic ticket resolution (optional — you can paste the spec)
+- The tracker role's tools (for kind `jira`, the Atlassian MCP) or `gh` for automatic ticket resolution (optional — you can paste the spec)
 
 ## Provenance
 

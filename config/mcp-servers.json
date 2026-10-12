@@ -3,6 +3,7 @@
     "atlassian": "claude_ai_Atlassian",
     "slack": "claude_ai_Slack",
     "google-calendar": "claude_ai_Google_Calendar",
-    "notion": "notion"
+    "notion": "notion",
+    "gmail": "claude_ai_Gmail"
   }
 }

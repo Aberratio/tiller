@@ -72,7 +72,7 @@ h2. References
 * Slack thread: [link]
 ```
 
-Note: OPS-2741 is `blocked by` this ticket via a real `createIssueLink`, not written into References as text — see step 9 in SKILL.md.
+Note: OPS-2741 is `blocked by` this ticket via a real `tracker.link`, not written into References as text — see step 9 in SKILL.md.
 
 ---
 

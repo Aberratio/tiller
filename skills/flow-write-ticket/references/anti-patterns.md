@@ -162,7 +162,7 @@ A `References` (or `Dependencies`) section is only useful if every entry is some
 - A "Parent epic: ABC-201" bullet — redundant, since the Epic Link field already carries this relationship and the tracker already shows it in the issue view.
 
 **Rewrite**
-- Ticket keys/URLs → `createIssueLink` (pick the type — `relates to`, `blocks`, `duplicates`, etc. — from context), with any rationale moved into the link's `comment`. Drop the bare-text mention once the structural link exists.
+- Ticket keys/URLs → a real issue link, `tracker.link` (pick the type — `relates to`, `blocks`, `duplicates`, etc. — from context), with any rationale moved into the link's `comment`. Drop the bare-text mention once the structural link exists.
 - Named docs → resolve the actual URL (search Notion/Confluence, or ask the user) and render as `[Display text](https://...)`.
 - Parent epic → remove from the description entirely; it's already captured by the `parent` field.
 

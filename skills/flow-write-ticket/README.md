@@ -18,7 +18,7 @@ convention.
 
 **Tracker `none` writes a spec file** at a path the user confirms (the repo's spec directory when it
 has one), because `flow-run-ticket --spec` reads its criteria from that file and a chat-only draft
-does not outlive the session. **No tracker MCP** (for kind `jira`, the Atlassian MCP) → a paste-ready draft,
+does not outlive the session. **No tools for the tracker role** (for kind `jira`, the Atlassian MCP) → a paste-ready draft,
 never a claim that anything was filed.
 
 ## Design notes
@@ -40,7 +40,7 @@ never a claim that anything was filed.
 - Validate every project key against the live tracker; routing tables drift
 - An unknown issue type: read `allowedValues`; a decision ticket is a Task that says so
 - Check siblings' Components before setting one
-- `searchJiraIssuesUsingJql` ignores `fields`; keep JQL narrow
+- `tracker.search` on Jira ignores `fields`; keep JQL narrow (`references/trackers/jira.md`)
 - A split-out ticket: read the parent's links before a title search
 - Descope both halves in one pass; say whether it makes the ticket closable
 - A named harness or test level is checked to exist

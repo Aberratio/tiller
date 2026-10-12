@@ -55,7 +55,7 @@ Its natural moment is **before the commit**, in the session that wrote the code.
 
 The spec is almost never just the ticket. Collect, in order:
 
-1. **The ticket** — via the ticket key in the branch name (the profile's `## commits` → `Ticket from branch:` pattern; tracker kind `jira`: Atlassian MCP `getJiraIssue`), a `#123` reference (`gh issue view`), or a spec/plan path the user passed.
+1. **The ticket** — via the ticket key in the branch name (the profile's `## commits` → `Ticket from branch:` pattern; fetched with the tracker role's `tracker.get`), a `#123` reference (`gh issue view`), or a spec/plan path the user passed.
 2. **Spec addenda** — every decision agreed with the owner *after* the ticket was written: answers from the planning round, the plan the user approved, an ADR, a decision recorded in a Slack thread. List them explicitly in the brief, each labelled as agreed.
 
    This is load-bearing in both directions. Omit them and the Spec agent dutifully reports pre-agreed decisions as scope creep — pure triage noise. Include them and it verifies the diff against what was actually decided, and catches deviations from the *decisions* rather than only from the ticket.

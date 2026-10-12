@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { delimiter, join } from 'node:path'
 import { HARNESS, PROFILE, NO_TRACKER, buildArgs, harness, tmpRoot } from './dryrun.mjs'
+import { outwardTools } from '../bin/harness.mjs'
 
 const lastLine = s => JSON.parse(String(s).trim().split('\n').pop())
 
@@ -154,4 +155,11 @@ test('a supervised child never holds an outward-channel tool: args carries the s
     assert.ok(args.disallowedTools.includes(t), t)
   const env = harness(root, 'supervise-env', '--profile', PROFILE).result.env
   assert.deepEqual(args.disallowedTools, env.SUPERVISE_DISALLOWED_TOOLS.split(' '))
+})
+
+test('outward tools resolve through the profile, and a rebound or none role never reopens the default server', () => {
+  const base = outwardTools({ ownerProxy: {} }).tools
+  const moved = outwardTools({ ownerProxy: {}, tools: { chat: { server: 'atlassian' }, email: { kind: 'none' } } }).tools
+  assert.ok(moved.includes('mcp__claude_ai_Atlassian__slack_send_message'))
+  for (const t of base) assert.ok(moved.includes(t), t)
 })

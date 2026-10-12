@@ -123,7 +123,7 @@ Review agents NEVER emit this status - their contract stays `covered` / `partial
 
 | # | Requirement |
 |---|---|
-| O1 | **Owning ticket** - the id of an EXISTING ticket that carries the uncovered part. Verify it resolves (Jira MCP `getJiraIssue` / `gh issue view`); an id that does not fetch is not a ticket. This skill never files the ticket itself. |
+| O1 | **Owning ticket** - the id of an EXISTING ticket that carries the uncovered part. Verify it resolves (`tracker.get` / `gh issue view`); an id that does not fetch is not a ticket. This skill never files the ticket itself. |
 | O2 | **Evidence** - a `file:line` or doc reference naming where the capability would have to live (the other service, repo, gateway, deployment) and why no change under this repo can produce it. Cited exactly like a finding's evidence. |
 | O3 | **Reachable remainder is covered** - whatever part of the AC IS deliverable here is graded normally and is `covered`. An AC with a deliverable part still uncovered is `partial`, never `out-of-reach`. |
 

@@ -38,6 +38,8 @@ import { homedir, tmpdir } from 'node:os'
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { awaitingRules } from '../../../lib/contract/awaiting.mjs'
+import { claudeToolName } from '../../../lib/driver/adapters/claude.mjs'
+import { resolveTools } from '../../../lib/driver/adapters/tools.mjs'
 import { runtimeAvailability } from '../../../lib/driver/adapters/index.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -231,7 +233,12 @@ export function outwardTools(factsObj, disallow = []) {
   const map = JSON.parse(readFileSync(join(CORE, 'config', 'outward-tools.json'), 'utf8')).channels
   const extra = [].concat(disallow || []).filter(x => typeof x === 'string')
   const channels = hardStopChannels(factsObj)
-  return { channels, tools: [...new Set([...channels.flatMap(c => map[c] || []), ...extra])] }
+  // Children are claude processes, so role ops resolve to Claude tool names here. The defaults stay
+  // blocked too: a role the profile rebinds or sets to none must not reopen the server it left.
+  const ops = channels.flatMap(c => map[c] || [])
+  const named = [...resolveTools(ops, factsObj.tools || {}), ...resolveTools(ops)]
+    .map(t => t.startsWith('mcp:') ? claudeToolName(t) : t)
+  return { channels, tools: [...new Set([...named, ...extra])] }
 }
 
 function schemas() {

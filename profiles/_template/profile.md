@@ -25,6 +25,16 @@ No secret values here: tokens and access codes go in `secrets.env` next to this 
 - Merged status: <status after merge> | none
 - QA statuses: <backticked statuses in which a ticket waits for verification> | none
 
+## tools
+
+Optional. Leave it out to take the defaults in `config/tool-kinds.json` (chat `slack`, docs `notion`,
+calendar `google-calendar`, email `gmail`, review-bot `coderabbit`). Server is a logical id from
+`config/mcp-servers.json`; the tracker's kind is set above.
+
+| Role | Kind | Server |
+|---|---|---|
+| docs | default | default |
+
 ## ticket conventions
 
 Optional; `none`, or leave it out, when the tracker's own required fields are the whole convention.

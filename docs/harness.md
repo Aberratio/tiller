@@ -149,7 +149,9 @@ and `classify-failure`; a green claim passes `verify-claim` before a gate reads 
 **Hard-stop channels.** `route.mjs` treats every outward channel as a hard stop. The profile's
 `Hard-stop channels` prose may narrow that list; the args builder renders it to channel ids from
 `outwardChannels`, and a runner drops `step.channel` for a channel outside the list before routing.
-`config/outward-tools.json` maps each channel to the tool names an unattended child is denied.
+`config/outward-tools.json` maps each channel to role ops (`role:chat.send`) an unattended child is denied.
+They resolve through the profile's `## tools` and through the default kinds both, so rebinding a role or
+setting it to `none` never reopens the server it left.
 
 **Result `calls[]`.** Each runner returns one entry per lane call. The launcher appends each as a
 journal line `{"type":"result","label","outcome","detail","escalatedFrom"}`: `outcome` is in the

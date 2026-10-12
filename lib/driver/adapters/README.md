@@ -6,9 +6,11 @@ adapter takes the same request and returns the same result:
 `exitClass` is one of `ok`, `budget`, `turns`, `timeout`, `schema`, `tool_denied`, `auth`, `rate_limit` or
 `runtime_error`.
 
-Roles in `config/agents.json` use logical tool names: `read`, `search`, `shell`, `web` and
-`mcp:<server>.<tool>`. Each adapter translates them, or refuses a role it cannot honour before it spawns
-anything.
+Roles in `config/agents.json` use logical tool names: `read`, `search`, `shell`, `web`,
+`role:<role>.<op>` and `mcp:<server>.<tool>`. A `role:` name resolves first, through
+`config/tool-kinds.json` and the profile's `## tools`, to `mcp:<server>.<tool>`; `config/mcp-servers.json`
+then gives the runtime's name for the server. Each adapter translates them, or refuses a role it cannot
+honour before it spawns anything.
 
 | Runtime | Schema | Budget | Denials | Verified against |
 |---|---|---|---|---|

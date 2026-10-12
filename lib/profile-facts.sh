@@ -132,6 +132,31 @@ tracker="$(jq -n --arg kind "$tracker_kind" --arg site "$tracker_site" --arg sta
   else {kind: $kind, site: $site, keys: $keys, startStatus: $start,
         mergedStatus: (if $merged == "" then null else $merged end)} end')"
 
+# ---- tools ----------------------------------------------------------------------------------
+# Optional `Role | Kind | Server` rows over config/tool-kinds.json; a role left out keeps its default
+# kind and server. The tracker's kind is `## tracker` Kind, so a tracker row only picks its server.
+tool_rows="$(rows tools | jq -R -s 'split("\n") | map(select(length > 0) | split("\t")
+  | {role: (.[0] // ""), kind: ((.[1] // "") | ascii_downcase), server: (.[2] // "")}
+  | .kind |= (if . == "default" or . == "-" then "" else . end)
+  | .server |= (if . == "default" or . == "-" then "" else . end))')"
+if ! has_section tools; then tools_err=x
+elif is_none tools; then tools_err="!none is not a binding; leave the section out for the defaults"
+else tools_err="$(jq -r --slurpfile k "$REPO_DIR/config/tool-kinds.json" --arg tk "$tracker_kind" '
+  ($k[0].roles) as $roles
+  | if length == 0 then "!no rows"
+    elif any(.[]; (.role + .kind + .server) | test("TODO")) then "TODO"
+    elif any(.[]; $roles[.role] == null) then "!unknown role " + ([.[] | select($roles[.role] == null) | .role] | join(", ")) + "; roles: " + ($roles | keys | join(", "))
+    elif (map(.role) | unique | length) != length then "!roles repeat"
+    elif any(.[]; .role == "tracker" and .kind != "" and .kind != $tk) then "!the tracker kind is set in ## tracker"
+    elif any(.[]; .kind != "" and .kind != "none" and $roles[.role].kinds[.kind] == null) then
+      "!unknown kind " + ([.[] | select(.kind != "" and .kind != "none" and $roles[.role].kinds[.kind] == null) | .role + " " + .kind] | join(", "))
+    else "x" end' <<<"$tool_rows")"; fi
+require 'tools — role bindings' "$tools_err"
+tools="$(jq --arg tk "$tracker_kind" '
+  (map({key: .role, value: ({} + (if .kind != "" then {kind: .kind} else {} end)
+                                 + (if .server != "" then {server: .server} else {} end))}) | from_entries)
+  | if $tk == "jira" or $tk == "none" then .tracker = ((.tracker // {}) + {kind: $tk}) else . end' <<<"$tool_rows")"
+
 # ---- ticket conventions ---------------------------------------------------------------------
 # Optional and read as prose by flow-write-ticket, so nothing is rendered. A declared section is a
 # copy of a written canon, and a skill that files tickets from a TODO copy files them wrong.
@@ -516,7 +541,7 @@ fi
 jq -n \
   --argjson schemaVersion "$schema_version" \
   --arg profile "$name" --arg profilePath "$profile" \
-  --argjson jiraKeys "$jira" --argjson tracker "$tracker" --argjson repos "$repos" \
+  --argjson jiraKeys "$jira" --argjson tracker "$tracker" --argjson tools "$tools" --argjson repos "$repos" \
   --arg branchConvention "$branch_convention" --arg worktree "$worktree" \
   --arg integrateMain "$integrate" --arg ledgerPath "$ledger" \
   --argjson mergeAuthority "$merge_authority" --argjson gates "$gates" \
@@ -527,7 +552,7 @@ jq -n \
   --argjson verificationRegister "$verification_register" \
   --arg worktreeCreate "$worktree_create" --argjson commits "$commits" \
   '{schemaVersion: $schemaVersion, profile: $profile, profilePath: $profilePath,
-    jiraKeys: $jiraKeys, tracker: $tracker, repos: $repos,
+    jiraKeys: $jiraKeys, tracker: $tracker, tools: $tools, repos: $repos,
     branchConvention: $branchConvention, worktree: $worktree, integrateMain: $integrateMain,
     ledgerPath: $ledgerPath, mergeAuthority: $mergeAuthority, gates: $gates,
     runPolicy: $runPolicy, inviolables: $inviolables, ownerProxy: $ownerProxy,

@@ -1,0 +1,96 @@
+{
+  "description": "Role vocabulary for tool names. A skill or role names `role:<role>.<op>` (or `role:<role>` for the whole server); a profile's `## tools` picks the kind and server per role, and `## tracker` picks the tracker's kind. A kind's ops map to the tool names its MCP server exposes. A role whose kind is `none` grants nothing.",
+  "roles": {
+    "tracker": {
+      "default": "jira",
+      "kinds": {
+        "jira": {
+          "server": "atlassian",
+          "ops": {
+            "get": "getJiraIssue",
+            "search": "searchJiraIssuesUsingJql",
+            "transitions": "getTransitionsForJiraIssue",
+            "transition": "transitionJiraIssue",
+            "edit": "editJiraIssue",
+            "create": "createJiraIssue",
+            "comment": "addCommentToJiraIssue",
+            "link": "createIssueLink",
+            "remote-links": "getJiraIssueRemoteIssueLinks",
+            "lookup-user": "lookupJiraAccountId",
+            "projects": "getVisibleJiraProjects",
+            "issue-types": "getJiraProjectIssueTypesMetadata",
+            "sites": "getAccessibleAtlassianResources",
+            "me": "atlassianUserInfo"
+          }
+        }
+      }
+    },
+    "chat": {
+      "default": "slack",
+      "kinds": {
+        "slack": {
+          "server": "slack",
+          "ops": {
+            "search": "slack_search_public_and_private",
+            "search-public": "slack_search_public",
+            "read-thread": "slack_read_thread",
+            "read-channel": "slack_read_channel",
+            "search-users": "slack_search_users",
+            "search-channels": "slack_search_channels",
+            "send": "slack_send_message",
+            "schedule": "slack_schedule_message",
+            "draft": "slack_send_message_draft"
+          }
+        }
+      }
+    },
+    "docs": {
+      "default": "notion",
+      "kinds": {
+        "notion": {
+          "server": "notion",
+          "ops": {
+            "search": "notion-search",
+            "fetch": "notion-fetch"
+          }
+        },
+        "confluence": {
+          "server": "atlassian",
+          "ops": {
+            "search": "searchConfluenceUsingCql",
+            "fetch": "getConfluencePage"
+          }
+        }
+      }
+    },
+    "calendar": {
+      "default": "google-calendar",
+      "kinds": {
+        "google-calendar": {
+          "server": "google-calendar",
+          "ops": {
+            "list": "list_events",
+            "search": "search_events",
+            "get": "get_event",
+            "create": "create_event",
+            "update": "update_event",
+            "delete": "delete_event",
+            "respond": "respond_to_event"
+          }
+        }
+      }
+    },
+    "email": {
+      "default": "gmail",
+      "kinds": {
+        "gmail": { "server": "gmail", "ops": {} }
+      }
+    },
+    "review-bot": {
+      "default": "coderabbit",
+      "kinds": {
+        "coderabbit": { "server": null, "ops": {} }
+      }
+    }
+  }
+}

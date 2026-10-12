@@ -22,11 +22,12 @@ day orchestrator such as `flow-run-day` (reads the snapshot). None of them is re
 - `gh`, `git`, `jq`.
 - Tools, least privilege — the whole allowlist of the source agent:
   - `Bash`, `Read`, `Grep`, `Glob`, `ToolSearch`
-  - tracker: `searchJiraIssuesUsingJql`, `getJiraIssue`, `getTransitionsForJiraIssue`,
-    `transitionJiraIssue`, `editJiraIssue`, `getJiraIssueRemoteIssueLinks`
-  - calendar (read): `list_events`, `search_events`
-  - chat (read): `slack_search_public_and_private`, `slack_read_thread`
-  - docs (read): `notion-search`, `notion-fetch`
+  - tracker: `search`, `get`, `transitions`, `transition`, `edit`, `remote-links`
+  - calendar (read): `list`, `search`
+  - chat (read): `search`, `read-thread`
+  - docs (read): `search`, `fetch`
+  - Role ops from `config/tool-kinds.json` (`config/agents.json` names them); the profile's `## tools`
+    picks the vendor tool each resolves to.
   - No `Write`/`Edit`: the log and snapshot are written through Bash.
 - A mid-tier model is enough: the lane is read-heavy and every judgement is a table lookup.
 

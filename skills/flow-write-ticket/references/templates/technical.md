@@ -83,7 +83,7 @@ h2. References
 * Profiling snapshot: [Datadog APM trace link]
 ```
 
-Note: OPS-2741 (hybrid search, which depends on this baseline holding) is wired up as a `relates to` issue link via `createIssueLink`, not written into References as text — see step 9 in SKILL.md.
+Note: OPS-2741 (hybrid search, which depends on this baseline holding) is wired up as a `relates to` issue link via `tracker.link`, not written into References as text — see step 9 in SKILL.md.
 
 ---
 

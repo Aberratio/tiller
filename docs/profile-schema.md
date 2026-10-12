@@ -31,6 +31,7 @@ may be followed on the same line by a dash and the reason.
 |---|---|---|
 | `## identity` | project name, Jira project key(s), board name | start-ticket, plan-ticket, pm |
 | `## tracker` | `Kind` (`jira` \| `none`), `Site`, `Start status`, `Merged status`, optional `QA statuses` | start-ticket, pm, run-ticket, manual-qa |
+| `## tools` | optional table `Role \| Kind \| Server` over the roles in `config/tool-kinds.json` (tracker, chat, docs, calendar, email, review-bot). A role left out, or `default` in a cell, keeps the default kind and server; Kind `none` grants that role nothing. The tracker's kind comes from `## tracker`, so a tracker row only picks the server. Skills and roles name `role:<role>.<op>`, never a vendor tool | run-ticket, run-day, install-agents |
 | `## ticket conventions` | optional; the project's written ticket-writing rules copied from their canon: `Source:`, browse URL, components, project routing, priority scheme, issue types, personas, labels, the internal vocabulary a ticket must not carry. Read as prose, not rendered; `none`, or the section left out, means the tracker's own required fields are the only convention | write-ticket |
 | `## board` | optional; which tickets pm acts on, which tracker writes it may make (closed list), the verified status, a known-done canary ticket, the WIP limit, where its log and snapshot live, and the deadline sources. Absent or `none`: pm audits and writes nothing | pm |
 | `## repos` | table: repo → local path, role, main branch, what merging to main means | every skill |
@@ -188,6 +189,7 @@ as `profilePath`, and the agent that needs one opens it.
 | `profilePath` | — | absolute path to the profile file |
 | `jiraKeys` | `## identity` | list of strings |
 | `tracker` | `## tracker` | `{kind: "jira", site, keys, startStatus, mergedStatus}` or `{kind: "none", spec: true}` |
+| `tools` | `## tools` + `## tracker` Kind | `{<role>: {kind?, server?}}`, declared bindings only; `tracker.kind` always set |
 | `repos` | `## repos` | list of `{repo, path, role, main, mergingMeans}` |
 | `branchConvention` | `## branching` | string |
 | `worktree` | `## branching` | string, or `none` |

@@ -103,7 +103,7 @@ h2. References
 * Sample failing photo: [Drive link]
 ```
 
-Note: SUPPORT-9821 (the CS escalation) is wired up as a `relates to` issue link via `createIssueLink`, not written into References as a URL — see step 9 in SKILL.md. Sentry stays as a plain link since it isn't a Jira issue.
+Note: SUPPORT-9821 (the CS escalation) is wired up as a `relates to` issue link via `tracker.link`, not written into References as a URL — see step 9 in SKILL.md. Sentry stays as a plain link since it isn't a Jira issue.
 
 ---
 

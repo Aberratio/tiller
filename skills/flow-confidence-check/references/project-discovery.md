@@ -48,7 +48,7 @@ This is the skill's convention: project setup belongs in the project's docs, nev
 Each hit is stamped as `spec-source` (see SKILL.md Phase 1): `file` / `jira` / `author` / `conversation` / `none`.
 
 1. Explicit skill argument (text or file path) wins -> `file` (or `author` when the argument is AC text the user wrote).
-2. Branch matches the ticket pattern (the profile's `## commits` → `Ticket from branch:`, else `[A-Z]+-\d+`) AND the tracker's MCP is connected (tracker kind `jira`: the Atlassian MCP): fetch the issue, condense to <= 15 lines (goal, acceptance criteria, constraints, out-of-scope) -> `jira`.
+2. Branch matches the ticket pattern (the profile's `## commits` → `Ticket from branch:`, else `[A-Z]+-\d+`) AND the tracker role's tools are connected: fetch the issue with `tracker.get`, condense to <= 15 lines (goal, acceptance criteria, constraints, out-of-scope) -> `jira`.
 3. Branch or recent commits mention `#123` AND `gh` is available: `gh issue view 123` -> `jira`.
 4. User explicitly typed the acceptance criteria in this conversation -> `author`.
 5. ACs derived from conversation context or a grep of the repo's docs/plans directories -> `conversation`; NEVER silent - echo the derived ACs back and require explicit confirmation before review dispatch.
