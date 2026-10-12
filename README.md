@@ -133,6 +133,208 @@ A hit means the fact belongs in a profile, not that the term list is wrong.
 | `flow-pm` | keep the board true; mandate from `## board` |
 | `flow-manual-qa` | decide which criteria need a human; register from `## verification register` |
 
+## The harness in pictures
+
+Six diagrams, widest view first. They render on GitHub; other viewers need a Mermaid-capable preview.
+
+### 1. Which project am I in?
+
+Every skill starts with this. No profile resolved means no work.
+
+```mermaid
+flowchart TD
+    A(["Skill starts in some directory"]) --> B{"TILLER_PROFILE<br/>env var set?"}
+    B -->|yes| OK
+    B -->|no| C{".tiller-profile file<br/>at the repo root?"}
+    C -->|yes| OK
+    C -->|no| D{"cwd matches a profile's<br/>repo_globs?"}
+    D -->|yes| OK
+    D -->|no| STOP["STOP<br/>no profile resolved"]
+    OK["profiles/&lt;name&gt;/profile.md"] --> O{"TILLER_OVERLAY set?"}
+    O -->|yes| OV["profiles/&lt;name&gt;/overlays/&lt;env&gt;.md<br/>replaces same-named sections;<br/>merge authority, inviolables,<br/>owner proxy cannot be overridden"]
+    O -->|no| E
+    OV --> E{"profile-facts.sh --check<br/>required sections filled,<br/>no TODO left?"}
+    E -->|yes| GO(["Skill runs with this<br/>project's facts"])
+    E -->|"no, exit 4"| STOP2["STOP<br/>names the missing sections"]
+
+    classDef stop fill:#fde2e1,stroke:#c0392b,color:#7b241c
+    classDef go fill:#dff5e3,stroke:#27ae60,color:#145a32
+    class STOP,STOP2 stop
+    class GO go
+```
+
+### 2. One ticket, by hand
+
+The interactive path. Each box is one skill; the arrow is what it hands on.
+
+```mermaid
+flowchart TD
+    W["flow-write-ticket<br/><i>ticket is not spec-shaped yet</i>"] -.-> ST
+    DB["flow-diagnose-bug<br/><i>cause unknown</i>"] -.->|"deliverable: a plan"| PL
+    ST["flow-start-ticket<br/>sanity-check, branch from<br/>fresh main, set status"] -->|ticket + branch| PL
+    PL["flow-plan-ticket<br/>verify premise, seam table"] -->|plan + seams| TD
+    TD["flow-tdd<br/>red, green per seam"] -->|working tree| CR
+    CR["flow-code-review<br/>Standards + Spec, reports only"] -->|findings fixed| CM
+    CM["flow-create-commit<br/>format from profile ## commits<br/>(default: Conventional Commits)"] --> PR
+    PR["flow-create-pull-request<br/>always a draft"] --> CC
+    CC["flow-confidence-check<br/>verdict on the branch,<br/>in a fresh subagent"] --> QA
+    QA["flow-manual-qa<br/>criteria that need a human"]
+
+    LG[("flow-decision-ledger<br/>one file per branch")]
+    PL -. writes deviations .-> LG
+    TD -. writes deviations .-> LG
+    LG -. read into briefs .-> CR
+    LG -. read into briefs .-> CC
+    RC["flow-resolve-conflicts"] -. "on a merge or rebase conflict" .-> CM
+```
+
+`flow-pm` sits beside this line: it reconciles the board with the artefacts and is never a step in it.
+
+### 3. The layers of an unattended run
+
+A Workflow script has no filesystem, shell or clock, so it reaches the world only through a small
+exec agent that runs one script.
+
+```mermaid
+flowchart TB
+    subgraph W["Workflow script, pure JS"]
+        W1["phases, counters,<br/>gate arithmetic"]
+    end
+    subgraph A["Agents: judgment only"]
+        A1["plan / implement / fix"]
+        A2["review axes, confidence,<br/>QA judge"]
+        A3["resolver, owner proxy"]
+    end
+    subgraph X["Exec lane (T1): one command, verbatim stdout"]
+        X1["run exactly this command, once"]
+    end
+    subgraph D["Deterministic scripts in lib/, tested"]
+        D1["git/ forge/ gates/ state/"]
+    end
+    W1 -->|prompt + output schema| A
+    A -->|"JSON that must validate"| W1
+    W1 -->|"one script by absolute path"| X1
+    X1 --> D1
+    D1 -->|"one JSON line on stdout"| X1
+    X1 -->|"stdout untouched"| W1
+    A2 -. "a claim that feeds a gate<br/>is re-derived by a script" .-> D1
+```
+
+Lane tiers come from `config/routing.json`: T1 haiku (exec), T2 sonnet (prose, logs, premise), T3
+opus (every lane that can open a gate). A gate lane is never routed below the session's tier.
+
+### 4. One ticket, unattended (`flow-run-ticket`)
+
+The fourteen phases of `run-ticket.workflow.js`. Each writes a checkpoint, so a dead run resumes at
+the phase it died in.
+
+```mermaid
+flowchart TD
+    L["Launcher: resolve profile, probes,<br/>args, Workflow tool or node driver"] --> start
+    start["start<br/>duplicate guard, worktree"] --> premise
+    premise{"premise<br/>does the ticket's claim<br/>hold in the repo?"} -->|falsified| PARK1["decision: rewrite<br/>or close the ticket"]
+    premise -->|holds| plan["plan"]
+    plan --> impl["implement<br/>test claim re-run by a script"]
+    impl --> review["review<br/>Standards + Spec axes"]
+    review -->|"high+ findings,<br/>fixRounds left"| fix1["fix round"] --> review
+    review --> pr["pr<br/>draft PR"]
+    pr --> ci{"ci<br/>wait-ci on head SHA"}
+    ci -->|"red, ciFix left"| fix2["fix round"] --> ci
+    ci -->|green| bot["review-bot<br/>threads answered"]
+    bot --> conf["confidence<br/>independent re-verify"]
+    conf -->|"confirmed high+<br/>after 2 passes"| PARK2["decision:<br/>split or take over"]
+    conf --> gate{"gate<br/>profile gates + merge<br/>authority, as code"}
+    gate -->|"agent may merge,<br/>all green"| merge["merge"]
+    gate -->|"human must sign,<br/>all green"| RTS["ready-to-sign<br/>PR left open"]
+    gate -->|not green| PARK3["parked"]
+    gate -->|"merge held by launcher"| OPEN["open-pr"]
+    merge --> qa["qa<br/>criteria vs deployed SHA"]
+    qa --> clean["cleanup"] --> logs["logs<br/>run summary"]
+
+    classDef park fill:#fdebd0,stroke:#d68910,color:#7e5109
+    classDef sign fill:#e8daef,stroke:#7d3c98,color:#4a235a
+    classDef done fill:#dff5e3,stroke:#27ae60,color:#145a32
+    class PARK1,PARK2,PARK3 park
+    class RTS sign
+    class merge,logs done
+```
+
+Ready-to-sign is not a failure: it is the run finishing on a path the profile's `## merge authority`
+reserves for a human signature.
+
+### 5. When a run gets stuck: the escalation chain
+
+Every question walks the same chain, one hop at a time (`lib/escalation/route.mjs`). Only the lists
+(inviolables, mandates, hard-stop channels) come from the profile.
+
+```mermaid
+flowchart LR
+    Q(["a phase cannot<br/>proceed"]) --> HB{"harness block?<br/>classifier or<br/>permission denial"}
+    HB -->|yes| NOBODY["goes to nobody<br/>listed with the rule quoted;<br/>no answer would unblock it"]
+    HB -->|no| SG{"needs a<br/>signature?"}
+    SG -->|yes| RTS["ready-to-sign list"]
+    SG -->|no| SC{"source cascade<br/>repo docs, ticket,<br/>comments, PRs, ledger"}
+    SC -->|answered| DEC["decided"]
+    SC -->|no answer| HS{"hard stop?<br/>someone else's PR,<br/>outward channel"}
+    HS -->|yes| HUMAN
+    HS -->|no| RES{"resolver<br/>researches, weighs,<br/>states reversal cost"}
+    RES -->|"touches an inviolable"| INV["inviolable park<br/>with recommendation"]
+    RES -->|"decides, no mandate needed"| DEC
+    RES -->|"needs the owner's mandate"| MAN{"mandate in the<br/>profile's closed list?"}
+    MAN -->|no| HUMAN["parked for<br/>the human"]
+    MAN -->|yes| OP["owner proxy<br/>acts and reports"]
+    OP -->|"condition unmet"| HUMAN
+    OP -->|done| PROX["proxied"]
+
+    classDef human fill:#e8daef,stroke:#7d3c98,color:#4a235a
+    classDef ok fill:#dff5e3,stroke:#27ae60,color:#145a32
+    classDef grey fill:#eaecee,stroke:#7f8c8d,color:#2c3e50
+    class HUMAN,RTS,INV human
+    class DEC,PROX ok
+    class NOBODY grey
+```
+
+The owner proxy's vocabulary is six mandates: `approve-day-queue`, `start-next-ticket`,
+`approve-peer-step`, `resume-run`, `lift-cap-once`, `undraft-pr`. It never signs and never writes to
+a hard-stop channel.
+
+### 6. A whole day, unattended (`flow-run-day`)
+
+A day is waves of ticket runs. The supervisor is a plain shell loop on purpose: it has no context to
+grow, and its only decision is reading `state.md`.
+
+```mermaid
+flowchart TD
+    Q["approved queue<br/>waves.json"] --> DA{"harness.mjs day-args<br/>profile has owner proxy,<br/>day ceiling, maxParallel?"}
+    DA -->|no| REF["refused:<br/>the refusal is the answer"]
+    DA -->|yes| ENV["supervisor env<br/>stop hour, denied tools"]
+    ENV --> SUP
+
+    subgraph SUP["lib/supervisor/supervise.sh, loop"]
+        S1["spawn one bounded<br/>claude -p child"] --> S2{"state.md says?"}
+        S2 -->|"supervisor: done"| END(["day over"])
+        S2 -->|"paused-usage &lt;reset&gt;"| SLEEP["wait for the reset"] --> S1
+        S2 -->|"still running"| S3{"stop hour reached?<br/>spawn cap? no progress?"}
+        S3 -->|no| S1
+        S3 -->|yes| END
+    end
+
+    S1 --> DAY
+    subgraph DAY["run-day.workflow.js, inside the child"]
+        D1{"open decisions<br/>under the ceiling?"} -->|yes| D2["start up to maxParallel<br/>run-ticket children"]
+        D1 -->|"at ceiling"| D3["ask owner proxy once:<br/>lift-cap-once"]
+        D3 -->|refused| CEIL(["day stops: ceiling"])
+        D3 -->|granted| D2
+        D2 --> D4["base branch moved?<br/>one sweep lane looks<br/>for regressions"]
+        D4 --> D5{"next wave?"}
+        D5 -->|"only via owner proxy:<br/>start-next-ticket"| D1
+        D5 -->|"no waves left"| DONE(["supervisor: done"])
+    end
+```
+
+Harness blocks and ready-to-sign parks never count toward the ceiling. The report back lists
+ready-to-sign PRs, open decisions and sweep regressions, with every gate re-read from the forge.
+
 ## Wayfinding
 
 `/wayfinder` charts a foggy effort as a map of decision tickets on "this repo's issue tracker". Here
