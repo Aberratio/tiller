@@ -86,10 +86,15 @@ note() { printf '%s\n' "$1" >&2; }
 # A `TODO` in a required field is an unfilled profile, not a fact.
 require() {
   labels+=("$1")
+  # A template slot is `<two or more words>`. Held in a variable so the brackets reach the regex
+  # engine as themselves, whatever the bash build.
+  local slot='<[^<>]*[[:space:]][^<>]*>'
   case "$2" in
     "") missing+=("$1") ;;
     *TODO*) missing+=("$1 (reads TODO)") ;;
     !*) missing+=("$1 (${2#!})") ;;
+    # `<TICKET>` in a path is a value, and so is prose like `run if a < b and c > d`.
+    *) if [[ "$2" =~ $slot ]]; then missing+=("$1 (reads a template placeholder)"); fi ;;
   esac
 }
 
@@ -258,6 +263,9 @@ command_cells_err() {
 }
 if has_section 'test toolchain' && ! is_none 'test toolchain'; then
   tc_err="$(command_cells_err 'test toolchain')"
+  # A section that is neither `none` nor a table says in prose why it is empty. A TODO there is a
+  # fact nobody measured - `none` would be a claim, and this is the absence of one.
+  if [[ -z "$tc_err" ]] && grep -q 'TODO' <<<"$(section 'test toolchain')"; then tc_err='TODO'; fi
   require 'test toolchain — commands' "${tc_err:-x}"
 fi
 

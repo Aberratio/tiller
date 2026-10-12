@@ -5,6 +5,7 @@
 #
 # Order: TILLER_PROFILE env > .tiller-profile at the repo root > repo_globs match > fail.
 # Failing is the point: a skill that cannot tell one project's profile from another must stop, not guess.
+# TILLER_PROFILES_DIR replaces the profiles directory, for tests.
 #
 # TILLER_OVERLAY=<env> layers profiles/<name>/overlays/<env>.md over the profile: each of its sections
 # replaces the profile's section of the same heading whole, or is appended. Text before its first
@@ -13,7 +14,7 @@
 set -uo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROFILES="$REPO_DIR/profiles"
+PROFILES="${TILLER_PROFILES_DIR:-$REPO_DIR/profiles}"
 target="$(cd "${1:-$PWD}" 2>/dev/null && pwd)" || { echo "resolve-profile: no such dir" >&2; exit 2; }
 
 # Sections that carry the owner's authority: an environment must not loosen them.
