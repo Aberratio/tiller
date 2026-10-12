@@ -5,8 +5,8 @@
  "terminal": {
   "status": "parked",
   "reason": "gate: review-bot blocked, harness blocked, changed-files blocked",
-  "prUrl": "https://github.com/example-org/acme-web/pull/223",
-  "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+  "prUrl": "https://github.com/example-org/acme-web/pull/501",
+  "headSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
   "gate": [
    {
     "name": "ci",
@@ -116,7 +116,7 @@
     "ok": true,
     "ticketKind": "code",
     "premiseVerdict": "holds",
-    "planPath": "<ROOT>/worktrees/ABC-102-run-638ca90c/docs/plans/ABC-102-build-error-follows-selection.md",
+    "planPath": "<ROOT>/worktrees/ABC-102-run-99d9d145/docs/plans/ABC-102-build-error-follows-selection.md",
     "planSummary": "The plan stores the build error together with the selection it came from (the confirmed window's startT, endT and the cycleJoint). The alert shows only while that same selection is current. So it disappears when the author picks another detected window, draws one, moves a boundary or changes the joi…",
     "authorisedFiles": [
      "client-new/src/features/referenceExtraction/ExtractReferenceScreen.tsx",
@@ -124,7 +124,7 @@
      "docs/decisions/ABC-102.md"
     ],
     "awaiting": [],
-    "premiseEvidence": "The code on c7defcee (origin/main) matches the ticket: buildError is plain useState, set in extract()'s catch and cleared only after a later successful build. `git log --grep ABC-102 origin/main` returns only 4d9ce8e3, which is ABC-106's ledger line deferring this exact bug to ABC-102. The ticket…",
+    "premiseEvidence": "The code on 42b0c6a1 (origin/main) matches the ticket: buildError is plain useState, set in extract()'s catch and cleared only after a later successful build. `git log --grep ABC-102 origin/main` returns only 67ff7b08, which is ABC-106's ledger line deferring this exact bug to ABC-102. The ticket…",
     "notes": "No decisions.jsonl exists for this run, so there were no rulings to apply. resolve-profile.sh matched no glob for this run-state worktree path. I used TILLER_PROFILE=acme because the worktree's origin is example-org/acme-web, and recorded that in the ledger. The ledger is at <ROOT>/worktrees/ABC-102-r…"
    }
   },
@@ -134,9 +134,9 @@
    "label": "implement:implement:T3:tdd",
    "result": {
     "ok": true,
-    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "headSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "commits": [
-     "83137f9a [ABC-102] fix(reference-extraction): show the build error only for the selection that failed"
+     "abe41c2c [ABC-102] fix(reference-extraction): show the build error only for the selection that failed"
     ],
     "testCommand": "cd web-app && npx vitest run 'src/routes/source-videos_.$sourceVideoId_.extract.test.tsx' && npm run typecheck && npm run lint && npm run check && npm run check:boundaries && npm test",
     "testResult": "pass",
@@ -151,7 +151,7 @@
    "label": "review:review-axis:T3:standards",
    "result": {
     "axis": "standards",
-    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewedSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "skipped": false,
     "findings": [
      {
@@ -165,7 +165,7 @@
       ]
      }
     ],
-    "report": "Standards axis, main..83137f9a (3 files: ExtractReferenceScreen.tsx, extract route test, ABC-102 ledger). No rule documented in the repo is broken. Sources read: the root CLAUDE.md (Code comments, Testing hygiene, cross-cutting contracts), the Shape section of client-new/CLAUDE.md, and .claude/rule…",
+    "report": "Standards axis, main..abe41c2c (3 files: ExtractReferenceScreen.tsx, extract route test, ABC-102 ledger). No rule documented in the repo is broken. Sources read: the root CLAUDE.md (Code comments, Testing hygiene, cross-cutting contracts), the Shape section of client-new/CLAUDE.md, and .claude/rule…",
     "awaiting": [],
     "notes": "decisions.jsonl was not found at <ROOT>/decisions.jsonl, so there are no binding rulings for ABC-102 to apply. The flow-code-review brief (Standards section) comes from ~/Other Repos/tiller/skills/flow-code-review/references/subagent-briefs.md."
    }
@@ -176,10 +176,10 @@
    "label": "review:review-axis:T3:spec",
    "result": {
     "axis": "spec",
-    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewedSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "skipped": false,
     "findings": [],
-    "report": "Spec axis, main..83137f9a, checked against the ABC-102 ticket (fetched from Jira, no comments on it), the plan (D1-D5) and the branch ledger. There are no findings.\n\n(a) Nothing asked for is missing. The ticket's scope says the error \"is either tied to that selection and shown only while it stays s…",
+    "report": "Spec axis, main..abe41c2c, checked against the ABC-102 ticket (fetched from Jira, no comments on it), the plan (D1-D5) and the branch ledger. There are no findings.\n\n(a) Nothing asked for is missing. The ticket's scope says the error \"is either tied to that selection and shown only while it stays s…",
     "awaiting": [],
     "notes": "decisions.jsonl does not exist at the stated path, so there were no rulings to apply. The ticket was fetched via the Atlassian MCP. I did not write to the ledger because this is a report-only review lane."
    }
@@ -189,7 +189,7 @@
    "occurrence": 1,
    "label": "pr:pr-description:T2:prose",
    "result": {
-    "title": "PR prose for ABC-102 (main..83137f9a)",
+    "title": "PR prose for ABC-102 (main..abe41c2c)",
     "body": "Title and body of the PR for ABC-102 (nie push/open, tylko tekst):\n\n---\n\n**Title:**\n[ABC-102] fix(reference-extraction): show the build error only for the selection that failed\n\n**Body:**\n\n## Change\nThe extraction-request build error in `ExtractReferenceScreen` is now stored together with the window and j…",
     "awaiting": []
    }
@@ -201,7 +201,7 @@
    "result": {
     "action": "park",
     "mandate": "",
-    "step": "Leave PR #223 in draft. Do not run gh pr ready until the PR title and body match the prepared description.",
+    "step": "Leave PR #501 in draft. Do not run gh pr ready until the PR title and body match the prepared description.",
     "parkReason": "condition-unmet",
     "conditions": [
      {
@@ -210,19 +210,19 @@
       "evidence": "profiles/profile.md ## owner proxy: Mandate: start-next-ticket, approve-peer-step, resume-run, undraft-pr; 'gh pr ready in example-org/acme-web is standing permission'"
      },
      {
-      "condition": "PR is open, draft, head at 83137f9a, authored by the run's account",
+      "condition": "PR is open, draft, head at abe41c2c, authored by the run's account",
       "met": true,
-      "evidence": "gh pr view 223: state OPEN, isDraft true, headRefOid 83137f9a88ea6ecdb09235749e854e1bbfdeda0a, author the-author == gh api user the-author"
+      "evidence": "gh pr view 223: state OPEN, isDraft true, headRefOid abe41c2ce12a8bce17f46814e2d8b76e9b663c43, author the-author == gh api user the-author"
      },
      {
       "condition": "Review round closed at this SHA with no open blocker/high findings",
       "met": true,
-      "evidence": "checkpoints/0005-review.json: reviewedSha == headSha 83137f9a, open: [], missing: [], harness: [], typecheck/lint/test green exit 0"
+      "evidence": "checkpoints/0005-review.json: reviewedSha == headSha abe41c2c, open: [], missing: [], harness: [], typecheck/lint/test green exit 0"
      },
      {
       "condition": "The PR on the forge carries the prepared title and description, so undrafting shows reviewers the reviewed artefact",
       "met": false,
-      "evidence": "Live PR title is 'PR prose for ABC-102 (main..83137f9a)', not the commit-format title '[ABC-102] fix(reference-extraction): show the build error only for the selection that failed'. The live body starts with Polish lane meta-text 'Title and body of the PR for ABC-102 (nie push/open, tylko tekst):', wraps…"
+      "evidence": "Live PR title is 'PR prose for ABC-102 (main..abe41c2c)', not the commit-format title '[ABC-102] fix(reference-extraction): show the build error only for the selection that failed'. The live body starts with Polish lane meta-text 'Title and body of the PR for ABC-102 (nie push/open, tylko tekst):', wraps…"
      },
      {
       "condition": "CI on the head SHA finished",
@@ -240,10 +240,10 @@
       "evidence": "decisions.jsonl does not exist at run-state/acme/ABC-102-2026-09-29-phaseA/. grep 8779 in $STATE_DIR/decisions.md finds nothing."
      }
     ],
-    "rationale": "Everything else about the mandate holds: the step is in the list, the PR is ours, and the review is closed with nothing open at 83137f9a. The problem is the forge copy. Its title and body are the lane's raw answer, with Polish meta-text and a note saying no PR was opened. They are not the English de…",
+    "rationale": "Everything else about the mandate holds: the step is in the list, the PR is ours, and the review is closed with nothing open at abe41c2c. The problem is the forge copy. Its title and body are the lane's raw answer, with Polish meta-text and a note saying no PR was opened. They are not the English de…",
     "reversalCost": "Nil. The PR stays in draft and nothing is published or merged. Undrafting later takes one command.",
     "awaiting": [],
-    "notes": "No ruling id applied: decisions.jsonl is missing for this run. Report line: PR #223 left in draft — forge title/body are the pr lane's raw meta-answer, not the reviewed description; frontend CI still running — reversal: nil. Merge authority is not in play: undrafting is not merging. Once ready, all …"
+    "notes": "No ruling id applied: decisions.jsonl is missing for this run. Report line: PR #501 left in draft — forge title/body are the pr lane's raw meta-answer, not the reviewed description; frontend CI still running — reversal: nil. Merge authority is not in play: undrafting is not merging. Once ready, all …"
    }
   },
   {
@@ -252,7 +252,7 @@
    "label": "confidence:confidence-dim:T3:correctness",
    "result": {
     "dimension": "correctness",
-    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewedSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "findings": [],
     "acCoverage": [
      {
@@ -281,9 +281,9 @@
       "evidence": "Seven route-level tests in routes/source-videos_.$sourceVideoId_.extract.test.tsx:345-444. The ledger records a mutation map (4 of 4 mutations caught) and that reverting the implementation reddens the plan-named tests. Tests were not re-run in this review (execution is left to CI)"
      }
     ],
-    "report": "Correctness review of main..83137f9a (PR #223, ABC-102): no defects found. The build error is now stored with the selection it came from (startT, endT, cycleJoint), and it is shown only while that exact selection is current. `extract()` guards on the same `selection` object it records, so the recor…",
+    "report": "Correctness review of main..abe41c2c (PR #501, ABC-102): no defects found. The build error is now stored with the selection it came from (startT, endT, cycleJoint), and it is shown only while that exact selection is current. `extract()` guards on the same `selection` object it records, so the recor…",
     "awaiting": [],
-    "notes": "Read-only slice: no ledger lines added, since no judgment call was taken. The open decision ABC-102-D1 (take PR #223 out of draft, blocked by a bad PR title and body) is about the PR text on the forge, not code correctness, and is outside this dimension. The ACs were taken from the Traceability tab…"
+    "notes": "Read-only slice: no ledger lines added, since no judgment call was taken. The open decision ABC-102-D1 (take PR #501 out of draft, blocked by a bad PR title and body) is about the PR text on the forge, not code correctness, and is outside this dimension. The ACs were taken from the Traceability tab…"
    }
   },
   {
@@ -292,7 +292,7 @@
    "label": "confidence:confidence-dim:T3:spec-coverage",
    "result": {
     "dimension": "spec-coverage",
-    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewedSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "findings": [],
     "acCoverage": [
      {
@@ -321,7 +321,7 @@
       "evidence": "The tests mount the real route tree at /source-videos/7/extract through renderApp (extract.test.tsx:9, 99-100) and assert buildAlert() is null after each change (extract.test.tsx:345-444). The ledger's mutation map reports that reverting ExtractReferenceScreen.tsx turns the 5 plan-named tests red, a…"
      }
     ],
-    "report": "All 5 acceptance criteria of ABC-102 are covered by main..83137f9a, and there are no spec-coverage findings. The build error is now stored with the selection it was built from (window start, window end, cycle joint). It is shown only while that exact selection is current. This meets AC1 to AC3, and…",
+    "report": "All 5 acceptance criteria of ABC-102 are covered by main..abe41c2c, and there are no spec-coverage findings. The build error is now stored with the selection it was built from (window start, window end, cycle joint). It is shown only while that exact selection is current. This meets AC1 to AC3, and…",
     "awaiting": [],
     "notes": "The ACs come from Jira ABC-102 (the description's numbered list); the ticket has no comments. The subagent-prompts.md dimension extras list spec-alignment but not spec-coverage, so I applied the spec-alignment extras. This was a read-only review, so nothing was added to the ledger and no tests were…"
    }
@@ -332,7 +332,7 @@
    "label": "confidence:confidence-dim:T3:regression-risk",
    "result": {
     "dimension": "regression-risk",
-    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewedSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "findings": [],
     "acCoverage": [
      {
@@ -358,10 +358,10 @@
      {
       "ac": "AC5 route test proves AC1-3 and fails if the error stays after the selection changes",
       "status": "covered",
-      "evidence": "7 route tests through the real route file; ledger mutation map: each dropped comparison reddens its own test, dropping the guard reddens all 7; CI 'Frontend - lint, typecheck, test and build' success at 83137f9a"
+      "evidence": "7 route tests through the real route file; ledger mutation map: each dropped comparison reddens its own test, dropping the guard reddens all 7; CI 'Frontend - lint, typecheck, test and build' success at abe41c2c"
      }
     ],
-    "report": "Regression-risk on main..83137f9a (1 production file, +34/-8, plus route tests and ledger): no findings. The `extract()` guard changes from `!confirmed || !cycleJoint` to `!selection`. These are equivalent, because `selection` is null under exactly the same condition. The request payload is built fr…",
+    "report": "Regression-risk on main..abe41c2c (1 production file, +34/-8, plus route tests and ledger): no findings. The `extract()` guard changes from `!confirmed || !cycleJoint` to `!selection`. These are equivalent, because `selection` is null under exactly the same condition. The request payload is built fr…",
     "awaiting": [],
     "notes": "Tooling: tiller/skills/flow-confidence-check/references/subagent-prompts.md has no 'regression-risk' extras section, and its output contract lists only spec-alignment|defect-sanity|test-quality|security. This review used the common preamble plus the obvious reading of the dimension: which exist…"
    }
@@ -372,17 +372,17 @@
    "label": "confidence:confidence-dim:T3:operability",
    "result": {
     "dimension": "operability",
-    "reviewedSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "reviewedSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "findings": [
      {
       "id": "OPS-1",
       "axis": "operability",
       "severity": "high",
       "source": "harness",
-      "summary": "PR #223 on the forge carries the PR lane's raw answer, not a PR description. The title is 'PR prose for ABC-102 (main..83137f9a)'. The body opens with Polish meta-text ('Tytuł i treść PR ... (nie push/open, tylko tekst)') and ends with 'Brak push/otwierania PR — sama treść jak proszono.' The real E…",
+      "summary": "PR #501 on the forge carries the PR lane's raw answer, not a PR description. The title is 'PR prose for ABC-102 (main..abe41c2c)'. The body opens with Polish meta-text ('Tytuł i treść PR ... (nie push/open, tylko tekst)') and ends with 'Brak push/otwierania PR — sama treść jak proszono.' The real E…",
       "locations": [
        "<ROOT>/tickets/ABC-102/pr-body.md:1-29",
-       "https://github.com/example-org/acme-web/pull/223"
+       "https://github.com/example-org/acme-web/pull/501"
       ]
      }
     ],
@@ -410,12 +410,12 @@
      {
       "ac": "AC5 a route test proves AC1-3 and fails if the error stays",
       "status": "covered",
-      "evidence": "The route-level describe block is at extract.test.tsx:346-445. Ledger lines report a revert that reddens 5 plan-named tests and a 4/4 mutation map. CI job 'Frontend - lint, typecheck, test and build' is green on 83137f9a (checkpoint 0007-ci.json)"
+      "evidence": "The route-level describe block is at extract.test.tsx:346-445. Ledger lines report a revert that reddens 5 plan-named tests and a 4/4 mutation map. CI job 'Frontend - lint, typecheck, test and build' is green on abe41c2c (checkpoint 0007-ci.json)"
      }
     ],
     "awaiting": [],
     "questions": [],
-    "report": "Operability review of main..83137f9a (PR #223): the code has no operability findings, and the PR artifact has one high finding from the run's tooling.\n\n1. The change is client-only UI state in `ExtractReferenceScreen.tsx`. There are no new dependencies, network calls, env vars, feature gates, loggin…",
+    "report": "Operability review of main..abe41c2c (PR #501): the code has no operability findings, and the PR artifact has one high finding from the run's tooling.\n\n1. The change is client-only UI state in `ExtractReferenceScreen.tsx`. There are no new dependencies, network calls, env vars, feature gates, loggin…",
     "notes": "`flow-confidence-check/references/subagent-prompts.md` defines no \"operability\" dimension. It only has spec-alignment, defect-sanity, test-quality, security and combined. This slice was graded against the common preamble plus a general operability lens: failure modes, observability, state recovery, …"
    }
   },
@@ -428,7 +428,7 @@
     "awaiting": [
      {
       "kind": "premise",
-      "question": "Did the ABC-102 run (PR #223, SHA 83137f9a, gates review-bot/harness/changed-files blocked) actually happen, and where is its log or journal to verify?",
+      "question": "Did the ABC-102 run (PR #501, SHA abe41c2c, gates review-bot/harness/changed-files blocked) actually happen, and where is its log or journal to verify?",
       "why": "No trace of ABC-102 anywhere under the harness state directory; the 'computed task' declares itself a non-authoritative script.",
       "blocks": "writing the three-sentence summary of this run"
      },
@@ -456,9 +456,9 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "path": "<ROOT>/worktrees/ABC-102-run-638ca90c",
-    "branch": "ABC-102-run-638ca90c",
-    "headSha": "c7defcee0b5314b6c49d7b7b923f3dfe94b49aee",
+    "path": "<ROOT>/worktrees/ABC-102-run-99d9d145",
+    "branch": "ABC-102-run-99d9d145",
+    "headSha": "42b0c6a154aece51ea273a4a67e0e07099442a86",
     "created": true
    }
   },
@@ -538,8 +538,8 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "branch": "ABC-102-run-638ca90c",
-    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a"
+    "branch": "ABC-102-run-99d9d145",
+    "headSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43"
    }
   },
   {
@@ -550,8 +550,8 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "prUrl": "https://github.com/example-org/acme-web/pull/223",
-    "number": 223,
+    "prUrl": "https://github.com/example-org/acme-web/pull/501",
+    "number": 501,
     "draft": true
    }
   },
@@ -563,7 +563,7 @@
    "exitCode": 2,
    "result": {
     "status": "pending",
-    "sha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "sha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "reason": "checks not settled within timeout"
    }
   },
@@ -575,7 +575,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "sha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "sha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "state": "green",
     "checks": [
      {
@@ -637,7 +637,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "headSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -653,7 +653,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "headSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -669,7 +669,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "headSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -685,7 +685,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "headSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -701,7 +701,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "headSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -717,7 +717,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "83137f9a88ea6ecdb09235749e854e1bbfdeda0a",
+    "headSha": "abe41c2ce12a8bce17f46814e2d8b76e9b663c43",
     "reviewed": false,
     "green": false,
     "reviewId": null,

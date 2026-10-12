@@ -78,7 +78,7 @@ test('control: the recorded ABC-101 run with a green review bot reaches an agent
   assert.ok(merged(sim))
 })
 
-const recordedHead = '4b72dc1a31ee1f95851f3527658a37ebc109a0d4'
+const recordedHead = '7174a503ef8000d4a72b2bbe9eb1d228b44e916c'
 const highFinding = id => ({ id, axis: 'standards', severity: 'high', summary: 'a high finding planted by the mutant', locations: ['client-new/src/features/configuration/values.ts:1'] })
 // The first standards axis raises one high finding, so a fix round and a re-verify follow.
 const withPlantedFinding = (lane, ctx, recorded) => {

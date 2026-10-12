@@ -53,4 +53,4 @@ Restart Claude Code (or start a new session). No configuration — it learns eac
 
 ## Provenance
 
-Every rule here is traceable to a session where its absence cost time; see [docs/2026-07-30-provenance.md](docs/2026-07-30-provenance.md).
+Every rule is traceable to a session where its absence cost time. The provenance notes cite private session records, so they are kept outside this repository; read them before changing a rule.

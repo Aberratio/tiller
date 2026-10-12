@@ -10,7 +10,7 @@ can disagree — a service worker, a CDN edge, a cached HTML shell. Load the pag
 references, and match them against what the origin serves. The cheapest Step 0 check, and the one an
 agent with the page already open is most likely to skip.
 
-**The config file is not the instrument — read the running process's argv.** On 2026-08-17 the MCP
+**The config file is not the instrument — read the running process's argv.** Once the MCP
 config carried a staging host in `--allowed-origins` and navigation still returned
 `ERR_BLOCKED_BY_CLIENT`: the server process had started before the edit and enforced the old list. An
 `--allowed-origins` change is inert until the server restarts; the file records an intention, the argv
@@ -26,10 +26,10 @@ wrong cause. **Before recording *why* a browser step could not run, read the arg
 
 ## Writing the artefact
 
-- **Verify it exists on disk and is not empty.** Measured 2026-08-14: a snapshot with a `filename` wrote
+- **Verify it exists on disk and is not empty.** Measured: a snapshot with a `filename` wrote
   a **0-byte** file while reporting success, and a screenshot with a *relative* filename ignored
   `--output-dir` and landed in the session's cwd. Pass absolute paths, prefer screenshots over
-  snapshot-to-file, and `ls -la` the result before citing it. Seen again 2026-08-19 (ABC-230): the
+  snapshot-to-file, and `ls -la` the result before citing it. Seen again (ABC-230): the
   relative-filename case recurred and was caught by the `ls -la`.
 - **Subtract your own requests from the console log before attributing anything to the product.** Probes,
   guessed URL shapes and second tabs leave their failures in the same log. ABC-230: three `404`s on a
@@ -37,22 +37,22 @@ wrong cause. **Before recording *why* a browser step could not run, read the arg
   tab. State the error **classes** with counts, name which are yours, and say how "zero errors from
   application code" was established — the grep, and what it left.
 - **Read the value at the boundary the code under test reads, not at the transport.** A response can be
-  transformed or re-keyed between the wire and the consumer. On 2026-08-19 a precondition was read off the
+  transformed or re-keyed between the wire and the consumer. Once a precondition was read off the
   prop handed to the running component instead of the response body — the same effort, a strictly
   stronger claim.
 
 ## Failure modes that looked like product defects
 
-- **A blocked sub-resource looks exactly like a hostile server.** On 2026-08-13 a sign-in page was denied
+- **A blocked sub-resource looks exactly like a hostile server.** Once a sign-in page was denied
   its own JavaScript by the origin list, `ERR_BLOCKED_BY_CLIENT` sat in the log both days, and two wrong
   diagnoses and a config change aimed at neither came first.
-- **A blocked navigation is not a harness refusal.** On 2026-08-17 a register row said the harness
+- **A blocked navigation is not a harness refusal.** Once a register row said the harness
   refused the navigation; the call had executed and the MCP server's own origin filter blocked it. A
   harness refusal parks with the rule named; an origin-filter block clears on a reconnect. Read the argv
   before writing either.
 - **A click that times out on "waiting for element to be visible, enabled and stable"** is not yet a
   broken control. Ask the DOM: `opacity`, `pointer-events`, `elementFromPoint` at the box centre, the same
-  id and bounding box sampled ten times over two seconds. On 2026-08-14 all said clickable; the Chrome
+  id and bounding box sampled ten times over two seconds. Once all said clickable; the Chrome
   window attached over CDP was **occluded behind the terminal**, so no frames were produced and the
   actionability check, which waits on `requestAnimationFrame`, never settled. Two false leads came first:
   two tabs on one URL reordering between calls, and a render loop the ten samples refuted.

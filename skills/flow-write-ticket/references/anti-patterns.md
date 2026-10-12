@@ -190,7 +190,7 @@ that the level exists. One `ls`, one `grep` of the manifest, one `find` for the 
    the first screen ticket does not silently acquire it), or
 2. if it is genuinely small and belongs here, say so in the ticket and widen the scope deliberately.
 
-**Worked example, 2026-08-18 (epic ABC-206).** Five screen tickets each carried *"stories for
+**Worked example (epic ABC-206).** Five screen tickets each carried *"stories for
 all states with interaction, axe and visual coverage"*, and a sixth (the WCAG baseline) deferred its
 automated half to *"the axe story gate (per the component-workshop ticket)"*. Measured in
 the repo: no workshop config directory, no workshop dependency in the manifest, **zero story
@@ -216,7 +216,7 @@ If the user pushes back ("no, I want the class name in there because it's load-b
 
 ---
 
-## Leaked internal vocabulary (added 2026-08-19, from an epic sweep)
+## Leaked internal vocabulary (from an epic sweep)
 
 A ticket is read by the whole team and, in a regulated project, by auditors. **It must not
 carry the vocabulary of how we work — only what the work is.** Strip all of these on sight — plus every term the profile's internal-vocabulary list names; none of
@@ -225,8 +225,8 @@ them ever earns its place in a description or a comment:
 | Leak | Example found | Write instead |
 |---|---|---|
 | skill / tool names | "reported by `flow-confidence-check` as findings F1 and F4"; "handed to `flow-tdd`"; "Written against the shape the sibling tickets use rather than through the interactive ticket-crafting skill" | "raised by the pre-PR review"; "the automated test is owned by the implementation ticket" — name the *activity*, never the tool |
-| private decision numbering | "Decision **D-8319-2**"; "needs a **D7** signature"; "D3, Tier 2 change control"; "finding **F-A** of the 2026-08-13 QA charter" | "decided 2026-08-19"; "needs a human signature before merge"; "under the existing change-control rules"; describe the finding |
-| local filesystem paths | `~/.claude/plans/qa-unverified-register.md`; `~/.claude/qa-evidence/2026-08-17-….png`; `~/.claude/meeting-notes/…`; `docs/superpowers/decisions/ABC-211.md` | "the register of unverified acceptance criteria"; "the branch's decision record in `<org>/<repo>`" — a path nobody else can open is not a reference |
+| private decision numbering | "Decision **D-1234-2**"; "needs a **D7** signature"; "D3, Tier 2 change control"; "finding **F-A** of the 2026-08-13 QA charter" | "decided 2026-08-19"; "needs a human signature before merge"; "under the existing change-control rules"; describe the finding |
+| local filesystem paths | `~/notes/qa-unverified-register.md`; `~/evidence/2026-08-17-….png`; `~/meeting-notes/…`; `docs/superpowers/decisions/ABC-211.md` | "the register of unverified acceptance criteria"; "the branch's decision record in `<org>/<repo>`" — a path nobody else can open is not a reference |
 | agent self-attribution | "Filed by the agent under the owner's standing mandate"; "Prepared by the agent … no code was written for it" | **delete the line.** Jira already records who filed it and when |
 | operational trivia about our own tooling | how to source an npm token so a registry read stops 403-ing; which shell reads which rc file | delete, or keep one sentence of the *conclusion* |
 
@@ -254,7 +254,7 @@ within twelve days.
 **Link the PR and say "read branch state there".** Keep in the description only what survives the
 next push: what the ticket must achieve, what is decided, and what is left to *observe*.
 
-## Write impersonally — no named individuals, especially not the owner (added 2026-08-19)
+## Write impersonally — no named individuals, especially not the owner
 
 Asked for explicitly: a tracker comment says **what was decided and what was measured**, never who felt,
 chose or observed it. Drop the person entirely rather than swapping the name for "the author".

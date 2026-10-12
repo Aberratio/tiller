@@ -74,7 +74,4 @@ repo.
 
 ## Provenance
 
-Every rule is traceable to a session where its absence cost time:
-`~/.claude/mattpocock-skill-reflections/flow-diagnose-bug-provenance.md`. It lives with the corpus
-rather than in this directory because every row cites a private reflection file — read it before
-changing a rule.
+Every rule is traceable to a session where its absence cost time. The provenance notes cite private session records, so they are kept outside this repository; read them before changing a rule.

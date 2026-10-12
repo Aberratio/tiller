@@ -81,7 +81,7 @@ test('ABC-102 (13 lanes + 17 execs recorded, 4 fallbacks) replayed from its reco
     'start:duplicate-guard:duplicate-guard.mjs', 'start:worktree-setup:verify-claim.mjs',
     'pr:pr-description:prose-retry', 'gate:pr-state:pr-state.mjs',
   ])
-  // PR #223 was opened as a draft, and the real run polled the bot six times on it. The runner no
+  // PR #501 was opened as a draft, and the real run polled the bot six times on it. The runner no
   // longer polls a draft PR, so those recorded answers go unused and review-bot blocks on the draft.
   assert.deepEqual(mode.unused(), [1, 2, 3, 4, 5, 6].map(n => `review-bot:bot-review-bot:review-bot-green.mjs#${n}`))
   assert.match(r.gate.conditions.find(x => x.name === 'review-bot').evidence, /still draft/)

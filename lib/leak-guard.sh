@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Refuse tracked content that names a local project, a person, or a credential.
+# Refuse tracked content that names a local project, a person, a credential, or a private agent record.
 #
 #   leak-guard.sh            scan every file git would track (all non-ignored files)
 #   leak-guard.sh --staged   scan only what is staged (the pre-commit hook)
@@ -16,6 +16,8 @@ mode="${1:-all}"
 
 # Credential shapes, independent of any profile.
 SECRETS='(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-ant-[A-Za-z0-9-]{10,}|xox[abprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)'
+# Private agent records: a path nobody else can open, and one that names whose machine it is.
+PRIVATE='(~|\$HOME|/Users/[^/ ]+|/home/[^/ ]+)/\.claude/(plans|projects|memory|qa-evidence|meeting-notes|[A-Za-z0-9_-]+-reflections)/'
 
 terms="$(mktemp "${TMPDIR:-/tmp}/leak-terms.XXXXXX")"
 trap 'rm -f "$terms"' EXIT
@@ -50,14 +52,14 @@ for f in "${files[@]}"; do
   if [ -s "$terms" ] && printf '%s\n' "$f" | grep -qiEf "$terms"; then
     echo "leak: path $f"; hits=$((hits+1))
   fi
-  out="$( { [ -s "$terms" ] && content | grep -nIiEf "$terms"; content | grep -nIE "$SECRETS"; } 2>/dev/null | head -5)"
+  out="$( { [ -s "$terms" ] && content | grep -nIiEf "$terms"; content | grep -nIE "$SECRETS"; content | grep -nIE "$PRIVATE"; } 2>/dev/null | head -5)"
   if [ -n "$out" ]; then
     printf '%s\n' "$out" | sed "s|^|leak: $f:|"; hits=$((hits+1))
   fi
 done
 
 if [ "$hits" -gt 0 ]; then
-  echo "leak-guard: $hits file(s) carry a local term or a credential; move it to a profile" >&2
+  echo "leak-guard: $hits file(s) carry a local term, a credential or a private path; move it to a profile" >&2
   exit 1
 fi
 [ -s "$terms" ] || echo "leak-guard: no local leak-terms.txt found; only credential shapes were checked" >&2

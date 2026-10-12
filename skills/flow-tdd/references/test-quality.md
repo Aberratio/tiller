@@ -47,7 +47,7 @@ In rough order of preference:
 Where the rule under test is defined by a lookup table in the codebase, re-deriving the expectation
 from your own restatement of that table is not independence — it is a second chance to make the same
 mistake, and it fails silently outside whatever range the fixtures happen to exercise. Measured on
-ABC-226 (2026-08-22): a test asserting that a mirrored reference demands the *paired* landmark of
+ABC-226: a test asserting that a mirrored reference demands the *paired* landmark of
 each one it demanded before computed the pairing as "odd is left, from index 11 up". The repo's own
 `SIDE_LANDMARK_PAIRS` also pairs the face and ears — `[1,4] [2,5] [3,6] [7,8] [9,10]` — which are
 not adjacent odd/even, so the helper was wrong for ten of the thirty-three indices. It passed anyway,

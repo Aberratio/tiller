@@ -33,7 +33,7 @@ The gap this fills is **detection, execution and memory**. A ticket's criteria a
 ceiling: testers find most real defects in scenarios nobody wrote down, and Step 2 generates those
 on purpose. `flow-tdd` names the criteria no test level can reach; `flow-confidence-check` marks
 findings `needs-user`. Nobody executes the naming, and nobody remembers it across tickets — which is
-why on 2026-08-12 four tickets sat in In QA with zero verification records between them and a weekly
+why once four tickets sat in In QA with zero verification records between them and a weekly
 three working days away.
 
 A project may also have an automated QA lane per surface, listed in `## test toolchain`. This skill
@@ -49,12 +49,12 @@ yesterday's bundle is worse than no verification, because it produces a record. 
 **A green CI job proves a build, not a rollout.** Name the artefact that proves the *deployed* state
 and which one it is: a GitOps desired-state commit and image tag, the object's `last-modified` on the
 origin, a version stamped in the bundle. A deploy job that only *dispatches* a workflow in another
-repository proves nothing about a running pod — on 2026-08-13 a card recorded "redeployed 08:47 UTC"
+repository proves nothing about a running pod — once a card recorded "redeployed 08:47 UTC"
 from a merge timestamp, twice, before anyone checked. **If the running instance cannot be observed**,
 say *desired state confirmed, rollout unobserved*. Never round that up.
 
 **Ask which surface before which SHA, because a repository can publish more than one.** Read the
-ticket's own Environment field first, then the surface map in `## environments`. On 2026-08-13 a pass
+ticket's own Environment field first, then the surface map in `## environments`. One pass
 over five tickets was handed one staging pin and three of the five did not live behind it: two
 workflows synced two directories to two buckets, carrying builds two days apart. A SHA established
 for one surface is not evidence about another; the deploy workflows' path filters and bucket names
@@ -63,14 +63,14 @@ are where the mapping lives.
 **Deployed is not reachable, and this is the one that has cost the most.** A current bundle
 containing the merge is exactly what makes the wrong answer feel safe:
 
-- **ABC-213, 2026-08-11 → 2026-08-13.** A comment recorded two criteria as *"Shipped and verifiable
+- **ABC-213.** A comment recorded two criteria as *"Shipped and verifiable
   on staging"* on the strength of a merge. Measured two days later: the new symbol existed only in the
   new front end, **no application code called it**, and the only deployed user surface still ran the
   old behaviour. The claim stood on the ticket for six days.
-- **ABC-215, 2026-08-17.** The blocker had merged and a user surface now existed — and the criterion
+- **ABC-215.** The blocker had merged and a user surface now existed — and the criterion
   was *still* unobservable: the route fetched a document that did not carry the field the new branch
   reads, so the branch could never fire there.
-- **ABC-226, 2026-09-02.** A field in the types, the schema, the engine, an ADR and 31 tests — and no
+- **ABC-226.** A field in the types, the schema, the engine, an ADR and 31 tests — and no
   reader in any component. A grep for the symbol alone would have said "present".
 
 So before recording any criterion as verifiable, name **the path from a user action to the code**:
@@ -86,8 +86,8 @@ bundle for it. On ABC-213 this took a criterion from "shipped" to *not verifiabl
 absent from all 46 chunks of the deployed bundle.
 
 **A code-split route file is usually a stub, and grepping it reads exactly like a missing feature.**
-Under Vite the file named after a route holds a `__vite__mapDeps` array and almost nothing else. On
-2026-08-14 a containment check over three route files returned **zero for all nine signature
+Under Vite the file named after a route holds a `__vite__mapDeps` array and almost nothing else. Once
+a containment check over three route files returned **zero for all nine signature
 strings**; following each stub to its real chunk found all nine. Fetch the stub, read the first path
 out of the dependency map, grep *that*, and record which chunk the count came from. A zero is only
 evidence once the file grepped is known to hold code.
@@ -101,7 +101,7 @@ first step, prove each capability the steps depend on — a signed-in session, a
 download directory, a regex, a formatter's config resolution — by observing it and naming the check,
 the same way a SHA is proved. Force a known error and confirm the instrument reports it before
 trusting its silence. **A statement in the prompt about tooling is a claim to test, not a fact to
-inherit.** On 2026-08-14 a pass opened with "the browser is fixed" and it was not; on 2026-09-02 a
+inherit.** One pass opened with "the browser is fixed" and it was not; in another a
 `grep` without `-E` read `?` literally and zero hits looked like a missing feature, and a formatter
 run on a copy in `/tmp` was judged by defaults because config resolves by file path.
 
@@ -160,8 +160,8 @@ is named after a real defect found by asking the question.
   side is right.
 - **"Unchanged" needs a captured baseline, or it is not a criterion.** *"Behaviour is unchanged"*
   cannot fail against a memory. Name the artefact that fixes what "today" was — ideally the same
-  observation on the release this one replaces, same subject, fixture and browser. ABC-230
-  (2026-08-19): two captures made hours earlier on the previous release gave every session a
+  observation on the release this one replaces, same subject, fixture and browser. ABC-230:
+  two captures made hours earlier on the previous release gave every session a
   line-for-line expectation, so *absences* were assertions rather than impressions — a controlled A/B,
   the only shape in which "unchanged" is falsifiable. Without a baseline, the criterion belongs in
   *not satisfiable as written*.
@@ -265,8 +265,8 @@ observed it, and — when an agent did — the artefact file.
 
 **Correcting a record means editing the false sentence, not only adding a true one below it.** A ticket
 is read from the top and skimmed. ABC-213 carried *"Shipped and verifiable on staging"* from
-2026-08-11; the correction was a fresh comment on 2026-08-14 and the false heading stood until
-2026-08-17. Edit the original: **strike the sentence, do not delete it**, add the accurate one, and put
+the merge; the correction was a fresh comment three days later and the false heading stood three
+days more. Edit the original: **strike the sentence, do not delete it**, add the accurate one, and put
 a dated amendment note above saying what it said and which measurement falsified it. In a regulated
 record the trace of how long the untruth stood is itself evidence. Nothing else in the comment changes.
 
@@ -293,14 +293,14 @@ have moved.** When ABC-218 merged, ABC-215's row did not clear: a surface existe
 different document. **Rewrite the blocker rather than deleting the row**, and say which happened —
 "blocked on X" becoming "blocked on Y" is a different fact from "verified".
 
-**Re-measure a blocker in the same breath as reporting it.** On 2026-08-19 this fired twice in one
+**Re-measure a blocker in the same breath as reporting it.** Once this fired twice in one
 hour: a row said a ticket waited on a push that had happened four minutes earlier, and its replacement
 was unblocked before anyone read it. A blocker is a claim about the present tense — re-read it
 immediately before it goes into a comment, a register row or a message, and name the check
 ("`ls-remote` at 11:02") over the state.
 
-**When a criterion leaves this ticket, the register is not where the next reader will look.** On
-2026-08-17 ownership of two split-out halves was correct in the tracker and stale in a day plan, a
+**When a criterion leaves this ticket, the register is not where the next reader will look.** Once
+ownership of two split-out halves was correct in the tracker and stale in a day plan, a
 decisions ledger and a memory file — and two sessions came within one step of re-filing tickets
 (ABC-228, ABC-229) that had existed for three days. When a row moves out: put the fact on **the
 ticket** (its description's descope section, not only a comment), link both ways, then **correct every
@@ -344,7 +344,7 @@ labels reused across tiers, options and outcomes made one matrix untestable as w
 - **A check that failed to reproduce is not a pass.** For a race or an intermittent crash, a clean run
   is *did not reproduce*, in those words.
 - **One owner per section of the charter.** It is a shared file and peer sessions in a `flow-run-day`
-  wave write to it; two sessions recorded one environment finding twice on 2026-08-13. Say who owns
+  wave write to it; two sessions recorded one environment finding twice in one day. Say who owns
   Step 0, and route later findings into the addendum.
 
 ## Red flags — the step is not finished

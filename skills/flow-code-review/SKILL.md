@@ -86,7 +86,7 @@ One message, one `Agent` call per axis, `general-purpose` sub-agents. The briefs
 
 Present `## Standards`, `## Spec`, and `## Works` (when it ran) as separate sections, each report verbatim or lightly cleaned. **Do not merge, dedupe across axes, or rerank** — the separation is the mechanism. Per axis: the finding count and the worst finding *within that axis*. No single winner across axes.
 
-**Every finding opens with its location** — `path/to/file.ts:123`, or `:120-134` for a block, or several locations when the symptom recurs; a finding with no single site lists every site of the symptom rather than none. Two reasons, and the second is the expensive one: a reader cannot rule on a finding they have to go hunting for, and whoever fixes it — often a fresh agent that never saw this review's exploration — otherwise re-derives the whole change from zero. Measured on the 2026-08-07 unattended run: the fix pass cost 8.6 M context tokens against the implementation pass's 11.0 M, almost all of it rediscovery.
+**Every finding opens with its location** — `path/to/file.ts:123`, or `:120-134` for a block, or several locations when the symptom recurs; a finding with no single site lists every site of the symptom rather than none. Two reasons, and the second is the expensive one: a reader cannot rule on a finding they have to go hunting for, and whoever fixes it — often a fresh agent that never saw this review's exploration — otherwise re-derives the whole change from zero. Measured on one unattended run: the fix pass cost 8.6 M context tokens against the implementation pass's 11.0 M, almost all of it rediscovery.
 
 Then add what only you can add, having read both reports:
 

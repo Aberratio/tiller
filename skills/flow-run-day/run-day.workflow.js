@@ -242,7 +242,7 @@ const lastLine = s => String(s || '').trim().split('\n').pop() || ''
 const sameCommand = s => String(s || '').replace(/'"'"'|'\\''/g, "'").replace(/\\[nrt]/g, ' ').replace(/\\(\s)/g, '$1')
   .replace(/['"]/g, '').replace(/\s+/g, ' ').trim()
 
-// A `write` body is too long for a small model to echo back intact (2026-10-02: cut to `...` while
+// A `write` body is too long for a small model to echo back intact (seen: cut to `...` while
 // the file landed correctly), so a write is judged on the file it names and the bytes the harness measured.
 const utf8Bytes = s => { let n = 0; for (const ch of String(s)) { const c = ch.codePointAt(0); n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4 } return n }
 const samePath = (a, b) => String(a || '').replace(/\/+/g, '/').replace(/\/$/, '') === String(b || '').replace(/\/+/g, '/').replace(/\/$/, '')

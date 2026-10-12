@@ -413,24 +413,24 @@ test('the start phase checks for another run\'s PR or branch before it creates t
 // A run duplicated a ticket whose PR had already merged.
 test('a ticket another run already delivered parks at start with the existing PR named, and creates nothing', async () => {
   const { root, args } = fresh('dup-refused')
-  const reason = 'duplicate: ABC-1 already has merged PR #228 (https://forge.test/pull/228, branch ABC-1-run-6d17b72a) from another run'
+  const reason = 'duplicate: ABC-1 already has merged PR #502 (https://forge.test/pull/502, branch ABC-1-run-38dcd7cc) from another run'
   const sim = makeSim(root, args, {
     exec: name => name === 'duplicate-guard.mjs'
-      ? { status: 'refused', kind: 'duplicate', reason, key: 'ABC-1', prs: [{ number: 228, state: 'MERGED', headRefName: 'ABC-1-run-6d17b72a', url: 'https://forge.test/pull/228' }], branches: [] }
+      ? { status: 'refused', kind: 'duplicate', reason, key: 'ABC-1', prs: [{ number: 228, state: 'MERGED', headRefName: 'ABC-1-run-38dcd7cc', url: 'https://forge.test/pull/502' }], branches: [] }
       : undefined,
   })
   const r = await runTicket(sim)
   assert.equal(r.status, 'parked')
-  assert.match(r.reason, /#228/)
+  assert.match(r.reason, /#502/)
   assert.match(r.reason, /duplicate/)
   const run = runStatus(root, 'ABC-1')
   assert.equal(run.status, 'parked')
-  assert.match(run.reason, /#228/)
+  assert.match(run.reason, /#502/)
   assert.ok(!execNames(sim).includes('worktree.mjs'), 'no worktree')
   assert.ok(!lanesOf(sim).some(l => ['premise', 'plan', 'implement'].includes(l)), 'no lane after start')
   const d = decisionsOf(root)
   assert.deepEqual(d.map(x => x.kind), ['duplicate'])
-  assert.match(d[0].question, /#228/)
+  assert.match(d[0].question, /#502/)
   assert.ok(!lanesOf(sim).some(l => ['resolver', 'owner-proxy'].includes(l)), 'a duplicate goes to neither resolver nor proxy')
   const decideOp = sim.execs.filter(e => e.name === 'state.mjs').flatMap(e => e.argv[0] === 'batch' ? JSON.parse(e.argv[1]) : [e.argv]).find(op => op[0] === 'decide')
   assert.ok(!decideOp.includes('--ledger'), 'no ledger write into a worktree that was never created')

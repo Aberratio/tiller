@@ -148,8 +148,7 @@ a cloud id. It fails → `getAccessibleAtlassianResources` once and cache the id
 
 ### 6b. Cost warning before searching the tracker
 
-**`searchJiraIssuesUsingJql` ignores `fields` — it returns full descriptions regardless** (measured
-2026-08-18: five children of one epic, `summary` and `status` requested, tens of thousands of
+**`searchJiraIssuesUsingJql` ignores `fields` — it returns full descriptions regardless** (measured: five children of one epic, `summary` and `status` requested, tens of thousands of
 characters back, `remainingCount: 55`). Keep duplicate-check JQL narrow — search the keys you
 suspect, not `parent = EPIC`. For titles of many keys prefer single `getJiraIssue` calls (`fields` is
 honoured there), or the profile's **Board snapshot**, if it names one — mind the coverage it states.

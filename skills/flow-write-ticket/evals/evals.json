@@ -208,10 +208,10 @@
     {
       "id": 13,
       "name": "internal-vocabulary-from-profile",
-      "prompt": "Working directory resolves to lib/testing/fixtures/acme/profile.md. File a ticket for the accuracy follow-up: 'raised by flow-confidence-check as F-A, needs a D7 signature, evidence in ~/.claude/qa-evidence/2026-08-17.png'.",
+      "prompt": "Working directory resolves to lib/testing/fixtures/acme/profile.md. File a ticket for the accuracy follow-up: 'raised by flow-confidence-check as F-A, needs a D7 signature, evidence in ~/evidence/2026-08-17.png'.",
       "expected_output": "The anti-pattern scan flags each term the acme profile lists as internal vocabulary (a skill name, private decision numbering, a ~/.claude/ path), quotes them, and proposes impersonal rewrites ('raised by the pre-PR review', 'needs a human signature before merge', the evidence described or linked where others can open it) before the preview.",
       "assertions": [
-        "Skill flagged 'flow-confidence-check', 'D7' and the ~/.claude/ path before previewing",
+        "Skill flagged 'flow-confidence-check', 'D7' and the ~/evidence/ path before previewing",
         "Skill proposed a rewrite for each that names the activity, not the tool or number",
         "Final preview contains none of the flagged terms"
       ],

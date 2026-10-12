@@ -14,7 +14,7 @@
    "occurrence": 1,
    "result": {
     "verdict": "holds",
-    "evidence": "All five factual premises of ABC-101 verified against the repo:\n\n1. API refuses null on non-nullable rows with 422 (post-ABC-103): api-app/app/services/configs/validate_overrides.rb:41 — `return (entry.limit.nullable ? nil : NOT_NULLABLE) if value.nil?`; introduced in commit 9df82882 \"[ABC-103…",
+    "evidence": "All five factual premises of ABC-101 verified against the repo:\n\n1. API refuses null on non-nullable rows with 422 (post-ABC-103): api-app/app/services/configs/validate_overrides.rb:41 — `return (entry.limit.nullable ? nil : NOT_NULLABLE) if value.nil?`; introduced in commit 26da5aed \"[ABC-103…",
     "awaiting": []
    }
   },
@@ -48,7 +48,7 @@
     ],
     "awaiting": [],
     "questions": [],
-    "premiseEvidence": "Verified in the worktree at base c7defcee. (1) api-app/app/services/configs/validate_overrides.rb:41 `return (entry.limit.nullable ? nil : NOT_NULLABLE) if value.nil?`, NOT_NULLABLE = \"cannot be null\" (line 11). (2) api-app/app/serializers/exercise_reference_configuration_serializer.rb:47 `bod…",
+    "premiseEvidence": "Verified in the worktree at base 42b0c6a1. (1) api-app/app/services/configs/validate_overrides.rb:41 `return (entry.limit.nullable ? nil : NOT_NULLABLE) if value.nil?`, NOT_NULLABLE = \"cannot be null\" (line 11). (2) api-app/app/serializers/exercise_reference_configuration_serializer.rb:47 `bod…",
     "notes": "No ruling for ABC-101 in decisions.jsonl (grep on the ticket key returned nothing), so nothing was carried in. Plan and ledger written untracked in the worktree; git status shows only those two files. Nine ledger lines (premise, D1–D7, AC3 scope), all tagged `spec`, autonomous defaults marked `self…"
    }
   },
@@ -57,10 +57,10 @@
    "occurrence": 1,
    "result": {
     "ok": true,
-    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "headSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "commits": [
-     "78f1b802 [ABC-101] fix(configuration): offer \"no value\" only where the limit is nullable",
-     "4b72dc1a [ABC-101] docs(configuration): record the plan and the branch decisions"
+     "7903a2ec [ABC-101] fix(configuration): offer \"no value\" only where the limit is nullable",
+     "7174a503 [ABC-101] docs(configuration): record the plan and the branch decisions"
     ],
     "testCommand": "cd web-app && node node_modules/vitest/vitest.mjs run src/features/configuration/values.test.ts 'src/routes/exercise-references_.$referenceId_.configuration.test.tsx'",
     "testResult": "pass",
@@ -73,7 +73,7 @@
    "occurrence": 1,
    "result": {
     "axis": "standards",
-    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewedSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "skipped": false,
     "findings": [
      {
@@ -109,7 +109,7 @@
       "source": "code"
      }
     ],
-    "report": "Standards axis on main..4b72dc1a. Sources read: root CLAUDE.md (code comments, testing hygiene), client-new/CLAUDE.md (API layer, testing), the branch ledger and the plan, plus the smell baseline.\n\nPrecedent check: the diff adds one trust-boundary read (`limit.nullable` off an API payload). This app…",
+    "report": "Standards axis on main..7174a503. Sources read: root CLAUDE.md (code comments, testing hygiene), client-new/CLAUDE.md (API layer, testing), the branch ledger and the plan, plus the smell baseline.\n\nPrecedent check: the diff adds one trust-boundary read (`limit.nullable` off an API payload). This app…",
     "awaiting": [],
     "questions": [],
     "notes": "No rulings from decisions.jsonl applied — none for ABC-101 bore on the standards axis. All three findings are cosmetic/test-hygiene; none blocks the merge, and STD-1 and STD-2 have a single combined fix (delete the redundant test)."
@@ -120,7 +120,7 @@
    "occurrence": 1,
    "result": {
     "axis": "spec",
-    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewedSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "skipped": false,
     "findings": [
      {
@@ -142,7 +142,7 @@
       ]
      }
     ],
-    "report": "Spec axis, `main..4b72dc1a`, against ABC-101 (fetched from Jira) plus the nine spec lines of `docs/decisions/ABC-101.md` and the plan.\n\n**(a) Missing or partial requirements — none.** All three ACs land.\n- AC1 (\"on a row whose limit is not nullable, the editor does not offer 'no value'…",
+    "report": "Spec axis, `main..7174a503`, against ABC-101 (fetched from Jira) plus the nine spec lines of `docs/decisions/ABC-101.md` and the plan.\n\n**(a) Missing or partial requirements — none.** All three ACs land.\n- AC1 (\"on a row whose limit is not nullable, the editor does not offer 'no value'…",
     "awaiting": [],
     "questions": [],
     "notes": "No ruling for ABC-101 in decisions.jsonl (grep on the ticket key returned nothing), so nothing was carried in. Ticket text fetched live from Jira rather than assumed. Static checks were taken as given per the brief and nothing they cover is reported."
@@ -154,7 +154,7 @@
    "result": {
     "title": "Offer \"no value\" only where the limit is nullable",
     "body": "## Description\n\nThe configuration editor's choice rows offered an explicit \"no value\" option on every row, but the API only accepts an authored null where the row's limit declares itself nullable — elsewhere it refuses the write. The editor now reads that flag from the limit and hides the option on …",
-    "notes": "Prose-only deliverable per task instructions: title and body for a PR covering main..4b72dc1a on branch ABC-101-run-50225d8d, produced via the flow-create-pull-request skill's Step 6/7 (why-focused description, ≤15 lines, no attribution, no first person). No push or `gh pr create` was run, per the ex…",
+    "notes": "Prose-only deliverable per task instructions: title and body for a PR covering main..7174a503 on branch ABC-101-run-7882fe5c, produced via the flow-create-pull-request skill's Step 6/7 (why-focused description, ≤15 lines, no attribution, no first person). No push or `gh pr create` was run, per the ex…",
     "awaiting": []
    }
   },
@@ -164,13 +164,13 @@
    "result": {
     "action": "act",
     "mandate": "undraft-pr",
-    "step": "Mark PR example-org/acme-web#231 ready for review with `gh pr ready 231`.",
+    "step": "Mark PR example-org/acme-web#503 ready for review with `gh pr ready 231`.",
     "parkReason": "",
     "conditions": [
      {
-      "condition": "PR #231 exists, is a draft, and its head is the SHA named in the mandate",
+      "condition": "PR #503 exists, is a draft, and its head is the SHA named in the mandate",
       "met": true,
-      "evidence": "gh pr view 231 --json ... -> {\"isDraft\":true,\"headRefOid\":\"4b72dc1a31ee1f95851f3527658a37ebc109a0d4\",\"baseRefName\":\"main\",\"mergeable\":\"MERGEABLE\"}"
+      "evidence": "gh pr view 231 --json ... -> {\"isDraft\":true,\"headRefOid\":\"7174a503ef8000d4a72b2bbe9eb1d228b44e916c\",\"baseRefName\":\"main\",\"mergeable\":\"MERGEABLE\"}"
      },
      {
       "condition": "Un-drafting in example-org/acme-web is a standing permission and needs no per-PR ask",
@@ -190,15 +190,15 @@
      {
       "condition": "CI on the head SHA is green",
       "met": false,
-      "evidence": "statusCheckRollup at 4b72dc1a: CodeRabbit SUCCESS, three \"Detect relevant changes\" SUCCESS, Rails/accuracy jobs SKIPPED, but \"Frontend - lint, typecheck, test and build\" status IN_PROGRESS. Undraft does not gate on this; merge does."
+      "evidence": "statusCheckRollup at 7174a503: CodeRabbit SUCCESS, three \"Detect relevant changes\" SUCCESS, Rails/accuracy jobs SKIPPED, but \"Frontend - lint, typecheck, test and build\" status IN_PROGRESS. Undraft does not gate on this; merge does."
      },
      {
       "condition": "Step executed and verified",
       "met": true,
-      "evidence": "gh pr ready 231 -> \"✓ Pull request example-org/acme-web#231 is marked as \\\"ready for review\\\"\", exit=0; re-read gh pr view 231 -> {\"isDraft\":false,\"headRefOid\":\"4b72dc1a31ee1f95851f3527658a37ebc109a0d4\"}"
+      "evidence": "gh pr ready 231 -> \"✓ Pull request example-org/acme-web#503 is marked as \\\"ready for review\\\"\", exit=0; re-read gh pr view 231 -> {\"isDraft\":false,\"headRefOid\":\"7174a503ef8000d4a72b2bbe9eb1d228b44e916c\"}"
      }
     ],
-    "rationale": "The mandate step is exactly the one CLAUDE.md grants as a standing permission for this repo, so no proxy judgement was needed beyond checking that the object is what the mandate says it is: PR #231 was a draft, its head was the mandated SHA, and the diff touches only client-new/src/** and docs/**, n…",
+    "rationale": "The mandate step is exactly the one CLAUDE.md grants as a standing permission for this repo, so no proxy judgement was needed beyond checking that the object is what the mandate says it is: PR #503 was a draft, its head was the mandated SHA, and the diff touches only client-new/src/** and docs/**, n…",
     "reversalCost": "Near zero and one command: `gh pr convert-to-draft 231` puts it back. No code, branch or Jira state changed; the head SHA is unchanged. The only outward effect is that reviewers and CodeRabbit now see the PR as open for review.",
     "awaiting": [
      {
@@ -209,7 +209,7 @@
      }
     ],
     "questions": [],
-    "notes": "No ruling id to name: decisions.jsonl for this run does not exist, so no binding ruling was in force. The PR is now ready for review at 4b72dc1a; the merge gate downstream still needs the frontend CI job to finish green, and under the merge authority rules the touched paths (client-new/src/**, docs/superpowers/decisi…"
+    "notes": "No ruling id to name: decisions.jsonl for this run does not exist, so no binding ruling was in force. The PR is now ready for review at 7174a503; the merge gate downstream still needs the frontend CI job to finish green, and under the merge authority rules the touched paths (client-new/src/**, docs/superpowers/decisi…"
    }
   },
   {
@@ -218,7 +218,7 @@
    "result": {
     "action": "act",
     "mandate": "undraft-pr",
-    "step": "Take no action: PR example-org/acme-web#231 at 4b72dc1a is already out of draft, so the undraft-pr mandate step is already satisfied.",
+    "step": "Take no action: PR example-org/acme-web#503 at 7174a503 is already out of draft, so the undraft-pr mandate step is already satisfied.",
     "parkReason": "",
     "conditions": [
      {
@@ -227,12 +227,12 @@
       "evidence": "the owner's global instructions: \"`gh pr ready` in `example-org/acme-web` is a standing permission and never waits for a per-PR ask; un-drafting is not merging, every signature gate still applies.\""
      },
      {
-      "condition": "PR #231 head SHA matches the briefed SHA",
+      "condition": "PR #503 head SHA matches the briefed SHA",
       "met": true,
-      "evidence": "gh pr view 231 --json headRefOid -> 4b72dc1a31ee1f95851f3527658a37ebc109a0d4, identical to the brief"
+      "evidence": "gh pr view 231 --json headRefOid -> 7174a503ef8000d4a72b2bbe9eb1d228b44e916c, identical to the brief"
      },
      {
-      "condition": "PR #231 is still a draft (i.e. the step has work to do)",
+      "condition": "PR #503 is still a draft (i.e. the step has work to do)",
       "met": false,
       "evidence": "gh pr view 231 --json isDraft -> false; timeline: ready_for_review 2026-09-30T13:17:03Z by the-author. No convert_to_draft event follows."
      },
@@ -263,7 +263,7 @@
      }
     ],
     "questions": [],
-    "notes": "No ruling ids to name: the rulings file for this run is absent. PR #231 title \"Offer \\\"no value\\\" only where the limit is nullable\"; head branch ABC-101-run-50225d8d; mergeable MERGEABLE; reviewDecision empty (no review submitted on GitHub). At the time of checking, `Frontend - lint, typecheck,…"
+    "notes": "No ruling ids to name: the rulings file for this run is absent. PR #503 title \"Offer \\\"no value\\\" only where the limit is nullable\"; head branch ABC-101-run-7882fe5c; mergeable MERGEABLE; reviewDecision empty (no review submitted on GitHub). At the time of checking, `Frontend - lint, typecheck,…"
    }
   },
   {
@@ -271,7 +271,7 @@
    "occurrence": 1,
    "result": {
     "dimension": "spec-coverage",
-    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewedSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "acCoverage": [
      {
       "ac": "AC1: On a row whose limit is not nullable, the editor does not offer \"no value\", or, if it does, the refusal returned by the API is shown next to that row.",
@@ -302,7 +302,7 @@
       "source": "code"
      }
     ],
-    "report": "All three acceptance criteria of ABC-101 are covered by main..4b72dc1a.\n\nAC1 is satisfied by the \"do not offer\" disjunct rather than the \"show the refusal\" one (ledger D1, overridable). The gate lives in one place — `allowsNull(limit)` in `values.ts:85`, read at `ValueRows.tsx:159` — and the `choic…",
+    "report": "All three acceptance criteria of ABC-101 are covered by main..7174a503.\n\nAC1 is satisfied by the \"do not offer\" disjunct rather than the \"show the refusal\" one (ledger D1, overridable). The gate lives in one place — `allowsNull(limit)` in `values.ts:85`, read at `ValueRows.tsx:159` — and the `choic…",
     "awaiting": [],
     "questions": [],
     "notes": "Dimension run as spec-alignment per references/subagent-prompts.md. No binding ruling applied: grep on decisions.jsonl for ABC-101 returned two entries (ABC-101-D1, ABC-101-D2), both status \"open\" with empty resolution, and neither bears on spec coverage. Branch ledger docs/decisions/…"
@@ -313,7 +313,7 @@
    "occurrence": 1,
    "result": {
     "dimension": "correctness",
-    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewedSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "findings": [
      {
       "id": "CORR-1",
@@ -355,7 +355,7 @@
      }
     ],
     "findings_note": "n/a",
-    "report": "Correctness pass over main..4b72dc1a (5 reviewable files, 89 added lines in web-app). No blocker and no high.\n\nThe change is sound. `allowsNull` restates the API's rule exactly rather than approximating it: the client predicate is `limit.nullable === true`, the serializer emits `nullable` only wh…",
+    "report": "Correctness pass over main..7174a503 (5 reviewable files, 89 added lines in web-app). No blocker and no high.\n\nThe change is sound. `allowsNull` restates the API's rule exactly rather than approximating it: the client predicate is `limit.nullable === true`, the serializer emits `nullable` only wh…",
     "awaiting": [],
     "questions": [],
     "notes": "No binding ruling applied: both entries for ABC-101 in <ROOT>/decisions.jsonl (ABC-101-D1, ABC-101-D2) are status \"open\" with a null resolution. The branch ledger docs/decisions/ABC-101.md was read and its declarations D1-D7 were honoured: D3 and D4 are reported as a single low note …"
@@ -366,7 +366,7 @@
    "occurrence": 1,
    "result": {
     "dimension": "regression-risk",
-    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewedSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "findings": [
      {
       "id": "REG-1",
@@ -418,7 +418,7 @@
       "evidence": "ValueRows.tsx:147-150 and api.ts:114-116 are corrected. The route test's describe comment at exercise-references_.$referenceId_.configuration.test.tsx:173 still reads \"`null` is a value the API accepts\" — defensible as path-scoped (working_side is nullable) but it is the same sentence AC3 removes el…"
      }
     ],
-    "report": "Regression-risk review of main..4b72dc1a (PR #231). Verdict: low residual risk, nothing that should hold the branch.\n\nBlast radius is narrow and matches the plan. Five code/test files, all under client-new/src/features/configuration plus one route test; the other two changed paths are docs/plans and…",
+    "report": "Regression-risk review of main..7174a503 (PR #503). Verdict: low residual risk, nothing that should hold the branch.\n\nBlast radius is narrow and matches the plan. Five code/test files, all under client-new/src/features/configuration plus one route test; the other two changed paths are docs/plans and…",
     "awaiting": [],
     "questions": [],
     "notes": "No binding ruling applied: decisions.jsonl carries only ABC-101-D1 and ABC-101-D2, both status \"open\" with no resolution. Ledger lines D1-D7 and the three process/test lines were read and used as declared deviations — REG-1 corresponds to D3 and REG-2 to D4, both reported as residual risk rather t…"
@@ -429,14 +429,14 @@
    "occurrence": 1,
    "result": {
     "dimension": "operability",
-    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewedSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "findings": [
      {
       "id": "OPS-1",
       "axis": "operability",
       "severity": "medium",
       "source": "code",
-      "summary": "An override authored as null at a now-non-nullable path — writable on staging between 2026-09-22 (aaebba6e) and 2026-09-25 (9df82882) — is still re-sent by authoredMapFrom on every save and still 422s, but after this change its row renders as a blank Select indistinguishable from an unauthored one, …",
+      "summary": "An override authored as null at a now-non-nullable path — writable on staging between 2026-09-22 (b21818aa) and 2026-09-25 (26da5aed) — is still re-sent by authoredMapFrom on every save and still 422s, but after this change its row renders as a blank Select indistinguishable from an unauthored one, …",
       "locations": [
        "client-new/src/features/configuration/ValueRows.tsx:156-161",
        "client-new/src/features/configuration/values.ts:40-50"
@@ -447,7 +447,7 @@
       "axis": "operability",
       "severity": "low",
       "source": "code",
-      "summary": "The client now depends on a field the API may stop emitting: a api-app rollback past 9a84195c drops limit.nullable from the serializer, allowsNull() then returns false everywhere, and \"no value\" silently disappears from the ten genuinely nullable rows including start_position.working_side — no er…",
+      "summary": "The client now depends on a field the API may stop emitting: a api-app rollback past 141b1510 drops limit.nullable from the serializer, allowsNull() then returns false everywhere, and \"no value\" silently disappears from the ten genuinely nullable rows including start_position.working_side — no er…",
       "locations": [
        "client-new/src/features/configuration/values.ts:81-87",
        "api-app/app/serializers/exercise_reference_configuration_serializer.rb:47"
@@ -472,7 +472,7 @@
      }
     ],
     "findings_note": "n/a",
-    "report": "## Operability — ABC-101 @ 4b72dc1a, PR #231\n\n**Verdict: operable as it stands.** Nothing in this branch needs coordination at deploy time, and the one operational risk it carries is pre-existing data rather than new behaviour.\n\n### What was verified, with output\n- **CI on this exact SHA:** `gh pr …",
+    "report": "## Operability — ABC-101 @ 7174a503, PR #503\n\n**Verdict: operable as it stands.** Nothing in this branch needs coordination at deploy time, and the one operational risk it carries is pre-existing data rather than new behaviour.\n\n### What was verified, with output\n- **CI on this exact SHA:** `gh pr …",
     "questions": [
      {
       "question": "Should the staging sweep for pre-existing authored nulls at non-nullable paths (OPS-1) gate the merge, or follow it?",
@@ -481,11 +481,11 @@
        "Block the merge until the sweep comes back empty"
       ],
       "recommendation": "Merge now, sweep after. The sweep needs staging data access this lane does not have, and it costs exactly the same before or after the merge — while the branch itself makes the condition impossible to create going forward. The affected population is at most the overrides authored in a three-day wind…",
-      "why": "Window bounded by aaebba6e (2026-09-22, editor ships with the option on every row) and 9df82882 (2026-09-25, API starts refusing); both ancestors of origin/main. Save body composed from every authored row at client-new/src/features/configuration/values.ts:46, validated per path at api-app/app/ser…"
+      "why": "Window bounded by b21818aa (2026-09-22, editor ships with the option on every row) and 26da5aed (2026-09-25, API starts refusing); both ancestors of origin/main. Save body composed from every authored row at client-new/src/features/configuration/values.ts:46, validated per path at api-app/app/ser…"
      }
     ],
     "awaiting": [],
-    "notes": "No binding ruling applied: both entries for ABC-101 in <ROOT>/decisions.jsonl (ABC-101-D1, ABC-101-D2) are status \"open\" with no resolution. Note that ABC-101-D2 asks whether to take PR #231 out of draft — `gh pr view 231` reports `isDraft: false`, so that question has already been overtaken by …"
+    "notes": "No binding ruling applied: both entries for ABC-101 in <ROOT>/decisions.jsonl (ABC-101-D1, ABC-101-D2) are status \"open\" with no resolution. Note that ABC-101-D2 asks whether to take PR #503 out of draft — `gh pr view 231` reports `isDraft: false`, so that question has already been overtaken by …"
    }
   },
   {
@@ -494,17 +494,17 @@
    "result": {
     "decision": "Merge now, sweep after. The OPS-1 staging sweep for pre-existing authored nulls at non-nullable paths does not gate the merge of ABC-101; it is recorded as a follow-up obligation to be run against acme-api-staging once the branch is in, withdrawing whatever it turns up.",
     "park": false,
-    "rationale": "The condition OPS-1 hunts for was created by a bounded, closed window: aaebba6e (2026-09-22, the editor ships offering \"no value\" on every row) to 9df82882 (2026-09-25, the API starts refusing a null on a non-nullable row) — both verified ancestors of origin/main. The refusal itself is in force on s…",
+    "rationale": "The condition OPS-1 hunts for was created by a bounded, closed window: b21818aa (2026-09-22, the editor ships offering \"no value\" on every row) to 26da5aed (2026-09-25, the API starts refusing a null on a non-nullable row) — both verified ancestors of origin/main. The refusal itself is in force on s…",
     "reversalCost": "Low. Merging does not delete or rewrite any stored override — a stale authored null stays exactly as it is in the configs store and stays addressable by the sweep afterwards. If the sweep comes back non-empty, the remedy (re-author or withdraw the offending override) is the same action it would have…",
-    "notes": "Carried out as ruling for this run's confidence phase. Existing rulings ABC-101-D1 (premise: dispatcher names an unloadable skill/profile) and ABC-101-D2 (take PR #231 out of draft) are both still status \"open\" in decisions.jsonl and were consulted — neither is binding on this question. Note for w…",
+    "notes": "Carried out as ruling for this run's confidence phase. Existing rulings ABC-101-D1 (premise: dispatcher names an unloadable skill/profile) and ABC-101-D2 (take PR #503 out of draft) are both still status \"open\" in decisions.jsonl and were consulted — neither is binding on this question. Note for w…",
     "mandate": "",
     "awaiting": [],
     "questions": [],
     "sources": [
-     "git log -1 aaebba6e → aaebba6e 2026-09-22 [ABC-105] feat(cms): edit a Reference's configuration values beside what was measured",
-     "git log -1 9df82882 → 9df82882 2026-09-25 [ABC-103] fix(configs): refuse a null override on rows that are not nullable",
-     "git merge-base --is-ancestor aaebba6e origin/main → exit 0 (ancestor)",
-     "git merge-base --is-ancestor 9df82882 origin/main → exit 0 (ancestor)",
+     "git log -1 b21818aa → b21818aa 2026-09-22 [ABC-105] feat(cms): edit a Reference's configuration values beside what was measured",
+     "git log -1 26da5aed → 26da5aed 2026-09-25 [ABC-103] fix(configs): refuse a null override on rows that are not nullable",
+     "git merge-base --is-ancestor b21818aa origin/main → exit 0 (ancestor)",
+     "git merge-base --is-ancestor 26da5aed origin/main → exit 0 (ancestor)",
      "api-app/app/services/configs/validate_overrides.rb:41 → `return (entry.limit.nullable ? nil : NOT_NULLABLE) if value.nil?`",
      "docs/decisions/ABC-101.md → review/operability line grading the stale-authored-null case medium, not blocking, and naming the same three-day window",
      "docs/decisions/ABC-101.md → D4 (restore() from change history unguarded; page-level \"Nothing was saved\" refusal is the answer), D7 (merge path expected agent-side)",
@@ -517,7 +517,7 @@
    "occurrence": 2,
    "result": {
     "dimension": "operability",
-    "reviewedSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "reviewedSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "findings": [
      {
       "id": "OPS-1",
@@ -556,9 +556,9 @@
       "id": "OPS-4",
       "axis": "operability",
       "severity": "low",
-      "summary": "PR #231 is MERGEABLE but BEHIND main; the branch needs an update before merge and its green MVP frontend CI ran against the older base.",
+      "summary": "PR #503 is MERGEABLE but BEHIND main; the branch needs an update before merge and its green MVP frontend CI ran against the older base.",
       "locations": [
-       "https://github.com/example-org/acme-web/pull/231"
+       "https://github.com/example-org/acme-web/pull/503"
       ],
       "source": "code"
      }
@@ -568,7 +568,7 @@
      {
       "ac": "On a non-nullable row the editor does not offer \"no value\"",
       "status": "covered",
-      "evidence": "ValueRows.tsx:159 appends the option only where allowsNull(row.limit); allowsNull is limit.nullable === true (values.ts:85) and the serializer emits the key only when true (exercise_reference_configuration_serializer.rb:47, on main via 9a84195c, so the field is live on acme-api-staging). Pinned…"
+      "evidence": "ValueRows.tsx:159 appends the option only where allowsNull(row.limit); allowsNull is limit.nullable === true (values.ts:85) and the serializer emits the key only when true (exercise_reference_configuration_serializer.rb:47, on main via 141b1510, so the field is live on acme-api-staging). Pinned…"
      },
      {
       "ac": "Nullable rows keep offering \"no value\", and choosing it still saves",
@@ -600,7 +600,7 @@
    "key": "logs:log-prose:",
    "occurrence": 1,
    "result": {
-    "text": "Run ABC-101 is parked pending resolution of a review-bot gate block. Pull request https://github.com/example-org/acme-web/pull/231 stands at head 4b72dc1a31ee1f95851f3527658a37ebc109a0d4. Three decisions remain open: ABC-101-D1, ABC-101-D2, and ABC-101-D3.",
+    "text": "Run ABC-101 is parked pending resolution of a review-bot gate block. Pull request https://github.com/example-org/acme-web/pull/503 stands at head 7174a503ef8000d4a72b2bbe9eb1d228b44e916c. Three decisions remain open: ABC-101-D1, ABC-101-D2, and ABC-101-D3.",
     "awaiting": []
    }
   }
@@ -612,9 +612,9 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "path": "<ROOT>/worktrees/ABC-101-run-50225d8d",
-    "branch": "ABC-101-run-50225d8d",
-    "headSha": "c7defcee0b5314b6c49d7b7b923f3dfe94b49aee",
+    "path": "<ROOT>/worktrees/ABC-101-run-7882fe5c",
+    "branch": "ABC-101-run-7882fe5c",
+    "headSha": "42b0c6a154aece51ea273a4a67e0e07099442a86",
     "created": true
    }
   },
@@ -709,8 +709,8 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "branch": "ABC-101-run-50225d8d",
-    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4"
+    "branch": "ABC-101-run-7882fe5c",
+    "headSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c"
    }
   },
   {
@@ -719,8 +719,8 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "prUrl": "https://github.com/example-org/acme-web/pull/231",
-    "number": 231,
+    "prUrl": "https://github.com/example-org/acme-web/pull/503",
+    "number": 503,
     "draft": true
    }
   },
@@ -730,7 +730,7 @@
    "exitCode": 2,
    "result": {
     "status": "pending",
-    "sha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "sha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "reason": "checks not settled within timeout"
    }
   },
@@ -740,7 +740,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "sha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "sha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "state": "green",
     "checks": [
      {
@@ -800,7 +800,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "headSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -823,7 +823,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "headSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -846,7 +846,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "headSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -869,7 +869,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "headSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -892,7 +892,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "headSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -915,7 +915,7 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "headSha": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "headSha": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "reviewed": false,
     "green": false,
     "reviewId": null,
@@ -939,8 +939,8 @@
    "exitCode": 0,
    "result": {
     "status": "ok",
-    "pin": "c7defcee0b5314b6c49d7b7b923f3dfe94b49aee",
-    "head": "4b72dc1a31ee1f95851f3527658a37ebc109a0d4",
+    "pin": "42b0c6a154aece51ea273a4a67e0e07099442a86",
+    "head": "7174a503ef8000d4a72b2bbe9eb1d228b44e916c",
     "artifact": "<ROOT>/diffs/ABC-101-full.diff",
     "bytes": 19696,
     "changedFiles": [

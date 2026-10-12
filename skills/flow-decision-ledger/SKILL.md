@@ -49,8 +49,8 @@ Field 2 is the routing field, and it is the only thing a reader has to parse:
 
 Twice now a ledger line has asserted something nobody ran, and both times a later stage caught it:
 a line citing `git diff <sha> HEAD` as empty when it was only empty under a path restriction
-(ABC-217, 2026-08-04), and a line claiming "**each** creation case now asserts exit 0 plus a
-worktree at the expected sha" when one case did not (ABC-219, 2026-08-05 — found independently by
+(ABC-217), and a line claiming "**each** creation case now asserts exit 0 plus a
+worktree at the expected sha" when one case did not (ABC-219 — found independently by
 two agents of the same review).
 
 So: **if the line contains a command, a count, or a quantifier — "every", "all", "each", "never",

@@ -47,4 +47,4 @@ Best invoked with a plan already agreed (`flow-start-ticket` step 5) — the pla
 
 ## Provenance
 
-Every rule in this skill is traceable to a session where its absence cost time; see [docs/2026-07-30-provenance.md](docs/2026-07-30-provenance.md).
+Every rule is traceable to a session where its absence cost time. The provenance notes cite private session records, so they are kept outside this repository; read them before changing a rule.

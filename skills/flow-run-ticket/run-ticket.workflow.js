@@ -428,11 +428,11 @@ const lastLine = s => String(s || '').trim().split('\n').pop() || ''
 // For a long multi-line --text value, a live model also re-rendered real line
 // breaks as the two-character sequence \n (a structured-output escaping artefact, not a different
 // command) — collapse that the same way real whitespace is collapsed, before the mismatch parks the run.
-// 2026-10-02: echoes also came back with `\ ` for a quoted space and with '\'' re-rendered as '"'"'.
+// Echoes also came back with `\ ` for a quoted space and with '\'' re-rendered as '"'"'.
 const sameCommand = s => String(s || '').replace(/'"'"'|'\\''/g, "'").replace(/\\[nrt]/g, ' ').replace(/\\(\s)/g, '$1')
   .replace(/['"]/g, '').replace(/\s+/g, ' ').trim()
 
-// A `write` carries kilobytes of body that a small model will not echo back intact (2026-10-02: the
+// A `write` carries kilobytes of body that a small model will not echo back intact (seen: the
 // body cut to `...` on every attempt while the file landed correctly), so a write is judged on what
 // landed - the file it names and the byte count the harness measured - instead of on its echo.
 const utf8Bytes = s => { let n = 0; for (const ch of String(s)) { const c = ch.codePointAt(0); n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4 } return n }
