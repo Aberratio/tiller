@@ -586,6 +586,20 @@ test('harness-blocked: one identical retry, then a decision with no options that
   assert.equal(state(root, 'open-count').open, 0)
 })
 
+test('harness-blocked: the park reason breaks on a word boundary and run.json keeps the full denial as reasonFull', execLane, async () => {
+  const longDenial = 'Permission to use Bash has been denied because the sandboxed filesystem refused the write to a path outside the worktree root, which the harness classifies as a policy violation rather than a transient infrastructure error.'
+  const { root, args } = fresh('blocked-long')
+  const sim = makeSim(root, args, { exec: name => name === 'pr-open.mjs' ? { denied: longDenial } : undefined })
+  const r = await runTicket(sim)
+  assert.equal(r.status, 'parked', JSON.stringify(r))
+  const kept = r.reason.replace(/^harness-blocked: /, '')
+  assert.ok(kept.length <= 201, `reason is short: ${JSON.stringify(r.reason)}`)
+  assert.ok(kept.endsWith('…'), 'the short reason is marked as cut')
+  assert.ok(longDenial.startsWith(kept.replace(/…$/, '')), 'the kept prefix is verbatim and word-aligned')
+  assert.ok(r.reasonFull.includes(longDenial), 'the full denial text is preserved verbatim on the result')
+  assert.equal(runStatus(root, 'ABC-1').reasonFull, r.reasonFull, 'run.json keeps the same full text')
+})
+
 // A live run: implement finished green with commits but carried environment notes labelled
 // harness-blocked (a missing env file, a sandboxed spawn). No tool call was refused, yet the lane
 // was re-run identically and the run parked before CI.

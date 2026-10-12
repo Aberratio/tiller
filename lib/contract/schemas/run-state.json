@@ -27,6 +27,9 @@
     "reason": {
       "type": "string"
     },
+    "reasonFull": {
+      "type": "string"
+    },
     "lastPhase": {
       "type": "string",
       "enum": [

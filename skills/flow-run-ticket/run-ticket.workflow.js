@@ -395,7 +395,7 @@ const AWAITING = ARGS.awaiting || { refusals: [], prose: [] }
 // and re-thrown after every fan-out.
 let pendingStop = null
 class Stop {
-  constructor(status, reason) { this.status = status; this.reason = reason; if (!pendingStop) pendingStop = this }
+  constructor(status, reason, reasonFull) { this.status = status; this.reason = reason; if (reasonFull) this.reasonFull = reasonFull; if (!pendingStop) pendingStop = this }
 }
 const fanOut = async thunks => {
   const r = await parallel(thunks)
@@ -419,6 +419,15 @@ const q = s => `'${String(s).replace(/'/g, `'\\''`)}'`
 const label = (lane, tier, detail) => `${CUR}:${lane}:${tier}${detail ? `:${detail}` : ''}`
 const modelOf = tier => (TIERS[tier] === null || TIERS[tier] === undefined ? undefined : TIERS[tier])
 const clip = (s, n = 400) => String(s || '').slice(0, n)
+// Like clip, but backs up to the last space before the limit and marks the cut with an ellipsis,
+// so a short reason never ends in half a word or looks complete when it is not.
+const clipWords = (s, n = 200) => {
+  const str = String(s || '')
+  if (str.length <= n) return str
+  const cut = str.slice(0, n)
+  const lastSpace = cut.lastIndexOf(' ')
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`
+}
 const lastLine = s => String(s || '').trim().split('\n').pop() || ''
 
 // One exec-lane call: a fixed prompt, one command, verbatim stdout. Every check that fails is kind
@@ -524,7 +533,7 @@ async function harnessBlocked(denial, what) {
   const d = { ticket: TICKET, kind: 'harness-blocked', question: `harness refused: ${clip(what, 200)}`, why: clip(denial), blocks: `${TICKET} ${CUR}` }
   const r = await execCommand([H, 'run', '--root', ROOT, '--', `${LIB}/state/state.mjs`, 'decide', JSON.stringify(d)].map(q).join(' '), 'state-decide')
   if (r.status === 'ok') decisions.push(r.id)
-  throw new Stop('parked', `harness-blocked: ${clip(denial, 200)}`)
+  throw new Stop('parked', `harness-blocked: ${clipWords(denial, 200)}`, `harness-blocked: ${clip(denial, 4000)}`)
 }
 
 // A lane's awaiting item only has to satisfy its own JSON Schema (recommendation/reversalCost/a
@@ -776,6 +785,7 @@ const deterministicTitle = () => {
 const out = {}
 let status = 'running'
 let reason = null
+let reasonFull = null
 
 async function main() {
   const resume = await harness(['resume', '--root', ROOT, '--ticket', TICKET], 'resume')
@@ -1292,7 +1302,7 @@ let fatal = null
 try {
   await main()
 } catch (e) {
-  if (e instanceof Stop) { status = e.status; reason = e.reason } else { fatal = e; status = 'died'; reason = clip(`${e && e.name ? `${e.name}: ` : ''}${e && e.message ? e.message : e}`, 600) }
+  if (e instanceof Stop) { status = e.status; reason = e.reason; reasonFull = e.reasonFull || null } else { fatal = e; status = 'died'; reason = clip(`${e && e.name ? `${e.name}: ` : ''}${e && e.message ? e.message : e}`, 600) }
 }
 
 if (status !== 'paused-usage' && !(out.logs)) {
@@ -1302,10 +1312,10 @@ if (status !== 'paused-usage' && !(out.logs)) {
     const prose = fatal ? null : await lane('log-prose',
       `Write three impersonal sentences summarising run ${TICKET}: status ${status}${reason ? ` (${reason})` : ''}, PR ${prUrl || 'none'}, head ${head || 'none'}, ` +
       `open decisions ${decisions.join(', ') || 'none'}. No names, no first person. ${RESULT_CONTRACT}`, 'summary')
-    out.logs = { status, reason, prUrl, headSha: head, decisions, summary: prose ? clip(prose.text, 600) : null }
-    await checkpoint('logs', out.logs, ['--status', status, ...(reason ? ['--reason', reason] : [])])
+    out.logs = { status, reason, reasonFull, prUrl, headSha: head, decisions, summary: prose ? clip(prose.text, 600) : null }
+    await checkpoint('logs', out.logs, ['--status', status, ...(reason ? ['--reason', reason] : []), ...(reasonFull ? ['--reason-full', reasonFull] : [])])
   } catch (e) { if (!fatal) throw e }
 }
 if (fatal) throw fatal
 
-return { ticket: TICKET, status, reason, prUrl, headSha: head, decisions, calls, gate: out.gate || null }
+return { ticket: TICKET, status, reason, reasonFull, prUrl, headSha: head, decisions, calls, gate: out.gate || null }
