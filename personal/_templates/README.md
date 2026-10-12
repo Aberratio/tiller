@@ -21,8 +21,10 @@ node lib/personal/generate.mjs --user <user> --template write-daily   # regenera
 | `answers/<template>.generated.json` | content hashes of what was generated |
 | `leak-terms.txt` | the person's name, seeded so `lib/leak-guard.sh` refuses it in tracked files |
 
-A generated skill is meant to be edited: its calibration loop rewrites it as it learns. Once it
-differs from its recorded hashes, the generator refuses to overwrite it unless `--force` is given.
+What a skill learns goes into `notes.md` next to its `SKILL.md`. That file belongs to the user: the
+generator never compares it, never overwrites it (not even with `--force`), and only seeds it from a
+template's `notes.md` when it does not exist yet. Any other edit to a generated skill makes it differ
+from its recorded hashes, and the generator then refuses to overwrite it unless `--force` is given.
 A skill directory with no generation record (made by hand) is protected the same way.
 
 Non-interactive runs (`--non-interactive`, or stdin not a terminal) take answers from

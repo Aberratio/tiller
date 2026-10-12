@@ -21,6 +21,9 @@
   { "key": "notion_user_id", "prompt": "Your Notion user id (optional)", "help": "Lets the skill find Notion pages you created inside the window. Leave empty to skip Notion.", "required": false, "default": "" },
   { "key": "board_check", "prompt": "Board reconciliation to dispatch (optional)", "help": "A subagent or skill that reconciles ticket status against merged/open PRs inside the window, e.g. \"the `flow-pm` skill in close mode\". Leave empty to use gh only.", "required": false, "default": "" },
   { "key": "scheduled_draft_path", "prompt": "Where a scheduled run writes its output (optional)", "help": "If the note is also generated on a schedule, the file it lands in, e.g. ~/.claude/briefings/daily-<today>.md. Leave empty if not scheduled.", "required": false, "default": "" },
+  { "key": "schedule_time", "prompt": "When a scheduled run drafts the note (optional)", "help": "e.g. 14:00 on weekdays. Leave empty if not scheduled.", "required": false, "default": "" },
+  { "key": "scheduler_label", "prompt": "Name of the scheduler job (optional)", "help": "The launchd label, cron entry or routine name, so a run can be traced back to it.", "required": false, "default": "" },
+  { "key": "posting_window", "prompt": "When you usually post the note (optional)", "help": "e.g. between 16:00 and 23:30. It tells the skill how stale a scheduled draft may be.", "required": false, "default": "" },
   { "key": "copy_tool", "prompt": "Tool that copies the archived draft to the clipboard (optional)", "help": "A script or button that reads drafts/<today>.md. Leave empty if none.", "required": false, "default": "" },
   { "key": "chat_language", "prompt": "Language for short chat messages to you", "required": false, "default": "English" }
 ]

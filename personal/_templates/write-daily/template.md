@@ -12,6 +12,10 @@ drafted to Slack.
 Drafts and the calibration log live in `~/.claude/personal-data/write-daily/`, outside the skill
 directory; every relative `drafts/` below is relative to it.
 
+**Read `notes.md` next to this file before step 0.** It holds {{display_name}}'s own rules, dated
+evidence, people and emoji notes, grown by calibration. Where it is more specific than this file, it
+wins. Regenerating the skill replaces this file and never touches `notes.md`.
+
 ## Steps
 
 1. **Find the window start** — read the last ~25 messages of channel `{{channel_id}}` with the Slack
@@ -21,6 +25,10 @@ directory; every relative `drafts/` below is relative to it.
      are matched on the body text `{{post_header}}`, not the author field.
    - The new note covers work **since that post**. That post's Unix timestamp is the **window start**
      for steps 2–4. Establish it *before* collecting anything — every other source is filtered by it.
+{{#if schedule_time}}
+   - A scheduled run drafts the note at {{schedule_time}}{{#if scheduler_label}} (scheduler job
+     `{{scheduler_label}}`){{/if}}{{#if posting_window}}; {{they}} usually posts {{posting_window}}{{/if}}.
+{{/if}}
    - The window usually reaches back into the previous afternoon and evening, and after a weekend or
      a skipped day it spans several days. Never assume the window starts at midnight.
    - Don't repeat items already reported there; a continuation of reported work is fine when framed
@@ -68,7 +76,7 @@ directory; every relative `drafts/` below is relative to it.
 {{/if}}
 4b. **Check what actually shipped** — a merged PR beats a session transcript claiming completion.
 {{#if board_check}}
-   Dispatch {{board_check}} with the window start from step 1. It reconciles the status of every
+   Dispatch {{board_check}}, passing the window start from step 1. It reconciles the status of every
    ticket touched inside the window against its artefacts (merged PR, open PR, verification), moves
    the ones that drifted, and returns what it changed. Runs in parallel with steps 3–4; the note does
    not wait on it.
@@ -138,12 +146,13 @@ comparison is free). Its purpose: the note this skill writes should converge on 
    - reframed: <how>
    - verdict: <one line: which rule this confirms, contradicts, or is missing>
    ```
-4. **Edit this SKILL.md when a pattern has appeared twice** — once is noise, twice is a rule. Turn it
-   into a line under *Style contract* or *Common mistakes*, and note the two dates it came from in the
-   log entry. A single very clear edit (a whole category of work cut, a fact corrected) may be
-   applied immediately; say so in the log.
+4. **Edit `notes.md` when a pattern has appeared twice** — once is noise, twice is a rule. Turn it
+   into a line under the matching heading there (style, common mistakes, people, emoji), and note the
+   two dates it came from in the log entry. A single very clear edit (a whole category of work cut, a
+   fact corrected) may be applied immediately; say so in the log. Never edit SKILL.md: regenerating
+   the skill replaces it.
 5. Tell {{them}} in one line, in {{chat_language}}, what step 0 changed (`calibration: <rule>` or
-   `calibration: no change`), then carry on with step 1. Never ask for confirmation — the edit was
+   `calibration: no change`, in that language), then carry on with step 1. Never ask for confirmation — the edit was
    the vote.
 
 If the final version never appears, leave the draft archived and try again on the next run; drafts
@@ -229,7 +238,7 @@ Read it and apply it; don't re-derive the voice here. Only the daily-specific co
   calibrate against. If the draft is edited in-session or the posted version is pasted back, archive
   **that** version and run step 0's comparison immediately.
 - Logging a calibration entry and changing nothing forever → a pattern seen twice must become a line
-  in this file; the log is the evidence, the skill is the fix.
+  in `notes.md`; the log is the evidence, the notes are the fix.
 {{#if notion_user_id}}
 - Treating an empty Notion result as an error → most days have no new Notion pages; move on.
 {{/if}}
