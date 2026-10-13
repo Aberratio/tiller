@@ -1,0 +1,8 @@
+#!/bin/sh
+# Follows symlinks so the shim also works when linked into a directory on PATH.
+self="$0"
+while [ -L "$self" ]; do
+  link="$(readlink "$self")"
+  case "$link" in /*) self="$link" ;; *) self="$(dirname "$self")/$link" ;; esac
+done
+exec node "$(dirname "$self")/tiller.mjs" "$@"
