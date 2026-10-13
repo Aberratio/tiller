@@ -35,7 +35,7 @@ function doctor(argv, ctx) {
   for (const f of features) {
     let line = `${f.status.padEnd(12)}${f.label}`
     if (f.reason) line += ` - ${f.reason}`
-    if (f.install.length) line += `; install: ${f.install.join(' && ')}`
+    if (f.install.length) line += `; install: ${f.install.join('; ')}`
     ctx.stdout(line + '\n')
   }
   return 0
