@@ -169,7 +169,7 @@ none — no unattended day run. Otherwise:
 
 ## escalation
 
-- Doubt log: <path where parked decisions are written>
+- Doubt log: <optional path; drop the line for $TILLER_DOUBT_LOG, else `doubts/<date>.md` next to this file>
 - Human: <role that signs and answers>
 
 ## model routing

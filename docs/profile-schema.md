@@ -208,7 +208,7 @@ as `profilePath`, and the agent that needs one opens it.
 | `inviolables` | `## inviolables` | list of strings |
 | `ownerProxy` | `## owner proxy` | `{role, mandate, hardStopChannels, hardStopPaths}` or `null` |
 | `dayRunAllowed` | `## owner proxy` | boolean |
-| `escalation` | `## escalation` | `{doubtLog, human}` |
+| `escalation` | `## escalation` | `{doubtLog, human}`; `doubtLog` is an absolute path from `lib/doubt-log.sh resolve`: the `- Doubt log:` field, else `$TILLER_DOUBT_LOG`, else `doubts/<date>.md`; `~` and `<date>` (UTC) expanded, relative paths against the profile's directory |
 | `modelRouting` | `## model routing` | `{<lane>: <tier>}`, `{}` for defaults |
 | `staticChecks` | `## static checks` | list of `{check, command}`; `n/a` rows left out, `[]` when absent or `none` |
 | `worktreeSetup` | `## worktree setup` | list of `{check, command}`, same shape as `staticChecks`; `[]` when absent or `none` |

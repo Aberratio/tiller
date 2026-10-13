@@ -63,7 +63,9 @@ The caller sets `step.channel` when the step writes to a channel on the profile'
 | `invalid-answer` | a lane output failed its schema (CLI only); the runner's schema retry applies | unchanged |
 
 Writing is the caller's: `state.mjs decide` for a new or parked record, `state.mjs resolve` for a
-settled one, and a `doubt` returned with a decision goes to the branch ledger and to `doubt.log`.
+settled one, and a `doubt` returned with a decision goes to the branch ledger and to `doubt.log`,
+through `lib/doubt-log.sh append <doubt.log>` (stdin appended, parent directory created).
+`doubt.log` is already resolved; nothing downstream reinterprets it.
 
 ## Order of checks
 

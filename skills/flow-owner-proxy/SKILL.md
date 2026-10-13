@@ -54,7 +54,8 @@ ready-to-sign list for a signature.
 The commonest failure is escalating something already settled. Before treating a step as open, read
 in this order and stop at the first answer:
 
-1. the run's decisions file (`lib/state/state.mjs`) and the doubt log named in `## escalation` — an
+1. the run's decisions file (`lib/state/state.mjs`) and the doubt log at the brief's `doubtLog`
+   (outside a run: `lib/doubt-log.sh resolve --profile <profile>`; never the raw field) — an
    item with a resolution is a decision already taken: **execute it**, do not raise it again; an open
    item is already with the human and needs no second report;
 2. the branch's decision ledger (`## decision ledger`);

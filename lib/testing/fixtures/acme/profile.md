@@ -262,7 +262,7 @@ A question touching one of these parks.
 
 ## escalation
 
-- Doubt log: `~/.local/state/tiller/decisions-<date>.md` — one file per day, each item carries question, options, recommendation, reversal cost, what it blocks, and an empty resolution line
+- Doubt log: `doubts/<date>.md` — inside this profile, one file per UTC day, each item carries question, options, recommendation, reversal cost, what it blocks, and an empty resolution line
 - Human: the project owner — signs every merge in a signature path and resolves what the owner proxy may not
 
 ## model routing

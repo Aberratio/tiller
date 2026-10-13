@@ -135,8 +135,8 @@ on. The run proceeds on the decision immediately. Raise one when:
 
 `doubt.why` names the trigger, `doubt.settle` the specific thing that would settle it — a command, a
 role, a document, a measurement. A doubt with no `settle` is a worry, and worries are not recorded.
-The runner appends it to the branch ledger and to the doubt log named in the profile's
-`## escalation`; the resolver writes neither.
+The runner appends it to the branch ledger and to the resolved doubt log
+(`lib/doubt-log.sh append <doubt.log>`); the resolver writes neither.
 
 ## Harness blocks
 

@@ -450,9 +450,15 @@ if has_section board && ! is_none board; then
 fi
 
 # ---- escalation -----------------------------------------------------------------------------
+# Optional field; the resolver supplies $TILLER_DOUBT_LOG or the in-profile default. Only a field
+# that is written but unfinished is refused.
 doubt_log="$(token_field escalation 'Doubt log')"
 human_role="$(field escalation 'Human')"
-require 'escalation — doubt log' "$doubt_log"
+require 'escalation — doubt log' "${doubt_log:-x}"
+case "$doubt_log" in
+  *TODO*) ;;
+  *) doubt_log="$("$REPO_DIR/lib/doubt-log.sh" resolve --profile "$profile" "$doubt_log")" ;;
+esac
 require 'escalation — human'     "$human_role"
 escalation="$(jq -n --arg d "$doubt_log" --arg h "$human_role" '{doubtLog: $d, human: $h}')"
 
