@@ -65,6 +65,10 @@ judge() {
       rest="${p#"$home/profiles/"}"; name="${rest%%/*}"
       [ "$rest" = "$name" ] && [ ! -d "$home/profiles/$name" ] && return 0
       [ -n "$broken" ] && deny "profiles/$name denied: $broken"
+      # A session outside any project may read, never write, every project's doubt log.
+      if [ "$w" = 0 ] && [ "$row" = _none ]; then
+        case "$rest" in "$name/doubts"|"$name/doubts/"*) return 0 ;; esac
+      fi
       [ "$name" = "$row" ] || deny "profiles/$name is not the resolved profile \"$row\""
       return 0 ;;
   esac
@@ -122,9 +126,13 @@ scan_bash() {
     [ "$lvl" = none ] && deny "brain \"$b\" is \"none\" for profile \"$row\" (brains/access.json)"
     [ "$lvl" = read ] && writes "$cmd" && deny "brain \"$b\" is \"read\" for profile \"$row\" (brains/access.json)"
   done <<<"$(list_names "$home/brains")"
+  local seen="$cmd"
+  if [ "$row" = _none ] && ! writes "$cmd"; then
+    seen="$(printf '%s' "$cmd" | sed -E 's#profiles/[A-Za-z0-9_-]+/doubts([^A-Za-z0-9_.-]|$)#\1#g')"
+  fi
   while IFS= read -r p; do
     [ -n "$p" ] && [ "$p" != "$row" ] || continue
-    word_hit "$cmd" "profiles/$p" && deny "profiles/$p is not the resolved profile \"$row\""
+    word_hit "$seen" "profiles/$p" && deny "profiles/$p is not the resolved profile \"$row\""
   done <<<"$(list_names "$home/profiles" profile.md)"
   return 0
 }

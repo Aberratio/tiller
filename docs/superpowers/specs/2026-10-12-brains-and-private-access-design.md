@@ -78,7 +78,8 @@ Path tools (`file_path`, `path`, `notebook_path`; Glob's `path` plus the pattern
 2. Inside `brains/X/`: deny when the level of X is `none`; deny `Edit|Write|NotebookEdit` when it is
    `read`.
 3. Inside `profiles/Y/`: deny when Y is not the resolved profile. `profiles/_template/` is always
-   allowed. With no resolved profile every `profiles/Y/` except `_template` is denied.
+   allowed. With no resolved profile every `profiles/Y/` except `_template` is denied, but
+   `profiles/Y/doubts/` may be read (a Bash command qualifies only without a write operator).
 4. Inside `brains/` or `profiles/` but not inside a named subdirectory (the directory itself,
    `brains/access.json`): allow reads; `brains/access.json` is written only through the picker,
    so `Edit|Write` on it is denied.
