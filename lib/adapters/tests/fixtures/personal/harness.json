@@ -1,0 +1,9 @@
+{
+  "env": { "EXAMPLE": "1" },
+  "native": {
+    "claude": {
+      "statusLine": { "type": "command", "command": "${HOME}/bin/status ${PWD}" },
+      "permissions": { "allow": ["Bash(git status)"] }
+    }
+  }
+}

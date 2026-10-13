@@ -1,0 +1,28 @@
+{
+  "env": {
+    "TILLER_HOME": "/opt/tiller",
+    "EXAMPLE": "1"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep|Glob|Edit|Write|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "TILLER_HOOK=private-access '/opt/tiller/lib/hooks/private-access.sh'"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "/home/user/bin/status ${PWD}"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status)"
+    ]
+  }
+}
