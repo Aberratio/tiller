@@ -6,6 +6,11 @@ to change, that is a finding about the skill, not about the project.
 `profiles/<project>/` is git-ignored: the profile, its `cases.json`, its `secrets.env` and its
 `leak-terms.txt` stay on the machine that uses them.
 
+## Before the profile
+
+A project that does not exist yet starts with `flow-discovery`: the spec and roadmap are agreed
+first, with the client or alone, and recorded in a brain. Onboarding follows once there is a repo.
+
 ## Scripted path
 
 ```bash

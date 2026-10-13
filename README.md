@@ -28,6 +28,7 @@ personal/<user>/           local, git-ignored: one person's skills and leak-term
 lib/resolve-profile.sh     cwd -> profile, or a hard failure
 lib/profile-facts.sh       profile -> the facts a Workflow script branches on, or a hard failure
 lib/new-profile.sh         create profiles/<name>/ from the template
+lib/discovery/             discovery brains: new, check, status (flow-discovery)
 lib/leak-guard.sh          refuse tracked content that names a project, a person or a credential
 lib/testing/               synthetic fixtures for tests (never a real profile)
 brains/_template/          tracked: how to attach a brain
