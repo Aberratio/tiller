@@ -26,7 +26,7 @@ The skill runs before a project has a profile, so it is the step that precedes
 skills/flow-discovery/SKILL.md     the procedure: modes, discovery areas, hand-off
 lib/discovery/discovery.mjs        new | check | status
 lib/discovery/templates/           client.md, decisions.md, questions.md, meeting.md, recap.md
-lib/testing/discovery/             synthetic brains for tests
+lib/testing/fixtures/discovery/             synthetic brains for tests
 ```
 
 A brain created by `discovery.mjs new <name>`:
@@ -121,7 +121,7 @@ brains/<name>/
 
 ## Testing
 
-`node:test` over synthetic brains in `lib/testing/discovery/`: one valid brain and one fixture per
+`node:test` over synthetic brains in `lib/testing/fixtures/discovery/`: one valid brain and one fixture per
 violation. Each violation test first runs against a brain known to contain that violation, so a
 check that reports nothing cannot pass.
 
