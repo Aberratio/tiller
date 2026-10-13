@@ -35,14 +35,15 @@ O="node $TILLER_HOME/lib/onboard/onboard.mjs"
 2. **Questions.** `$O questions <name> --json`. Put the open ones to the human with
    `AskUserQuestion`, at most four per call, required ones (`required: true`) first, each
    question's `options` as given with the first option first. `multi: true` is multi-select; for
-   `multi: "text"` (inviolables) offer `none` and let "Other" carry the items.
+   `multi: "text"` (inviolables, QA statuses) offer the listed options and let "Other" carry the
+   items.
 3. **Answers.** For each answer, `$O answer <name> <id> <value>...`, one value per selected
    option. Exit 2 names what was malformed: re-ask that question only. Exit 3 means the value
    looked like a credential: ask where it lives instead (it goes in `profiles/<name>/secrets.env`),
    except for `mergeAuthority agent` (Rules).
 4. **Prove.** The last `answer` prints the `--check` result; done means it ends `Launch-safe.`
-   Then report in one line what stays for a human: the TODOs left in the profile (QA statuses,
-   environments, release, known issues), the `## tools` rows to change from `default`, and the
+   Then report in one line what stays for a human: the TODOs left in the profile
+   (environments, release, known issues), the `## tools` rows to change from `default`, and the
    project's own names to add to `profiles/<name>/leak-terms.txt`.
 5. **Drift.** `$O drift <name>` lists, read-only: changed main branches, required checks and
    active review bots that are not declared gates, detected commands and lockfiles missing from the
