@@ -95,6 +95,40 @@ glob_target() {
 
 f() { jq -r --arg k "$1" '.tool_input[$k] // empty' <<<"$input"; }
 
+# word_hit <text> <relative path> -> the path appears as a whole path segment run.
+word_hit() {
+  local re
+  re="$(printf '%s' "$2" | sed 's/[.[\*^$()+?{|]/\\&/g')"
+  printf '%s' "$1" | grep -Eq "(^|[^A-Za-z0-9_.-])$re([^A-Za-z0-9_.-]|\$)"
+}
+
+# Write operators, after dropping redirections that only reach /dev/null or another descriptor.
+writes() {
+  printf '%s' "$1" | sed -E 's/[0-9]*>>?[[:space:]]*(&[0-9]+|\/dev\/null)//g' |
+    grep -Eq '>|(^|[^A-Za-z0-9_-])(tee|mv|cp|rm|rmdir|touch|mkdir|ln|install|rsync|truncate|dd|chmod|chown|unlink|patch)([^A-Za-z0-9_-]|$)|(sed|perl)[^|;&]*[[:space:]]-i|git[^|;&]*[[:space:]](commit|add|mv|rm|checkout|reset|restore|stash|apply|am|merge|rebase|pull|clean)([^A-Za-z0-9_-]|$)'
+}
+
+# The command text names every path it reaches only when it is written out; see the spec's Known gap.
+scan_bash() {
+  local cmd="$1" b p lvl
+  if [ -n "$broken" ]; then
+    names_protected "$cmd" && deny "Bash names a protected path: $broken"
+    return 0
+  fi
+  word_hit "$cmd" brains/access.json && writes "$cmd" && deny "brains/access.json is written only through lib/brain-access.sh"
+  while IFS= read -r b; do
+    [ -n "$b" ] && word_hit "$cmd" "brains/$b" || continue
+    lvl="$(level_of "$b")"
+    [ "$lvl" = none ] && deny "brain \"$b\" is \"none\" for profile \"$row\" (brains/access.json)"
+    [ "$lvl" = read ] && writes "$cmd" && deny "brain \"$b\" is \"read\" for profile \"$row\" (brains/access.json)"
+  done <<<"$(list_names "$home/brains")"
+  while IFS= read -r p; do
+    [ -n "$p" ] && [ "$p" != "$row" ] || continue
+    word_hit "$cmd" "profiles/$p" && deny "profiles/$p is not the resolved profile \"$row\""
+  done <<<"$(list_names "$home/profiles" profile.md)"
+  return 0
+}
+
 main() {
   local p
   tool="$(jq -r '.tool_name // empty' <<<"$input" 2>/dev/null)" || tool=""
@@ -126,7 +160,7 @@ main() {
       p="$(f path)"; p="${p:-$cwd}"
       judge_path "$p" 0
       judge_path "$(glob_target "$(norm "$p")" "$(f pattern)")" 0 ;;
-    Bash) ;;
+    Bash) scan_bash "$(f command)" ;;
   esac
   return 0
 }
