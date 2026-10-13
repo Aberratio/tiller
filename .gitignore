@@ -5,3 +5,8 @@
 !/profiles/_template/
 /personal/*
 !/personal/_templates/
+
+# Brains are local vaults, each with its own git history. Only the template and example are tracked.
+/brains/*
+!/brains/_template/
+!/brains/access.json.example

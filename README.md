@@ -30,6 +30,12 @@ lib/profile-facts.sh       profile -> the facts a Workflow script branches on, o
 lib/new-profile.sh         create profiles/<name>/ from the template
 lib/leak-guard.sh          refuse tracked content that names a project, a person or a credential
 lib/testing/               synthetic fixtures for tests (never a real profile)
+brains/_template/          tracked: how to attach a brain
+brains/<name>/             local, git-ignored: one vault, its own git repo
+brains/access.json         local, git-ignored: which project may read or write which brain
+lib/resolve-brains.sh      cwd -> granted brains, or a hard failure
+lib/brain-access.sh        print or edit brains/access.json
+lib/hooks/private-access.sh  deny tools that reach an ungranted brain or another project's profile
 ```
 
 Each skill opens with a `Step −1` that resolves the profile and reads it. **No profile resolves →
@@ -60,6 +66,9 @@ echo acme > ~/src/acme-web/.tiller-profile    # or repo_globs in the profile's f
 
 # 5. Project-only skills and agents, if the profile has any
 ./install.sh --profile acme all               # profiles/acme/skills/* and profiles/acme/agents/*.md
+
+# 6. Private access: merge the printed fragment into ~/.claude/settings.json, then restart
+./install.sh --hooks                          # brains and other projects' profiles, see brains/_template/
 ```
 
 `TILLER_HOME` must be set wherever the skills run; each skill's `Step −1` calls

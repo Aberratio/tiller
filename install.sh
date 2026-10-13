@@ -11,6 +11,7 @@
 #   ./install.sh --setup-personal <owner> [--answers <f.json>] # generate personal skills, then link them
 #   ./install.sh --profile <name> all | <skill-name>…         # install from profiles/<name>/skills
 #   ./install.sh --agents [--profile <profile.md>]            # write the harness roles to ~/.claude/agents
+#   ./install.sh --hooks                                      # print the settings.json fragment for the private-access hook
 #
 # --setup-personal asks for the person's details and renders every template in personal/_templates/
 # into personal/<owner>/ (git-ignored), then links the result. Re-running reuses the stored answers
@@ -77,6 +78,14 @@ answers=""
 # Parse a leading --target/-t flag; the rest are the skill selector.
 if [ "${1:-}" = "--agents" ]; then
   exec node "$ROOT_DIR/lib/agents/install-agents.mjs" ${CLAUDE_AGENTS_DIR:+--dir "$CLAUDE_AGENTS_DIR"} "${@:2}"
+fi
+
+if [ "${1:-}" = "--hooks" ]; then
+  # Printed, never written: ~/.claude/settings.json is merged by hand, then the session restarted.
+  jq -n --arg cmd "TILLER_HOME=$(printf '%q' "$ROOT_DIR") $(printf '%q' "$ROOT_DIR/lib/hooks/private-access.sh")" \
+    '{hooks: {PreToolUse: [{matcher: "Read|Grep|Glob|Edit|Write|NotebookEdit|Bash", hooks: [{type: "command", command: $cmd}]}]}}'
+  echo "Merge into ~/.claude/settings.json, then restart the session." >&2
+  exit 0
 fi
 
 while [ $# -ge 1 ]; do
