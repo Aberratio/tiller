@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "type": "command",
+        "matcher": "Read|Grep|Glob|Edit|Write|Bash",
+        "bash": "'/opt/tiller/lib/hooks/copilot-pretooluse.sh' '/opt/tiller/lib/hooks/private-access.sh'",
+        "env": {
+          "TILLER_HOME": "/opt/tiller",
+          "EXAMPLE": "1"
+        }
+      }
+    ]
+  }
+}

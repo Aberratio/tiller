@@ -4,6 +4,7 @@
     "claude": {
       "statusLine": { "type": "command", "command": "${HOME}/bin/status ${PWD}" },
       "permissions": { "allow": ["Bash(git status)"] }
-    }
+    },
+    "copilot": { "stayInAutopilot": false }
   }
 }
