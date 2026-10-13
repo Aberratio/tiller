@@ -11,7 +11,7 @@
 #   ./install.sh --setup-personal <owner> [--answers <f.json>] # generate personal skills, then link them
 #   ./install.sh --profile <name> all | <skill-name>…         # install from profiles/<name>/skills
 #   ./install.sh --agents [--profile <profile.md>]            # write the harness roles to ~/.claude/agents
-#   ./install.sh --hooks                                      # print the settings.json fragment for the private-access hook
+#   ./install.sh --hooks                                      # point at bin/tiller apply, which merges the hook; prints the helm session fragment
 #   ./install.sh --helm <git-url>                             # clone the private helm into helm/
 #   ./install.sh --helm --new <git-url>                       # create a helm from lib/helm/template and push it
 #
@@ -88,15 +88,13 @@ if [ "${1:-}" = "--helm" ]; then
 fi
 
 if [ "${1:-}" = "--hooks" ]; then
-  # Printed, never written: ~/.claude/settings.json is merged by hand, then the session restarted.
+  echo "Run: bin/tiller apply"
+  echo "It merges the private-access hook and TILLER_HOME into ~/.claude/settings.json as owned keys, shows the diff and asks before writing."
+  # The helm session hook is not a tiller apply item yet, so its fragment is still merged by hand.
   jq -n \
-    --arg cmd "TILLER_HOME=$(printf '%q' "$ROOT_DIR") $(printf '%q' "$ROOT_DIR/lib/hooks/private-access.sh")" \
     --arg session "TILLER_HOME=$(printf '%q' "$ROOT_DIR") $(printf '%q' "$ROOT_DIR/lib/hooks/helm-session.sh")" \
-    '{hooks: {
-      PreToolUse: [{matcher: "Read|Grep|Glob|Edit|Write|NotebookEdit|Bash", hooks: [{type: "command", command: $cmd}]}],
-      SessionStart: [{hooks: [{type: "command", command: $session}]}]
-    }}'
-  echo "Merge into ~/.claude/settings.json, then restart the session." >&2
+    '{hooks: {SessionStart: [{hooks: [{type: "command", command: $session}]}]}}'
+  echo "Merge the SessionStart fragment above into ~/.claude/settings.json, then restart the session." >&2
   exit 0
 fi
 

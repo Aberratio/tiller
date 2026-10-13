@@ -70,11 +70,12 @@ echo acme > ~/src/acme-web/.tiller-profile    # or repo_globs in the profile's f
 # 5. Project-only skills and agents, if the profile has any
 ./install.sh --profile acme all               # profiles/acme/skills/* and profiles/acme/agents/*.md
 
-# 6. Private access: merge the printed fragment into ~/.claude/settings.json, then restart
-./install.sh --hooks                          # brains and other projects' profiles, see brains/_template/
+# 6. Private access and TILLER_HOME: merged into ~/.claude/settings.json as owned keys, then restart
+bin/tiller apply                              # brains and other projects' profiles, see brains/_template/
 
 # 7. Helm, optional: one private repository shared by every machine
 ./install.sh --helm <git-url>                 # or --helm --new <git-url> for a first machine
+./install.sh --hooks                          # prints the SessionStart fragment to merge by hand
 # set TILLER_MACHINE (stable name) and TILLER_MACHINE_CAPS (e.g. calendar) in settings.json "env"
 ```
 

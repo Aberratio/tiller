@@ -7,4 +7,4 @@ git-ignored here and closed to every project until granted.
 2. `lib/brain-access.sh <profile|_none>` to grant `read` or `write`.
 3. `lib/resolve-brains.sh` from a project prints what that project may use.
 
-The private-access hook (`install.sh --hooks`) denies the rest.
+The private-access hook (installed by `bin/tiller apply`) denies the rest.
