@@ -30,3 +30,16 @@ profile_name() {
   done < <(printf '%s\n' "${entries[@]}" | sort -rn)
   return 1
 }
+
+# list_names <dir> [<required-file>] -> names of its subdirectories (with that file, if given),
+# templates (_*) skipped, one per line, sorted.
+list_names() {
+  local d n
+  for d in "$1"/*/; do
+    [ -d "$d" ] || continue
+    n="${d%/}"; n="${n##*/}"
+    case "$n" in _*) continue ;; esac
+    [ -z "${2:-}" ] || [ -f "$1/$n/$2" ] || continue
+    printf '%s\n' "$n"
+  done
+}

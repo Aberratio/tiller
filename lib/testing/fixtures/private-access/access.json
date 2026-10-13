@@ -1,0 +1,4 @@
+{
+  "acme":  { "main": "read", "acme-notes": "write" },
+  "_none": { "main": "write" }
+}
