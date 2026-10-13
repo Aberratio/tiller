@@ -1,0 +1,4 @@
+{
+  "$comment": "Personal layer for tiller apply: copy to personal/<user>/harness.json. Keys here override config/harness/base.json; native.<agent> holds settings with no neutral form. The body of the managed instructions block goes in personal/<user>/instructions.md.",
+  "native": { "claude": {} }
+}

@@ -1,0 +1,9 @@
+{
+  "env": { "TILLER_HOME": "${TILLER_HOME}" },
+  "hooks": [
+    { "id": "private-access", "event": "preToolUse", "kinds": ["read", "search", "write", "shell"],
+      "command": "${TILLER_HOME}/lib/hooks/private-access.sh" }
+  ],
+  "agents": ["flow-resolver", "flow-owner-proxy", "flow-pm"],
+  "instructions": { "file": "instructions.md" }
+}

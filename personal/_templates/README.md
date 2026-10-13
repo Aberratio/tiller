@@ -20,6 +20,7 @@ node lib/personal/generate.mjs --user <user> --template write-daily   # regenera
 | `answers/<template>.json` | the answers; a re-run offers them as defaults |
 | `answers/<template>.generated.json` | content hashes of what was generated |
 | `leak-terms.txt` | the person's name, seeded so `lib/leak-guard.sh` refuses it in tracked files |
+| `harness.json`, `instructions.md` | personal layer for `bin/tiller apply` (start from `_templates/harness.json`); `instructions.md` is the body of the managed block in each agent's instructions file |
 
 What a skill learns goes into `notes.md` next to its `SKILL.md`. That file belongs to the user: the
 generator never compares it, never overwrites it (not even with `--force`), and only seeds it from a
