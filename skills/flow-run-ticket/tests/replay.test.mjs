@@ -76,10 +76,11 @@ test('ABC-102 (13 lanes + 17 execs recorded, 4 fallbacks) replayed from its reco
   assert.equal(r.headSha, fx.terminal.headSha)
   // Every recorded answer is consumed. The calls the recording cannot answer are the ones the runner
   // gained after it: the worktree-setup check, the duplicate guard, the PR-title retry the recorded
-  // title needed, and the mergeability read before the gate. Each falls back to the simulator default.
+  // title needed, the scripted security scan of the diff, and the mergeability read before the gate.
+  // Each falls back to the simulator default.
   assert.deepEqual(mode.misses, [
     'start:duplicate-guard:duplicate-guard.mjs', 'start:worktree-setup:verify-claim.mjs',
-    'pr:pr-description:prose-retry', 'gate:pr-state:pr-state.mjs',
+    'pr:pr-description:prose-retry', 'confidence:scan-diff:scan-diff.mjs', 'gate:pr-state:pr-state.mjs',
   ])
   // PR #501 was opened as a draft, and the real run polled the bot six times on it. The runner no
   // longer polls a draft PR, so those recorded answers go unused and review-bot blocks on the draft.

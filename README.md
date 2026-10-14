@@ -160,6 +160,7 @@ A hit means the fact belongs in a profile, not that the term list is wrong.
 | `flow-run-ticket` / `flow-run-day` | launch an unattended ticket or day run |
 | `flow-resolver` | settle an open question; inviolables come from the profile (`docs/escalation.md`) |
 | `flow-owner-proxy` | act in the owner's place, inside the profile's closed mandate |
+| `flow-retro` | read a day's runs as a whole and propose edits with evidence; applies nothing (`skills/flow-retro/bin/retro.mjs`) |
 | `flow-write-ticket` | write or clean up a ticket; conventions from `## ticket conventions` |
 | `flow-pm` | keep the board true; mandate from `## board` |
 | `flow-manual-qa` | decide which criteria need a human; register from `## verification register` |

@@ -66,7 +66,7 @@ const UNATTENDED =
 // ------------------------------------------------------------------------------ escalation
 // Inlined verbatim from lib/escalation/route.mjs; a test holds the two copies equal.
 
-const NEVER = ['usage-limit', 'rate-limit', 'quota', 'context-exhaustion', 'harness-blocked', 'stop-hour', 'no-progress', 'duplicate']
+const NEVER = ['usage-limit', 'rate-limit', 'quota', 'context-exhaustion', 'harness-blocked', 'stop-hour', 'no-progress', 'duplicate', 'locked']
 const SIGN = ['ready-to-sign']
 const MANDATES = ['approve-day-queue', 'start-next-ticket', 'approve-peer-step', 'resume-run', 'lift-cap-once', 'undraft-pr']
 const ROUTES = ['decided', 'proxied', 'pending', 'parked-human', 'inviolable-park', 'ready-to-sign', 'no-escalation', 'invalid-answer']

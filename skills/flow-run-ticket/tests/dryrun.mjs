@@ -79,6 +79,7 @@ const defaults = (lane, ctx) => {
       const mandate = (/Mandate step: ([a-z-]+)/.exec(ctx.prompt) || [])[1] || 'undraft-pr'
       return { action: 'act', mandate, step: mandate, parkReason: '', conditions: [], rationale: 'within mandate', reversalCost: 'low', awaiting: [] }
     }
+    case 'second-opinion': return { reviewedSha: (/reviewedSha ([0-9a-f]{7,40})/.exec(ctx.prompt) || [])[1] || sha, verdicts: [], report: 'nothing to downgrade', awaiting: [] }
     case 'log-prose': return { text: 'Run summary.', awaiting: [] }
     case 'sweep-summary': return { summary: 'Day summary.', regressions: [], awaiting: [] }
     default: throw new Error(`no default for lane ${lane}`)
@@ -142,7 +143,7 @@ export function makeSim(root, args, mode = {}) {
 
   sim.agent = async (prompt, opts = {}) => {
     const label = opts.label || ''
-    if (!/^[a-z-]+:[a-z-]+:T[0-3](:.+)?$/.test(label)) throw new Error(`bad label "${label}"`)
+    if (!/^[a-z-]+:[a-z-]+:T[0-4](:.+)?$/.test(label)) throw new Error(`bad label "${label}"`)
     sim.labels.push(label)
     sim.agentOpts.push({ label, disallowedTools: opts.disallowedTools })
     const ctx = ctxOf(label, prompt)

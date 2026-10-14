@@ -31,7 +31,7 @@ const CAUSE_TARGETS = {
   'usage-limit': ['caps.usageWaitMinutes', 'lengthen the usage wait, or run fewer tickets per wave'],
   'no-progress': ['caps.noProgressSpawns', 'raise the cap, or tighten the brief of the phase that stalls'],
   'ci-red': ['## gates', 'name the check that fails and whether a fix round may address it'],
-  'ci-infra': ['caps.ciInfraRerun', 'allow one more infra rerun, or name the flaky job in the gates section'],
+  'ci-infra': ['caps.backoffAttempts', 'allow more transport retries, or name the flaky job in the gates section'],
   'ci-timeout': ['caps.waitCiRecalls', 'allow more CI waits, or shorten the CI the gate waits on'],
   'conflict': ['caps.rebase', 'allow one more rebase, or serialise the tickets that touch the same files'],
   'premise': ['## ticket conventions', 'state what a ticket must carry before a run starts'],
