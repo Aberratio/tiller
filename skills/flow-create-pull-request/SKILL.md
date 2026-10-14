@@ -242,7 +242,7 @@ If matches are found, capture the screenshots using **Claude in Chrome** (the Ch
    - On the **base branch** (stash/checkout as needed), launch the dev server. Use Claude in Chrome to navigate to the affected view(s), wait for the page to settle, and screenshot — "before".
    - Return to the feature branch, restore any stash, relaunch the dev server. Use Claude in Chrome to navigate to the *same* view(s) (same route, same viewport size, same data/state where possible) and screenshot — "after".
    - Save the screenshots to the scratch directory, never into the repo.
-3. Host each image somewhere linkable — e.g. `gh gist create <file> --public`, then use the gist's raw content URL.
+3. Host each image somewhere linkable — e.g. `gh gist create <file>` (a secret gist; never `--public`), then use the gist's raw content URL. Secret means unlisted, not private: anyone with the URL, which the PR body carries, can open the image, so never capture secrets, personal data or internal-only screens.
 4. Add a **Visual changes** section with before/after side by side:
 
    ```markdown
