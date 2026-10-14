@@ -10,15 +10,16 @@
 // Exit: 0 done, 2 usage, 3 refused, 4 failed.
 import { existsSync, readdirSync, readFileSync, readSync, realpathSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
-import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { probe } from '../lib/machine/probe.mjs'
+import { homeOf, probe } from '../lib/machine/probe.mjs'
 import { capabilities } from '../lib/machine/capabilities.mjs'
 import { runApply } from '../lib/apply/apply.mjs'
 import { writeAtomic } from '../lib/apply/merge.mjs'
 import { printStatus, runStatus } from '../lib/apply/status.mjs'
 import { runUninstall } from '../lib/apply/uninstall.mjs'
+
+export { homeOf }
 
 const USAGE = 'usage: tiller doctor [--json] | tiller onboard [--personal <git-url>] [--user <name>] [--yes] [--dry-run] [--agents claude,...] | tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>] | tiller status [--json] | tiller uninstall [--yes] [--dry-run] [--agents claude,...]'
 const TILLER_HOME = dirname(dirname(fileURLToPath(import.meta.url)))
@@ -36,12 +37,6 @@ function ttyPrompt(question) {
     if (ch === '\n') return line
     line += ch
   }
-}
-
-// Git Bash and MSYS tools set HOME to a /c/Users/... form that Windows-native agents never read.
-export function homeOf(env, platform) {
-  if (platform === 'win32') return env.USERPROFILE || homedir()
-  return env.HOME || env.USERPROFILE || homedir()
 }
 
 function context(overrides = {}) {

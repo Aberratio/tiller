@@ -197,6 +197,7 @@ if [ -n "$profile" ] && [ "$1" = "all" ] && [ -d "$PROFILE_DIR/agents" ]; then
     case "$(node "$ROOT_DIR/lib/apply/link.mjs" "$f" "$agents_dir/$name")" in
       ok) echo "ok:      agent $name (already linked)" ;;
       linked) echo "linked:  agent $name -> $agents_dir/$name" ;;
+      refreshed) echo "refreshed: agent $name" ;;
       *) echo "skipped: agent $name ($agents_dir/$name already exists and is not a link to this profile)" >&2 ;;
     esac
   done
