@@ -10,3 +10,6 @@
 /brains/*
 !/brains/_template/
 !/brains/access.json.example
+
+# The helm is a clone of a private repository; its template is lib/helm/template/.
+/helm/

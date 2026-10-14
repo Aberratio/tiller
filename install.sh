@@ -12,6 +12,8 @@
 #   ./install.sh --profile <name> all | <skill-name>…         # install from profiles/<name>/skills
 #   ./install.sh --agents [--profile <profile.md>]            # write the harness roles to ~/.claude/agents
 #   ./install.sh --hooks                                      # print the settings.json fragment for the private-access hook
+#   ./install.sh --helm <git-url>                             # clone the private helm into helm/
+#   ./install.sh --helm --new <git-url>                       # create a helm from lib/helm/template and push it
 #
 # --setup-personal asks for the person's details and renders every template in personal/_templates/
 # into personal/<owner>/ (git-ignored), then links the result. Re-running reuses the stored answers
@@ -80,10 +82,20 @@ if [ "${1:-}" = "--agents" ]; then
   exec node "$ROOT_DIR/lib/agents/install-agents.mjs" ${CLAUDE_AGENTS_DIR:+--dir "$CLAUDE_AGENTS_DIR"} "${@:2}"
 fi
 
+if [ "${1:-}" = "--helm" ]; then
+  shift
+  TILLER_HOME="$ROOT_DIR" exec node "$ROOT_DIR/lib/helm/helm.mjs" init "$@"
+fi
+
 if [ "${1:-}" = "--hooks" ]; then
   # Printed, never written: ~/.claude/settings.json is merged by hand, then the session restarted.
-  jq -n --arg cmd "TILLER_HOME=$(printf '%q' "$ROOT_DIR") $(printf '%q' "$ROOT_DIR/lib/hooks/private-access.sh")" \
-    '{hooks: {PreToolUse: [{matcher: "Read|Grep|Glob|Edit|Write|NotebookEdit|Bash", hooks: [{type: "command", command: $cmd}]}]}}'
+  jq -n \
+    --arg cmd "TILLER_HOME=$(printf '%q' "$ROOT_DIR") $(printf '%q' "$ROOT_DIR/lib/hooks/private-access.sh")" \
+    --arg session "TILLER_HOME=$(printf '%q' "$ROOT_DIR") $(printf '%q' "$ROOT_DIR/lib/hooks/helm-session.sh")" \
+    '{hooks: {
+      PreToolUse: [{matcher: "Read|Grep|Glob|Edit|Write|NotebookEdit|Bash", hooks: [{type: "command", command: $cmd}]}],
+      SessionStart: [{hooks: [{type: "command", command: $session}]}]
+    }}'
   echo "Merge into ~/.claude/settings.json, then restart the session." >&2
   exit 0
 fi

@@ -37,6 +37,8 @@ brains/access.json         local, git-ignored: which project may read or write w
 lib/resolve-brains.sh      cwd -> granted brains, or a hard failure
 lib/brain-access.sh        print or edit brains/access.json
 lib/hooks/private-access.sh  deny tools that reach an ungranted brain or another project's profile
+helm/                      local, git-ignored: clone of the private cross-project helm
+lib/helm/                  helm CLI, record.sh, template; lib/hooks/helm-session.sh at session start
 ```
 
 Each skill opens with a `Step −1` that resolves the profile and reads it. **No profile resolves →
@@ -70,6 +72,10 @@ echo acme > ~/src/acme-web/.tiller-profile    # or repo_globs in the profile's f
 
 # 6. Private access: merge the printed fragment into ~/.claude/settings.json, then restart
 ./install.sh --hooks                          # brains and other projects' profiles, see brains/_template/
+
+# 7. Helm, optional: one private repository shared by every machine
+./install.sh --helm <git-url>                 # or --helm --new <git-url> for a first machine
+# set TILLER_MACHINE (stable name) and TILLER_MACHINE_CAPS (e.g. calendar) in settings.json "env"
 ```
 
 `TILLER_HOME` must be set wherever the skills run; each skill's `Step −1` calls
@@ -114,6 +120,20 @@ Skills about one person rather than one project (a daily note, a writing voice) 
 `personal/<user>/`, which is git-ignored. `install.sh --setup-personal <user>` generates and links
 them, `install.sh --personal <user> all` re-links; a plain `all` never does. The mechanism and the templates: `personal/_templates/README.md`.
 
+## Helm
+
+The helm is a private overview above the profiles: which project is at which stage, what is next,
+what is due, what was promised, which machine holds which clone. It lives in its own git
+repository, cloned into `helm/`, and is shared by every machine that runs tiller.
+
+Projects write to it and never read it: `flow-*` skills call `lib/helm/record.sh` at fixed
+milestones, which stamps the resolved profile, and the private-access hook denies a project
+session every path under `helm/`. Each write is a new file under `events/`, so two machines never
+conflict. At session start `lib/hooks/helm-session.sh` prints at most five lines: overdue, due
+within 48 hours, parked, stale projects, machines that have not synced. `flow-helm` gives the full
+status and proposes calendar events. It advises; it never starts work. Design:
+`docs/superpowers/specs/2026-10-14-helm-design.md`.
+
 ## Leak guard
 
 Every tracked file must stay free of project, company and personal facts. `lib/leak-guard.sh` scans
@@ -143,6 +163,7 @@ A hit means the fact belongs in a profile, not that the term list is wrong.
 | `flow-pm` | keep the board true; mandate from `## board` |
 | `flow-manual-qa` | decide which criteria need a human; register from `## verification register` |
 | `flow-onboard-project` | create a profile from detected facts and a human's answers; report drift (`lib/onboard/onboard.mjs`) |
+| `flow-helm` | cross-project status, reminders and calendar proposals from the private helm |
 
 ## The harness in pictures
 
