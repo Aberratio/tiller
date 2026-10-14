@@ -18,9 +18,11 @@ deny() {
   exit 0
 }
 
-# Any brains/<x> or profiles/<x> that is not a template, or any helm/ path, in free text.
+# Any brains/<x> or profiles/<x> that is not a template, or any helm path, in free text. Unanchored
+# on purpose: this only runs when the home or the matrix cannot be trusted.
 names_protected() {
-  printf '%s' "$1" | sed -E 's#lib/helm/##g' | grep -Eq '(^|[^A-Za-z0-9_.-])(brains|profiles)/[A-Za-z0-9]|(^|[^A-Za-z0-9_.-])helm/'
+  printf '%s' "$1" | sed -E 's#lib/helm/record\.sh##g' |
+    grep -Eq '(^|[^A-Za-z0-9_.-])(brains|profiles)/[A-Za-z0-9]|helm/|/helm([^A-Za-z0-9_.-]|$)'
 }
 
 # Absolute, symlinks resolved; a missing tail is kept as written under its nearest existing parent.
@@ -120,6 +122,55 @@ writes() {
     grep -Eq '>|(^|[^A-Za-z0-9_-])(tee|mv|cp|rm|rmdir|touch|mkdir|ln|install|rsync|truncate|dd|chmod|chown|unlink|patch)([^A-Za-z0-9_-]|$)|(sed|perl)[^|;&]*[[:space:]]-i|git[^|;&]*[[:space:]](commit|add|mv|rm|checkout|reset|restore|stash|apply|am|merge|rebase|pull|clean)([^A-Za-z0-9_-]|$)'
 }
 
+esc() { printf '%s' "$1" | sed 's/[.[\*^$()+?{|]/\\&/g'; }
+
+# ERE for whatever may precede "helm" when a command names the tiller home's helm/: the home as
+# resolved and as given, its ~ and $HOME spellings, $TILLER_HOME, and, from a cwd inside the home,
+# a relative path. Other helm paths (kubernetes charts, ~/.config/helm) must stay reachable.
+helm_bases() {
+  local b u alts=() c
+  for b in "$home" "${TILLER_HOME%/}"; do
+    alts+=("$(esc "$b")\"?/")
+    for u in "$HOME" "$(realpath "$HOME" 2>/dev/null)"; do
+      [ -n "$u" ] || continue
+      case "$b/" in "${u%/}/"*)
+        alts+=("~$(esc "${b#"${u%/}"}")/" "\\\$\\{?HOME\\}?$(esc "${b#"${u%/}"}")/") ;;
+      esac
+    done
+  done
+  alts+=('\$\{?TILLER_HOME\}?"?/')
+  c="$(norm "$cwd" 2>/dev/null)"
+  case "$c" in "$home"|"$home/"*) alts+=('(^|[^A-Za-z0-9_.~/$}-])(\./|(\.\./)+)?') ;; esac
+  local IFS='|'
+  printf '(%s)' "${alts[*]}"
+}
+
+# Profile sessions: any helm hit is denied. Outside a project a writing command may touch only
+# helm.md and machines/, or be nothing but git -C <helm> commit/push/pull.
+scan_helm() {
+  local cmd bases hits m rest seg ok=1
+  cmd="$(printf '%s' "$1" | sed -E 's#lib/helm/record\.sh##g; s/$/ /')"
+  bases="$(helm_bases)"
+  hits="$(printf '%s' "$cmd" | grep -oE "${bases}helm(/[^[:space:]\"'\`;|&()<>]*)?[^A-Za-z0-9_.-]")" || return 0
+  [ "$row" = _none ] || deny "helm is closed to project sessions (profile \"$row\"); write through lib/helm/record.sh"
+  writes "$cmd" || return 0
+  while IFS= read -r m; do
+    [[ "$m" =~ ^${bases}helm(.*)$ ]] || { ok=0; break; }
+    rest="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}"
+    case "$rest" in /*) rest="${rest#/}"; rest="${rest%?}" ;; *) rest="" ;; esac
+    case "$rest" in *..*) ok=0; break ;; helm.md|machines/?*) ;; *) ok=0; break ;; esac
+  done <<<"$hits"
+  [ "$ok" = 1 ] && return 0
+  while IFS= read -r seg; do
+    [[ "$seg" =~ ^[[:space:]]*$ ]] && continue
+    case "$seg" in *'$('*) deny "helm: events go through lib/helm/record.sh" ;; esac
+    [[ "$seg" =~ ^[[:space:]]*git[[:space:]]+-C[[:space:]]*\"?${bases}helm/?\"?[[:space:]]+(commit|push|pull)([[:space:]][^|<>\`]*)?$ ]] ||
+      deny "helm: events go through lib/helm/record.sh"
+  done <<<"$(printf '%s' "$cmd" | sed -E 's/&&|;/\
+/g')"
+  return 0
+}
+
 # The command text names every path it reaches only when it is written out; see the spec's Known gap.
 scan_bash() {
   local cmd="$1" b p lvl
@@ -127,14 +178,7 @@ scan_bash() {
     names_protected "$cmd" && deny "Bash names a protected path: $broken"
     return 0
   fi
-  # Only path forms count: the record script under lib/ is the sanctioned writer, and a bare "helm"
-  # is often another tool.
-  local h
-  h="$(printf '%s' "$cmd" | sed -E 's#lib/helm/##g')"
-  if printf '%s' "$h" | grep -Eq "(^|[^A-Za-z0-9_.-])helm/|/helm([[:space:]\"';|&)]|\$)"; then
-    [ "$row" = _none ] || deny "helm is closed to project sessions (profile \"$row\"); write through lib/helm/record.sh"
-    word_hit "$h" helm/events && writes "$h" && deny "helm: events go through lib/helm/record.sh"
-  fi
+  scan_helm "$cmd"
   word_hit "$cmd" brains/access.json && writes "$cmd" && deny "brains/access.json is written only through lib/brain-access.sh"
   while IFS= read -r b; do
     [ -n "$b" ] && word_hit "$cmd" "brains/$b" || continue
