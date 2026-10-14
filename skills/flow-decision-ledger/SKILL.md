@@ -1,24 +1,12 @@
 ---
 name: flow-decision-ledger
-description: The branch's decision ledger - one file where a deliberate deviation or a post-ticket agreement is recorded as it is taken, and which every review reads instead of being told by hand. Use when a decision goes against a repo convention or past the ticket ("we point at the live corpus on purpose", "the owner agreed X after the ticket was written"), and BEFORE dispatching flow-code-review or flow-confidence-check so their sub-agents get the declarations instead of rediscovering them.
+description: The branch's decision ledger - one file where a deliberate deviation or a post-ticket agreement is recorded as it is taken, and which every review reads instead of being told by hand. Use when a decision goes against a repo convention or past the ticket ("we point at live data on purpose", "the owner agreed X after the ticket was written"), and BEFORE dispatching flow-code-review or flow-confidence-check so their sub-agents get the declarations instead of rediscovering them.
 user-invocable: true
 ---
 
 # flow-decision-ledger
 
-## Step −1 — Resolve the project profile (before anything else)
-
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
-
-Read the profile it names. Every project-specific fact this skill needs — tracker and project key, main branch,
-branch convention, worktree procedure, ledger path, merge authority, environments, test commands,
-gates — comes from there and from nowhere else.
-
-**No profile resolves → stop and say so.** Do not fall back to the project you saw last. Applying
-one project's merge rule or test command to another is the failure this whole mechanism exists to
-prevent.
+**Step −1 — resolve the profile.** Follow `skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
 
 One file per branch, appended as decisions are taken, read by every review that follows:
 
@@ -41,34 +29,17 @@ Field 2 is the routing field, and it is the only thing a reader has to parse:
 | `both` | both | both |
 
 ```
-- 2026-07-28 · standards · the corpus test imports the live validation set instead of a frozen `__fixtures__` copy — catching a corpus retune that breaks setup is the point of the test · self
-- 2026-07-28 · spec · phantom clips count as true_reps 0 — the tuning/validation boundary needs a zero, not a gap · agreed with the ticket owner, planning round
+- 2026-07-28 · standards · the integration test reads the live reference data instead of a frozen fixture copy — catching a change that breaks setup is the point of the test · self
+- 2026-07-28 · spec · an empty batch counts as 0 processed items — the report needs a zero, not a gap · agreed with the ticket owner, planning round
 ```
 
 ## A line that makes a checkable claim is checked before it is written
 
-Twice now a ledger line has asserted something nobody ran, and both times a later stage caught it:
-a line citing `git diff <sha> HEAD` as empty when it was only empty under a path restriction
-(ABC-217), and a line claiming "**each** creation case now asserts exit 0 plus a
-worktree at the expected sha" when one case did not (ABC-219 — found independently by
-two agents of the same review).
+A line containing a command, a count or a quantifier ("every", "all", "each", "never", "no longer") is run before it is written, and the line carries the number you got. The wording that survives is narrower and duller than the first draft: "the diff against `<sha>` is empty" is wrong when it is only empty under a path restriction, and "each case asserts X" is wrong when one case does not.
 
-So: **if the line contains a command, a count, or a quantifier — "every", "all", "each", "never",
-"no longer" — run the check before you write it, and write the number you got.** The wording that
-survives this is narrower and duller than the wording you first reach for, which is the point.
+A cause is not a fact just because the state change is. Timeline, exit codes and greps establish state; attribution needs an audit trail. A line that explains **why** something happened is split: the verified state change in the indicative, the cause marked as a hypothesis with the evidence that would settle it. "Ruled out X and Y, cause unknown" beats a plausible culprit.
 
-**A cause is not a fact just because the state change is.** A third time, the line survived every
-count and still overstated: it recorded that PR #75's draft flag was flipped "most likely by a
-parallel session under the same account", on evidence — the GitHub timeline plus a grep for
-`gh pr ready` — that established *the flip*, not *who did it*. Timeline, exit codes and greps establish state; attribution needs an audit trail. So when
-a line explains **why** something happened, split it: the verified state change in the indicative,
-the cause marked as a hypothesis with the evidence that would settle it. "Ruled out X and Y, cause
-unknown" is a stronger ledger line than a plausible culprit, because the next reader treats a
-ledger line as settled and stops looking.
-
-A declaration is read as *settled* by every stage that follows: the reviews grade it instead of
-rediscovering it, which is the whole value, and which is exactly why an unverified one is worse than
-no declaration at all. The next reader trusts it and stops looking.
+Every stage that follows reads a declaration as settled and stops looking, so an unverified line is worse than none.
 
 ## Append as the decision is taken
 
