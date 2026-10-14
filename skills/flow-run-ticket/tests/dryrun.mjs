@@ -104,6 +104,7 @@ const canned = (script, argv, ctx) => {
       // An honest worktree holds the head it is asked about; mutants override this explicitly.
       return { status: 'ok', headSha: expect || ctx.head, clean: true, dirty: [], expect, matchesExpect: expect === null ? null : true, descendsFromBase: true }
     }
+    case 'scan-diff.mjs': return { status: 'ok', base: opt('--base'), head: opt('--head'), changedFiles: 1, total: 0, audit: null, findings: [] }
     case 'pr-open.mjs': return { status: 'ok', prUrl: 'https://forge.test/pr/7', number: 7, draft: true }
     case 'pr-ready.mjs': return { status: 'ok' }
     case 'wait-ci.mjs': return { status: 'ok', sha: opt('--sha'), state: 'green', checks: [{ name: 'test', conclusion: 'success' }] }
