@@ -124,8 +124,11 @@ settings; a profile's skills and agents are still linked by `install.sh --profil
 | Native settings | `settings.json` | `settings.json` (JSON with comments) |
 
 Copilot hooks use PascalCase event names so the payload matches the Claude format that
-`private-access.sh` already reads. That compatibility is verified by a test before the adapter
-ships; if it fails, the adapter translates the payload.
+`private-access.sh` already reads; the payload is passed through untranslated. The decision is not
+compatible: Claude reads it from `hookSpecificOutput.permissionDecision`, Copilot from a top-level
+`permissionDecision` and `permissionDecisionReason`. The Copilot hook entry therefore runs
+`private-access.sh` behind `lib/hooks/copilot-pretooluse.sh`, which lifts the decision to the top
+level and exits non-zero (Copilot: deny) when the hook crashes or prints invalid JSON.
 
 `files` writes skills to a directory the user names and the instructions block to a file the user
 names; it integrates nothing else.
