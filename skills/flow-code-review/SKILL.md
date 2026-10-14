@@ -6,19 +6,7 @@ user-invocable: true
 
 # flow-code-review
 
-## Step −1 — Resolve the project profile (before anything else)
-
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
-
-Read the profile it names. Every project-specific fact this skill needs — tracker and project key, main branch,
-branch convention, worktree procedure, ledger path, merge authority, environments, test commands,
-gates — comes from there and from nowhere else.
-
-**No profile resolves → stop and say so.** Do not fall back to the project you saw last. Applying
-one project's merge rule or test command to another is the failure this whole mechanism exists to
-prevent.
+**Step −1 — resolve the profile.** Follow `skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
 
 Two axes, deliberately kept apart:
 
@@ -32,7 +20,7 @@ Its natural moment is **before the commit**, in the session that wrote the code.
 ## Step 0 — Locate and pin what you are reviewing
 
 1. **Find the subject.** A workspace can hold several repos, and the user may name a branch rather than a repo. A teammate's branch may exist only on the remote: `git fetch origin`, then either check it out or review `origin/<branch>` in place.
-2. **Pin the fixed point once** — whatever the user named, else the merge base with **the profile's main branch for this repo** (`origin/main` only if that is what the profile says): `git merge-base origin/<main> HEAD`. Resolve it (`git rev-parse`) and record the SHA. Every sub-agent must see the identical range.
+2. **Pin the fixed point once** — whatever the user named, else the merge base with the base branch. **The profile (`## repos`) is the source of truth for the base branch** — not `origin/HEAD`, not a guess: `git merge-base origin/<main> HEAD`. Resolve it (`git rev-parse`) and record the SHA. Every sub-agent must see the identical range.
 3. **Branch on state, then pin the diff command.** This is where a review of uncommitted work silently reviews nothing:
 
    | State | Diff command | Why |
@@ -68,11 +56,11 @@ Nothing found → say so and ask. Only the user may declare that there is no spe
 
 - **Repo sources**: `CLAUDE.md`/`AGENTS.md` and what they link, `CONTRIBUTING.md`, `CODING_STANDARDS.md`, testing conventions, ADRs, the domain glossary, and any accumulated review-learnings file.
 - **The smell baseline** in `references/smell-baseline.md`, pasted into the brief in full — the sub-agent has no other access to it. It also carries the two rules that bind it: a documented repo standard always wins, and every baseline smell is a labelled judgement call.
-- **Pre-declare every deliberate deviation — to BOTH axes.** List each choice made on purpose against a convention, with its one-line reason: a test importing the live corpus instead of a frozen fixture, a checked-in multi-MB fixture, an existing `data-testid` idiom, a temporary tarball dependency. Undeclared, an agent spends its strongest finding rediscovering a decision you already made. Declared, it grades the decision — which is far more useful ("intent honoured but fragile: stable path, version-revert trap").
+- **Pre-declare every deliberate deviation — to BOTH axes.** List each choice made on purpose against a convention, with its one-line reason: a test importing live data instead of a frozen fixture, a checked-in multi-MB fixture, an existing `data-testid` idiom, a temporary tarball dependency. Undeclared, an agent spends its strongest finding rediscovering a decision you already made. Declared, it grades the decision — which is far more useful ("intent honoured but fragile: stable path, version-revert trap").
 
-  When an agent flags a deliberate choice anyway, the resolution is usually to **document the decision where the code lives** (a header comment saying why the test points at the live corpus), not to comply.
+  When an agent flags a deliberate choice anyway, the resolution is usually to **document the decision where the code lives** (a header comment saying why the test points at live data), not to comply.
 - **Pre-existing debt.** A smell the diff *extends* rather than introduces is labelled **"pre-existing — amplified by this change"** and routed to a separate tech-debt task. It is not billed to this change, and the fix is not quietly pulled into a focused diff.
-- **Grade the prose the diff ships, as strictly as the code.** A plan, an ADR, a ground-truth label or a decision line inside the diff is a reviewable artifact, and on ABC-213 it was where **most** of the external reviewer's findings landed (7 of 14 comments from the profile's review-bot gate on PR #75, none of them raised by three agent review rounds): plan steps still describing the pre-re-land `client/` paths, a status table claiming staging verification that had never run, a step count that no longer matched the steps, an ADR consequence stated for all channel types when only body-frame ones were affected, and a corpus label saying "shipped" about a branch-only measurement. Three cheap questions per doc in the diff: does every path, count and status line still hold **after** whatever moved this branch (re-land, rebase, scope cut)? Is any verification marked done that nobody ran? Does the diff's own ADR/plan contradict the diff's code — and is the ADR named by full filename, per the repo convention? Docs are also where an author's optimism concentrates, which is exactly why an axis that only reads code misses it.
+- **Grade the prose the diff ships, as strictly as the code.** A plan, an ADR, a label or a decision line inside the diff is a reviewable artifact, and it is where an external reviewer's findings tend to land when agent rounds read only code: plan steps describing paths that moved, a status table claiming a verification that never ran, a step count that no longer matches the steps, an ADR consequence stated more broadly than the code, a label saying "shipped" about a branch-only measurement. Three cheap questions per doc in the diff: does every path, count and status line still hold **after** whatever moved this branch (re-land, rebase, scope cut)? Is any verification marked done that nobody ran? Does the diff's own ADR/plan contradict the diff's code — and is the ADR named by full filename, per the repo convention? Docs are also where an author's optimism concentrates, which is exactly why an axis that only reads code misses it.
 
 ## Step 4 — Dispatch the axes in parallel
 
@@ -86,7 +74,7 @@ One message, one `Agent` call per axis, `general-purpose` sub-agents. The briefs
 
 Present `## Standards`, `## Spec`, and `## Works` (when it ran) as separate sections, each report verbatim or lightly cleaned. **Do not merge, dedupe across axes, or rerank** — the separation is the mechanism. Per axis: the finding count and the worst finding *within that axis*. No single winner across axes.
 
-**Every finding opens with its location** — `path/to/file.ts:123`, or `:120-134` for a block, or several locations when the symptom recurs; a finding with no single site lists every site of the symptom rather than none. Two reasons, and the second is the expensive one: a reader cannot rule on a finding they have to go hunting for, and whoever fixes it — often a fresh agent that never saw this review's exploration — otherwise re-derives the whole change from zero. Measured on one unattended run: the fix pass cost 8.6 M context tokens against the implementation pass's 11.0 M, almost all of it rediscovery.
+**Every finding opens with its location** — `path/to/file.ts:123`, or `:120-134` for a block, or several locations when the symptom recurs; a finding with no single site lists every site of the symptom rather than none. Two reasons, and the second is the expensive one: a reader cannot rule on a finding they have to go hunting for, and whoever fixes it — often a fresh agent that never saw this review's exploration — otherwise re-derives the whole change from zero. Without locations the fix pass costs nearly as much context as the implementation pass, almost all of it rediscovery.
 
 Then add what only you can add, having read both reports:
 
