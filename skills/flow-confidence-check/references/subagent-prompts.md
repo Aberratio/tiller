@@ -23,7 +23,7 @@ If a would-be finding matches a learning, do NOT report it - count it in `suppre
 
 Read the diff yourself: git diff {MERGE_BASE_SHA}..HEAD -- <paths>
 Read surrounding code, call sites, and shared helpers when needed to judge root cause.
-Do NOT run tests or linters - execution is deferred to CI.
+Do NOT run tests or linters - the main thread collects execution evidence for the head SHA itself.
 Do a full pass before returning; do not stop after the first finding.
 Only report things that genuinely matter. No styling/formatting/lint issues. No generic advice.
 Anchor every finding to file + one-indexed line in the changed code when possible.
@@ -56,8 +56,8 @@ Task: apply the rubric per AC (fills `ac_coverage`), and audit tests in the diff
 Severity mapping: an acceptance criterion with no test = `blocker`; new logic or a mutating/side-effecting path with no test = `high`; present-but-thin coverage = `medium`.
 
 ### security
-Extra context: this checklist (concepts apply in any stack; map to the repo's idioms).
-Task: diff-focused security pass; grep for the patterns where useful.
+Extra context: this checklist (concepts apply in any stack; map to the repo's idioms), and the findings `lib/security/scan-diff.mjs` already reported for this diff as `{SCAN_FINDINGS}` (may be empty).
+Task: diff-focused security pass; grep for the patterns where useful. Do not re-report a scan finding; spend the pass on what a pattern scan cannot see (authorization logic, data flow into logs, scoping).
 - Authorization on new or changed endpoints (policy checks, tenant/ownership scoping, IDOR).
 - Mass assignment / unvalidated input binding.
 - Raw SQL / injection (SQL, command, template).
@@ -77,9 +77,13 @@ You cover ALL FOUR dimensions above in one pass. Work through them in order; do 
 Output contract differences from single-dimension agents:
 - "dimension": "combined"
 - Report ac_coverage for BOTH aspects: each entry carries "aspect": "implementation" (spec-alignment view) or "aspect": "tests" (test-quality view) - two entries per AC.
+- Add a "checked" array with one entry for EVERY dimension that has no finding: what you examined and that nothing was found, e.g.
+  {"dimension": "security", "checked": "authz on the 2 changed endpoints, logger calls in foo.rb, no raw SQL in the diff", "result": "nothing found"}
+  A dimension with neither a finding nor a "checked" entry is treated as not reviewed.
 ```
 
 The main thread splits `ac_coverage` by `aspect` and treats the halves exactly like the spec-alignment and test-quality outputs when building the per-AC table.
+It reads `checked` per SKILL.md Phase 3 step 5 and renders it under "Checked, nothing found" in the report.
 
 ## Output contract
 
@@ -101,9 +105,14 @@ The main thread splits `ac_coverage` by `aspect` and treats the halves exactly l
       "fix": "auto|needs-user"
     }
   ],
-  "suppressed_by_learnings": 0
+  "suppressed_by_learnings": 0,
+  "checked": [
+    {"dimension": "security", "checked": "what was examined", "result": "nothing found"}
+  ]
 }
 ```
+
+- `checked`: required from the combined agent (one entry per finding-free dimension); optional from single-dimension agents.
 
 - `ac_coverage` only from spec-alignment (implementation status) and test-quality (test status) - or from the combined agent with an `aspect` field per entry; the main thread joins both views into one table.
 - `status` is exactly `covered` | `partial` | `missing`. `out-of-reach` is not an agent-emittable status: it is assigned by the main thread only, against the O1-O3 requirements in SKILL.md Phase 3. An agent that emits it has its entry read as `missing`.
@@ -120,8 +129,9 @@ The main thread splits `ac_coverage` by `aspect` and treats the halves exactly l
 
 ## Verifier prompt (Phase 4)
 
-One verifier subagent per blocker/high finding, all dispatched IN ONE MESSAGE. READ-ONLY.
+One verifier subagent per blocker/high/medium finding (scan-diff findings included), all dispatched IN ONE MESSAGE. READ-ONLY.
 Used on BOTH paths (fan-out and combined-agent). Prepend the common preamble (repo root, merge base, file list, learnings).
+Dispatch on a model different from the author's when the runtime offers one (SKILL.md Phase 4).
 
 ```
 You are an adversarial verifier in a pre-PR review. An earlier reviewer reported this finding:
@@ -153,4 +163,4 @@ Finish your reply with EXACTLY ONE fenced json block:
 - The main thread applies verdicts mechanically (SKILL.md Phase 4).
 - Missing, malformed, or unparseable json: KEEP the finding (fail open) and note the verifier failure in the report.
 - Kill-summary split: justification starting with `noise` counts as `noise`, any other refutation counts as `wrong`.
-- Scope note: the noise gate only sees blocker/high findings (Phase 4 verifies nothing below that). It bites when a dimension agent over-rates a nit to high+; honestly-low nits never reach it - the PR-comment severity floor handles those instead.
+- Scope note: the noise gate only sees blocker/high/medium findings (Phase 4 verifies nothing below that). It bites when a dimension agent over-rates a nit to medium+; honestly-low nits never reach it - the low budget and the PR-comment severity floor handle those instead.

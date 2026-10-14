@@ -40,7 +40,8 @@ ac: covered=1 partial=0 missing=0 out-of-reach=0
 out-of-reach: -
 spec: ABC-1234
 spec-source: jira
-execution: deferred-to-ci
+execution: ci-green
+verifier-model: model-b
 context: clean
 mode: full
 blocked-by: 1 high finding
@@ -139,5 +140,36 @@ grep -v -e '^low-budget: ' -e '^out-of-reach: ' "$GOOD" > "$OLD"
 rc=0; err="$(bash "$PC" "$OLD" 2>&1)" || rc=$?
 assert_eq "1" "$rc" "comment missing the new machine-block fields exits 1"
 assert_contains "$err" "low-budget: " "missing low-budget named"
+
+# 12. high-confidence with execution proven at the head SHA: posts
+HC_LOCAL="$TMP/hc-local.md"
+sed -e 's/^verdict: .*/verdict: high-confidence/' \
+    -e 's/^execution: .*/execution: local-verified/' "$GOOD" > "$HC_LOCAL"
+reset_log
+rc=0; bash "$PC" "$HC_LOCAL" >/dev/null 2>&1 || rc=$?
+assert_eq "0" "$rc" "high-confidence with local-verified execution posts"
+
+# 13. high-confidence with unproven execution: refused, gh not called
+HC_UNPROVEN="$TMP/hc-unproven.md"
+sed -e 's/^verdict: .*/verdict: high-confidence/' \
+    -e 's/^execution: .*/execution: unproven (check "build" pending at a1b2c3d)/' "$GOOD" > "$HC_UNPROVEN"
+reset_log
+rc=0; err="$(bash "$PC" "$HC_UNPROVEN" 2>&1)" || rc=$?
+assert_eq "1" "$rc" "high-confidence with unproven execution exits 1"
+assert_contains "$err" "needs execution ci-green or local-verified" "refusal names the missing proof"
+assert_eq "" "$(log)" "gh must not be called for unproven high-confidence"
+
+# 14. needs-review with unproven execution: posts
+NR_UNPROVEN="$TMP/nr-unproven.md"
+sed -e 's/^execution: .*/execution: unproven (uncommitted fixes)/' "$GOOD" > "$NR_UNPROVEN"
+rc=0; bash "$PC" "$NR_UNPROVEN" >/dev/null 2>&1 || rc=$?
+assert_eq "0" "$rc" "needs-review with unproven execution posts"
+
+# 15. legacy deferred-to-ci value: refused
+LEGACY="$TMP/legacy-exec.md"
+sed -e 's/^execution: .*/execution: deferred-to-ci/' "$GOOD" > "$LEGACY"
+rc=0; err="$(bash "$PC" "$LEGACY" 2>&1)" || rc=$?
+assert_eq "1" "$rc" "unknown execution value exits 1"
+assert_contains "$err" "is not ci-green, local-verified or unproven" "refusal names the allowed values"
 
 report

@@ -33,6 +33,8 @@ Two values, computed mechanically from counts. No arithmetic, no weights, no jud
 | V6 | Zero unresolved `fix: needs-user` findings |
 | V7 | `spec-source` != `none` |
 | V8 | `context: clean` (pollution guard not overridden) |
+| V9 | No `unreviewed` dimension - every dimension returned a finding or a `checked` entry (SKILL.md Phase 3) |
+| V10 | `execution: ci-green` or `execution: local-verified` at the head SHA, with the evidence pasted (SKILL.md Phase 4b) |
 
 Any condition failed → `needs-review`.
 The `blocked-by` line lists EVERY failed condition in human terms, e.g.:
@@ -53,7 +55,7 @@ Ticket id/link and the save directory come from discovery (`references/project-d
 Findings: 0 blocker / 1 high / 2 medium / 1 low · Low budget: 4 (1420 reviewable lines)
 Diff: 14 files, +612/-88 (3 generated + 1 bloat CSV excluded) · Spec: ABC-1234 (jira) · Context: clean · SHA: a1b2c3d
 Out of reach: AC4 -> ABC-227 (omit this line when no AC is out-of-reach)
-Execution: deferred-to-ci · Mode: full
+Execution: ci-green at a1b2c3d · Verifier model: model-b · Mode: full
 Fix loop: round 2 of max 3 · scope: high+ · fixed: F2, F3 · fix verification: green (3 files) · unresolved: none
 Verifier killed: 2 wrong, 1 noise · kept on verifier failure: none
 Suppressed by learnings: 1
@@ -74,6 +76,12 @@ An `out-of-reach` row carries its owning ticket in both cells and one line under
   <one-sentence summary>
   -> <suggested action>
 ### High ... / Medium ... / Low ...
+
+## Execution evidence (a1b2c3d)
+<pasted verbatim: one `name  completed  conclusion` line per required check run, or the verify-claim JSON line, or the one-line reason for `unproven`>
+
+## Checked, nothing found
+<combined path only: one line per dimension the agent reported as a `checked` entry - what it examined>
 
 ## Fix-loop history
 - Round 1: 5 findings -> fixed F2 (high), F3 (high) · fix tests green
@@ -109,7 +117,8 @@ ac: covered=3 partial=0 missing=1 out-of-reach=0
 out-of-reach: -
 spec: ABC-1234
 spec-source: jira
-execution: deferred-to-ci
+execution: ci-green
+verifier-model: model-b
 context: clean
 mode: full
 blocked-by: AC2 test coverage missing, 1 high finding, 2 medium findings
@@ -139,7 +148,7 @@ The `🎫` line is never collapsed into the `<details>` block and never dropped:
 
 </details>
 
-**Execution**: deferred to CI (this check runs no tests; gate on CI green)
+**Execution**: ci-green at a1b2c3d - build success, test success, lint success
 **Auto-fixed this run**: F2, F3 (high) - fix tests green
 **Left for human review**: F4 (medium) - <summary>
 
@@ -169,7 +178,8 @@ ac: covered=3 partial=0 missing=0 out-of-reach=1
 out-of-reach: AC4=ABC-227
 spec: ABC-1234
 spec-source: jira
-execution: deferred-to-ci
+execution: local-verified
+verifier-model: model-b
 context: clean
 mode: full
 blocked-by: -
@@ -184,6 +194,8 @@ Rules for the machine block:
 - `sha`: full SHA of the branch head the verdict was computed against. Any later commit voids the verdict.
 - `spec-source`: `jira` | `file` | `author` | `conversation` | `none`.
 - `context`: `clean` | `polluted (user-override)`.
+- `execution`: `ci-green` | `local-verified` | `unproven (<reason>)`, measured at `sha` (SKILL.md Phase 4b). `verdict: high-confidence` with any other value is invalid output; `scripts/post-pr-comment.sh` refuses it.
+- `verifier-model`: the model the Phase 4 verifiers ran on, with ` (same-as-author)` appended when the runtime offered no different one; `-` when nothing reached the verifier.
 - `mode`: `full` | `no-op`. `no-op` means Phase 1b proved nothing changed since the previous run and re-stamped that run's verdict against the current SHA - no agent was dispatched. A gate that wants a freshly computed verdict can require `mode: full`; a gate that trusts the Phase 1b equality checks can accept either.
 - `low-budget`: the V5 allowance computed for this run (`2 x ceil(reviewable_lines / 500)`, min 2). A gate reading `low=N` needs the budget to know whether N passed.
 - `out-of-reach`: `-` when none; otherwise a comma-separated `AC<n>=<TICKET>` list, one entry per `out-of-reach` AC, and the count in the `ac:` line must match it. An entry without a ticket id is invalid output - the AC was not eligible for the status (Phase 3, O1) and must have been left `partial`/`missing`.

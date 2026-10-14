@@ -5,8 +5,8 @@ Answers one question: can this PR carry a high-confidence verdict - does it solv
 
 Runs a multi-dimension review (spec alignment, test quality, security, plus a shallow defect sanity check), verifies every serious finding with an adversarial second pass to kill false positives, auto-fixes what is safe to fix (validating its own fixes with scoped tests + lint), and outputs a two-value verdict - `high-confidence` or `needs-review` - plus a paste-ready PR comment with a machine-readable block for automation.
 
-It runs NO tests and NO lint on the review path - execution belongs to CI.
-The only execution is fix verification: when it changes code itself, it proves the fix green before reporting.
+Green is measured, never assumed: `high-confidence` needs CI check runs read from the forge for the exact head SHA, or a local `verify-claim` re-run at that SHA when CI does not prove it.
+The only other execution is fix verification: when it changes code itself, it proves the fix green before reporting.
 
 ## Install
 
@@ -72,12 +72,12 @@ You can answer "no spec" and it reviews without the spec-alignment dimension, bu
 
 ## The verdict
 
-`high-confidence` means ALL of: every acceptance criterion implemented AND covered by the required test type (or explicitly `out-of-reach` - not deliverable from this repo and handed to a named owning ticket), zero blocker/high/medium findings, low findings within the size-scaled low budget (`2 x ceil(reviewable_lines / 500)`, min 2), no unresolved needs-user questions, a real spec source, and a clean (unpolluted) session.
+`high-confidence` means ALL of: every acceptance criterion implemented AND covered by the required test type (or explicitly `out-of-reach` - not deliverable from this repo and handed to a named owning ticket), zero blocker/high/medium findings, low findings within the size-scaled low budget (`2 x ceil(reviewable_lines / 500)`, min 2), no unresolved needs-user questions, a real spec source, a clean (unpolluted) session, every review dimension accounted for (a finding or a stated "checked, nothing found"), and execution proven green at the head SHA (`ci-green` or `local-verified`).
 Anything less is `needs-review`, with an explicit `blocked-by` list naming every failed condition.
 
 There is no numeric score - the verdict conditions are the whole mechanism, so the report can never say "94/100" while an acceptance criterion sits untested.
 
-The PR comment embeds a machine-readable block (verdict, reviewed SHA, finding counts, AC counts, spec source, run mode).
+The PR comment embeds a machine-readable block (verdict, reviewed SHA, finding counts, AC counts, spec source, execution evidence, verifier model, run mode).
 A future GitHub Action can parse it to label high-confidence PRs - the verdict is only valid for the exact commit SHA it was computed against.
 Because re-runs edit that one comment, such an Action never has to pick between competing verdict blocks on the same PR.
 
@@ -114,8 +114,17 @@ If it flags something your team does on purpose, tell it "we do X on purpose" - 
 ## Design history
 
 `docs/` holds the design specs behind the skill - the v2 design (architecture, rubric, locked decisions) and the MVP-improvements round (verify pass, severity floor, learnings, delta runs) with its verification results.
-A later revision replaced the 0-100 score with the count-based verdict, deferred test/lint execution to CI (fix verification excepted), narrowed code review to a defect sanity check, added the context-pollution guard, and added the machine-readable PR-comment block.
+A later revision replaced the 0-100 score with the count-based verdict, narrowed code review to a defect sanity check, added the context-pollution guard, and added the machine-readable PR-comment block.
+Execution was first deferred to CI wholesale; that let a verdict ride on an assumed green, so `high-confidence` now requires green measured at the head SHA (CI check runs, else a local `verify-claim` re-run).
 Read the docs before proposing changes; they record what was already decided and why.
+
+Decisions recorded here so the skill text can stay rules-only:
+
+- **No partial carry-forward on re-runs.** Phase 1b either re-stamps an unchanged run or reviews everything. Re-reviewing only changed files and inheriting findings for the rest was rejected: Phase 6 already re-reviews its own fixes in-run, AC coverage is holistic and cannot be scoped per file, and findings are stochastic samples, so a full re-run can only add findings while a partial one freezes one sample. The fix loop is the measured exception: Phase 6 re-dispatches only the dimensions a fix touched, plus spec-alignment. Reintroducing carry-forward for fresh invocations needs measured evidence that full runs are too expensive.
+- **Medium findings are verified.** The verdict requires zero medium, so medium is the severity that most often decides it, and a severity a verdict rests on has to survive being attacked. Relaxing the rubric so medium no longer blocks was rejected: it loosens the gate because the gate is inconvenient, not because it is wrong. Verifying medium widens Phase 4 only; it does not widen the Phase 6 fix scope.
+- **The verifier runs on a different model when one is offered.** A model refuting its own reasoning shares its blind spots; a smaller model is never used, because a wrong refutation silently kills a real finding.
+- **The low budget scales with reviewed lines.** The old flat "at most 2" was a density written for a ~400-500 line diff; the rule keeps that density, because the finding count scales with the surface reviewed and a threshold a large diff cannot pass by construction says nothing about quality. The number of review agents is not a multiplier: the dispatch shape is a choice, and multiplying by agents would let a run buy headroom by fanning out wider. Counting only defect-category lows was rejected: the agent that writes a finding also assigns its category, so the verdict would rest on a self-assigned classification and gain a second reclassification escape hatch beside `out-of-reach`.
+- **A combined agent must say what it checked.** On the small-diff path one agent covers all four dimensions; an empty findings list cannot tell "reviewed, clean" from "skipped", so each finding-free dimension needs a `checked` entry.
 
 ## Requirements
 

@@ -38,6 +38,7 @@ MARKERS=(
   "sha: "
   "low-budget: "
   "out-of-reach: "
+  "execution: "
   "## 🔎 flow-confidence-check - Verdict:"
   "**Summary for reviewers**"
   "**Criteria coverage**"
@@ -80,6 +81,21 @@ if [[ "$OOR_LINE" != "-" ]]; then
 fi
 if [[ "$OOR_COUNT" -ne "$OOR_ENTRIES" ]]; then
   echo "refusing to post: ac: out-of-reach=$OOR_COUNT but the out-of-reach line lists $OOR_ENTRIES ticket(s)" >&2
+  exit 1
+fi
+
+# Execution evidence. high-confidence is only legal when green was measured at the
+# head SHA (SKILL.md Phase 4b); anything else must not reach a merge gate.
+VERDICT="$(sed -n 's/^verdict: //p' "$FILE" | head -1)"
+EXECUTION="$(sed -n 's/^execution: //p' "$FILE" | head -1)"
+case "$EXECUTION" in
+  ci-green|local-verified|unproven|"unproven ("*")") ;;
+  *)
+    echo "refusing to post: execution '$EXECUTION' is not ci-green, local-verified or unproven (<reason>)" >&2
+    exit 1 ;;
+esac
+if [[ "$VERDICT" == "high-confidence" && "$EXECUTION" != "ci-green" && "$EXECUTION" != "local-verified" ]]; then
+  echo "refusing to post: verdict high-confidence needs execution ci-green or local-verified, got '$EXECUTION'" >&2
   exit 1
 fi
 

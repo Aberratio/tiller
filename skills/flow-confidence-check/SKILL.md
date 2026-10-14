@@ -6,19 +6,7 @@ user-invocable: true
 
 # flow-confidence-check
 
-## Step −1 — Resolve the project profile (before anything else)
-
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
-
-Read the profile it names. Every project-specific fact this skill needs — tracker and project key, main branch,
-branch convention, worktree procedure, ledger path, merge authority, environments, test commands,
-gates — comes from there and from nowhere else.
-
-**No profile resolves → stop and say so.** Do not fall back to the project you saw last. Applying
-one project's merge rule or test command to another is the failure this whole mechanism exists to
-prevent.
+**Step −1 — resolve the profile.** Follow `skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
 
 Pre-merge confidence verdict.
 Answers: does this change solve the stated problem, carry the required tests, and is it safe - without the reviewer reading thousands of lines cold.
@@ -79,7 +67,7 @@ Read `<repo>/tmp/flow-confidence-check/<branch-slug>.json` and take the no-op pa
 
 Any mismatch, an unparseable or schema-mismatched state file, or a prior run recorded as degraded (`context: polluted`, `>1500 lines` fan-out, fix verification NOT RUN) → **full run**. Every check fails toward more work.
 
-All four hold → dispatch NOTHING. Re-emit the stored verdict, findings, and AC table verbatim, re-stamped with the current head SHA, and jump straight to Final output (which rewrites the report file, updates the PR comment, and rewrites the state file with the new SHA). Stamp `mode: no-op`.
+All four hold → dispatch NOTHING. Re-emit the stored verdict, findings, and AC table verbatim, re-stamped with the current head SHA. Run Phase 4b for that SHA - a new SHA is a new measurement - and cap a stored `high-confidence` at `needs-review` if it comes back `unproven`. Then jump straight to Final output (which rewrites the report file, updates the PR comment, and rewrites the state file with the new SHA). Stamp `mode: no-op`.
 
 Announce the decision before acting - never ask. The user interrupts if it is wrong:
 
@@ -92,19 +80,20 @@ Re-stamped for commit a1b2c3d. Say "full run" to re-review from scratch.
 Baseline discarded: spec changed since last run (AC hash differs). Full run.
 ```
 
-This is the whole of the incremental design on purpose. Partial carry-forward - re-reviewing only changed files and inheriting findings for the rest - was considered and rejected: Phase 6 already re-reviews its own auto-fixes in-run, AC coverage is holistic and cannot be scoped per-file, and findings are stochastic samples rather than ground truth, so a full re-run can only ADD findings while a partial one freezes one sample. Do not reintroduce it without measured evidence that full runs are too expensive. (Such evidence exists for the *fix loop* and Phase 6 was narrowed accordingly - it re-dispatches only the dimensions a fix touched, plus spec-alignment. That does not extend to Phase 1b: a fresh invocation still reviews everything, because there the carry-forward would freeze one stochastic sample instead of re-sampling.)
+Partial carry-forward (re-reviewing only changed files and inheriting findings for the rest) is not part of this phase; README.md "Design history" records why.
 
 ## Phase 2 - Review (adaptive by reviewable line count)
 
-- **< 300 lines**: dispatch ONE combined-dimensions subagent (prompt + contract in `references/subagent-prompts.md`). Never review inline in the main thread - its session context biases it toward its own work.
+Before dispatching any review agent, run the deterministic security scan: `node "$TILLER_HOME/lib/security/scan-diff.mjs"` (see `references/security-scan.md`); its findings join the list in Phase 3, go through Phase 4 like any other, and are passed to the security dimension as `{SCAN_FINDINGS}` so it does not re-report them.
+
+- **< 300 lines**: dispatch ONE combined-dimensions subagent (prompt + contract in `references/subagent-prompts.md`). Never review inline in the main thread - its session context biases it toward its own work. Its reply carries one `checked` entry per dimension naming what it examined; a dimension with no findings and no `checked` entry was not reviewed (Phase 3).
 - **300-1500 lines**: read `references/subagent-prompts.md`; dispatch the four dimension agents (spec-alignment, defect-sanity, test-quality, security) in ONE message. Test-quality applies `references/test-quality-rubric.md` strictly.
 - **> 1500 lines**: recommend splitting the PR first - that size is already a review smell. If the user proceeds anyway: restrict to source dirs or fan out per top-level directory (cap ~6 agents, all four dimensions folded into each prompt). Record the degradation in the report. Never silently sample.
 
 The defect-sanity dimension is a shallow sanity check only (obvious defects: broken logic, data loss, N+1 on hot paths, dead code from this change).
 Full code review is owned by the team's dedicated review tooling and by CI - this skill does not audit style, architecture, naming, or repo standards docs.
 
-No tests or lint run in this phase or anywhere on the report path - execution is CI's job.
-The report and machine block always stamp `execution: deferred-to-ci`.
+No tests or lint run in this phase. Whether the head SHA is green is established once, in Phase 4b.
 
 ## Phase 3 - Merge findings
 
@@ -112,6 +101,7 @@ The report and machine block always stamp `execution: deferred-to-ci`.
 2. Dedup and cap per the merge rules; assign `F1..Fn`.
 3. Join `ac_coverage` from spec-alignment (implementation) and test-quality (tests) - or split the combined agent's entries by their `aspect` field - into one per-AC table.
 4. Apply the `out-of-reach` reclassification below to any AC the table shows as `partial` or `missing`.
+5. Combined-agent path: for each of the four dimensions, the reply has at least one finding or a `checked` entry naming what was examined and that nothing was found. A dimension with neither is `unreviewed`: re-dispatch the combined agent once; still missing → the dimension stays `unreviewed` and Phase 5 names it in `blocked-by`. An empty findings list is not a pass on its own.
 
 ### AC status `out-of-reach` (main thread only)
 
@@ -137,14 +127,37 @@ Every `out-of-reach` AC is visible in three places, always, never collapsed or o
 
 Runs on BOTH paths (fan-out and combined-agent).
 
-1. For each **blocker, high and medium** finding: dispatch one verifier subagent, all in ONE message (parallel). Low skips verification. Prompt + verdict contract in `references/subagent-prompts.md`. Verifier model: the session model, no tiering - a wrong refutation silently kills a real finding and nothing downstream catches it.
-   - **Why medium is in scope**: the Phase 5 rubric requires *zero* medium for `high-confidence`, so medium is the severity that most often decides the verdict - and it was the only class carrying that weight without a single round of counter-argument. On `857af7d` four unverified mediums carried a `needs-review`. A severity a verdict rests on has to survive being attacked. The alternative - relaxing the rubric so medium no longer blocks - was rejected: it loosens the gate because the gate is inconvenient, not because it is wrong.
-   - This widens Phase 4 only. The auto-fix loop in Phase 6 keeps its own severity scope; a confirmed medium does not become fixable by having been verified.
+1. For each **blocker, high and medium** finding: dispatch one verifier subagent, all in ONE message (parallel). Low skips verification. Prompt + verdict contract in `references/subagent-prompts.md`. Medium is in scope because V4 blocks on it; the auto-fix loop in Phase 6 keeps its own severity scope.
+   - **Verifier model: a different model from the author's, whenever the runtime offers a model choice** (e.g. a `model` parameter on the dispatch tool), of the same or a higher tier - never a smaller one, because a wrong refutation silently kills a real finding. The author's model is the one the run state names for the implement lane, else the profile's `## model routing` implement tier, else the session model. No different model of that tier on offer → the session model, recorded as `same-as-author`.
+   - The report and the machine block record which model verified: `verifier-model: <model>` (or `<model> (same-as-author)`).
 2. Apply verdicts mechanically:
    - `confirmed`: keep.
    - `refuted`: drop from findings; count into the report's kill summary line, split `wrong` vs `noise` by the verdict justification.
    - `downgraded`: apply the new severity, re-sort, note it on the finding.
    - Crash or no parseable verdict: KEEP the finding (fail open) and note it in the report - a broken verifier must not silently pass code.
+
+## Phase 4b - Execution evidence for the head SHA
+
+The verdict is about the head SHA pinned in Phase 0, so green must be measured at that SHA, never assumed. Take the first source that answers, and paste its evidence into the report verbatim:
+
+1. **CI on the forge.** Read the check runs for the exact head SHA, not for the PR:
+
+   ```bash
+   gh api "repos/{owner}/{repo}/commits/<head-sha>/check-runs" --paginate \
+     --jq '.check_runs[] | [.name, .status, .conclusion] | @tsv'
+   ```
+
+   Required checks are the profile's `## gates` rows with a `check:` source (`check: *` = every check run listed). CI is green when every required check is listed, `completed`, and concluded `success`, `neutral` or `skipped`. Paste the name and conclusion of each → `execution: ci-green`. Any required check missing, pending or failed → not green; go to source 2.
+2. **Local re-run.** Only when the worktree is clean at the head SHA:
+
+   ```bash
+   node "$TILLER_HOME/lib/resilience/verify-claim.mjs" <profile.md> <repo> pass --cwd <repo-root> --expect-sha <head-sha>
+   ```
+
+   `"status":"ok"` with `"actual":"pass"` → paste the JSON line → `execution: local-verified`.
+3. **Neither** (CI red or pending, verify-claim `blocked` or `fail`, or the tree is dirty) → `execution: unproven`, with the reason in one line (`check "build" failure at a1b2c3d`, `verify-claim blocked: worktree has uncommitted changes`).
+
+Phase 6 fixes leave the tree dirty, so a run that applied any fix ends `execution: unproven (uncommitted fixes)`; the re-run after the engineer commits is the one that can prove green.
 
 ## Phase 5 - Verdict
 
@@ -155,13 +168,13 @@ Computed mechanically from counts per `references/report-template.md` - no judgm
 - Every AC `covered` or `out-of-reach` (any `partial` or `missing` fails; the blocked-by line cites the AC and the violated rubric checklist items). An `out-of-reach` AC never blocks - it is a defect of the ticket, not of the branch - but it is named in the report, the machine block and the PR comment, and it is legal only under O1-O3 in Phase 3.
 - Zero blocker, zero high, zero medium findings after the verify pass.
 - Low findings at or under the **low budget**: `2 x ceil(reviewable_lines / 500)`, minimum 2, where `reviewable_lines` is the Phase 0 reviewable line count (excluded files already excluded). 400 lines -> 2 · 1500 -> 6 · 3227 -> 14.
-  The old flat "at most 2" was a density written for the ~400-500 line diff the rubric was designed on; the rule keeps that density instead of the constant, because the finding count scales with the surface reviewed while the constant does not, and a threshold that a large diff cannot pass by construction says nothing about the change's quality.
-  The number of review agents is deliberately NOT a multiplier: the reviewed surface is the variable, the dispatch shape is a choice, and multiplying by agents would let a run buy itself headroom by fanning out wider.
-  Counting only "defect-category" lows and excluding ticket-ownership findings was the alternative and is **rejected** - the same agent that writes the finding also assigns its category, so it would move the verdict from mechanical counting to a self-assigned classification, and it would create a second reclassification escape hatch beside `out-of-reach`. Do not add it on top of this rule; if it ever replaces it, this rule goes.
+  The number of review agents is never a multiplier, and every low counts whatever its category (README.md "Design history" has the reasons).
   Print the budget and the input in the report even when it passes: `Low budget: 14 (3227 reviewable lines)`.
 - Zero unresolved `fix: needs-user` findings.
 - `spec-source` is not `none`.
 - `context: clean` (Phase 0 guard not overridden).
+- No `unreviewed` dimension (Phase 3 step 5).
+- `execution: ci-green` or `execution: local-verified` at the head SHA (Phase 4b). `unproven` caps the verdict at `needs-review`, and `blocked-by` carries its reason.
 - Verdict stamped against the recorded head SHA; any commit after the run voids it.
 
 Anything else → `needs-review`, with an explicit `blocked-by` list naming every failed condition.
@@ -171,7 +184,7 @@ Persist: overwrite the state file. It is repo-local and per-branch - a worktree 
 
 ```json
 {
-  "schema": 3,
+  "schema": 4,
   "run_date": "2026-07-27",
   "branch": "ABC-1234-thing",
   "head_sha": "<full sha the verdict was computed against>",
@@ -182,6 +195,8 @@ Persist: overwrite the state file. It is repo-local and per-branch - a worktree 
   "spec_source": "jira",
   "spec_ref": "ABC-1234",
   "verdict": "needs-review",
+  "execution": "unproven (uncommitted fixes)",
+  "verifier_model": "<model> | <model> (same-as-author)",
   "degraded": false,
   "counts": { "blocker": 0, "high": 1, "medium": 2, "low": 1 },
   "low_budget": 6,
@@ -195,7 +210,7 @@ Persist: overwrite the state file. It is repo-local and per-branch - a worktree 
 }
 ```
 
-`degraded: true` whenever the run was polluted, fan-out-degraded, or left fix verification unrun - Phase 1b refuses to build on it.
+`degraded: true` whenever the run was polluted, fan-out-degraded, left fix verification unrun, or left a dimension `unreviewed` - Phase 1b refuses to build on it.
 `run_history` keeps the last 10 entries, newest first, and feeds the PR comment's run-history section.
 Prune while here: delete state files whose branch no longer exists locally (`git rev-parse --verify` fails) and any older than 30 days. Housekeeping - do not announce it.
 
@@ -205,11 +220,11 @@ Skip when scope is `none` or no in-scope findings exist.
 
 1. In-scope = findings at or above the scope's severity threshold, EXCLUDING `fix: needs-user` findings - those always escalate to the user, whatever the scope. Only verifier-confirmed findings reach this loop (refuted ones are already gone).
 2. For each in-scope finding: double-check it is legitimate (cheap second guard after Phase 4), apply the smallest root-cause fix, never revert the author's intentional code.
-3. **Fix verification** - the ONLY place this skill executes anything. Scope: exactly the files the fixes touched.
+3. **Fix verification** - scoped to exactly the files the fixes touched (the only other execution is the Phase 4b verify-claim re-run).
    - Tests: map the touched files to their test files via `scripts/changed-files.sh --mode tests` conventions (or discovery's documented test layout), run the discovered scoped test command on those files only. Failing fix-test: repair or revert the fix; never leave a red fix in the tree.
    - Lint: the discovered lint command on the touched files only.
    - Required wrapper/container not running: offer to start it; declined -> fixes stay applied but the report marks them "fix verification: NOT RUN".
-4. Re-run Phase 2 on the updated tree (same pinned merge base, diff now includes the fixes), then Phases 3-5 - but re-dispatch **only the dimensions that raised a fixed finding, plus spec-alignment**, not all four. Spec-alignment always re-runs because AC coverage is holistic and cannot be scoped per-file; that is the same reason the Phase 1b carry-forward was rejected, and it is why this narrowing stops where it does. A dimension not re-dispatched keeps its round-1 report, and the Phase 5 verdict is told, by name, which dimensions did not see the final SHA - it may not award `high-confidence` on a pre-fix report for anything a fix could have touched.
+4. Re-run Phase 2 on the updated tree (same pinned merge base, diff now includes the fixes), then Phases 3-5 - but re-dispatch **only the dimensions that raised a fixed finding, plus spec-alignment**, not all four. Spec-alignment always re-runs because AC coverage is holistic and cannot be scoped per-file. A dimension not re-dispatched keeps its round-1 report, and the Phase 5 verdict is told, by name, which dimensions did not see the final SHA - it may not award `high-confidence` on a pre-fix report for anything a fix could have touched.
 5. Repeat until no in-scope findings remain, or the hard cap of **2 rounds**.
 6. A finding that survives a fix attempt (same file + category reappears) is NOT re-fixed - report it "attempted, unresolved". Prevents oscillation.
 7. Fixes stay uncommitted in the working tree; committing is the engineer's call. The verdict is computed on the post-fix tree; once the user commits, the machine block's SHA no longer matches and the check must be re-run for the verdict to count.
@@ -243,7 +258,8 @@ question being skipped. The cascade before asking the owner is unchanged: the sk
 ## Hard rules
 
 - READ-ONLY outside Phase 6; inside Phase 6 touch only what a fix requires.
-- Never run tests or lint outside Phase 6 fix verification; never the full suite or repo-wide lint even there.
+- Never run tests or lint outside Phase 6 fix verification and the Phase 4b verify-claim re-run; never the full suite or repo-wide lint in Phase 6.
+- Never award `high-confidence` on a head SHA whose green was not measured at that SHA - CI check runs read from the forge, or a verify-claim pass, pasted into the report.
 - Never auto-fix a finding that challenges product intent or spec interpretation.
 - Never silently drop files from review - every exclusion is listed.
 - Never emit `high-confidence` when any verdict condition fails - the conditions ARE the verdict; there is no judgment call on top.
