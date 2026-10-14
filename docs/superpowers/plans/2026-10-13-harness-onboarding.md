@@ -315,12 +315,101 @@ assert the pointer and that no file changed. **This is the one intended change t
   hooks in `<dir>/hooks/tiller.json` (own file, whole-file ownership), per-hook `env`, block in
   `copilot-instructions.md`, `settings.json` parsed with comments and comments outside owned keys
   kept. Copilot facts re-verified against docs.github.com.
-- **Step 4 — `onboard --personal`, `status`, `uninstall`** plus `lib/apply/link.mjs` (POSIX symlinks)
-  and skills/agents linking per adapter; uninstall restores the backup byte for byte when the file's
-  hash still equals `writtenHash`, else removes owned items surgically.
+- **Step 4 — `onboard --personal`, `status`, `uninstall`:** detailed below.
 - **Step 5 — Windows:** junctions, agent-file copies with hashes, `bash.exe` in hook commands,
   Copilot `bash`+`powershell` keys; CI matrix macOS/Ubuntu/Windows.
 - **Step 6 — `apply --adopt <agent>`**, then moving an existing setup into a personal layer.
+
+## Step 4 — links, rendered agents, `status`, `uninstall`, `onboard`
+
+Copilot facts for this step (docs.github.com, 2026-10-14):
+custom-agents-configuration (only `description` required; `tools` as a YAML list; aliases
+`execute`/`read`/`edit`/`search`/`web`, case-insensitive, Claude names accepted; MCP tools
+`<server>/<tool>`; unknown tool names ignored; body = instructions, max 30,000 characters);
+create-custom-agents-for-cli (user agents in `~/.copilot/agents/`, id = file name without
+`.agent.md`); add-skills (personal skills in `~/.copilot/skills` or `~/.agents/skills`, `SKILL.md`
+with `name` + `description`); hooks-reference (`timeoutSec` default 30, no documented maximum,
+timeout = continue). Symlinked skill dirs or agent files: not documented.
+
+Manifest gains `links: { [dest]: { agent, kind: 'skill'|'agent', mode: 'symlink'|'rendered', source?, hash? } }`.
+Links and rendered agents follow the apply flow: shown in the diff, written on consent or `--yes`,
+nothing in `--dry-run`. A foreign path is skipped and reported, never replaced.
+
+### Task 4.1: `lib/apply/link.mjs` (POSIX)
+
+`planLink({ dest, source }, current, entry)` → `create | ok | skip-foreign | refresh` (refresh: our
+symlink pointing at a source that moved); `link(dest, source)`; `unlink(dest, source)` removes only a
+symlink whose target is still `source`. `win32` throws "step 5". Tests: create, idempotent ok, foreign
+file and foreign symlink skipped, dangling own link refreshed, unlink leaves a foreign path.
+Commit `feat(apply): link skills by symlink, never replacing a foreign path`.
+
+### Task 4.2: skills and role agents in the adapters
+
+Desired skills = every `skills/*/SKILL.md` plus every `personal/<user>/skills/*/SKILL.md` (personal
+wins on a name clash). Desired role agents = `desired.agents`. Claude: skill links in
+`<dir>/skills/<name>`; role agents rendered by `install-agents.mjs`'s `renderAgentFile` into
+`<dir>/agents/<name>.md` (mode `rendered`, hash recorded). Copilot: skill links in
+`~/.agents/skills/<name>`; role agents rendered into `<dir>/agents/<name>.agent.md` with frontmatter
+`name`, `description`, `tools` (YAML list: shell→`execute`, read→`read`, search→`search`, web→`web`,
+MCP → `<server>/<tool>` with the logical server name), `model` only when the role sets one; body as
+for Claude; render refuses a body over 30,000 characters. **Decision 6 folded here:** the Copilot hook
+entry gets `timeoutSec: 120` (golden updated). Tests: goldens for both agent files, skill target
+lists, clash rule, the timeout in the hooks golden.
+Commit `feat(adapters): render skill links and role agents for Claude Code and Copilot CLI`.
+
+### Task 4.3: apply links and rendered agents
+
+`runApply` plans links next to files. Rendered agent: absent → write; our hash → refresh when the
+render changed; edited (hash ≠ recorded) → drift with overwrite/release (no adopt); foreign file →
+skip. A desired link that disappeared (skill deleted) and is still ours → removed. First-contact rule
+(decision 8) does not apply to links: a foreign path is always skipped. Tests (CLI, synthetic HOME):
+first apply links every skill and writes three agents per agent; second apply unchanged; foreign skill
+dir reported and untouched; edited agent file without a terminal refuses; `--dry-run` writes none.
+Commit `feat(apply): link skills and write role agents per agent`.
+
+### Task 4.4: `tiller status [--json]`
+
+Read-only. Per manifest file: each owned item `ok | drifted | missing`, released items; per link
+`ok | missing | foreign | stale`. Exit 0 always (it reports). Tests: clean after apply; edited key shows
+`drifted`; removed link shows `missing`; writes nothing.
+Commit `feat(tiller): add the status command`.
+
+### Task 4.5: `tiller uninstall [--agents ...] [--yes] [--dry-run]`
+
+Per manifest file of the chosen agents: file hash = `writtenHash` and no released items → `created`
+deletes the file, else restore `backup` byte for byte; otherwise surgical: remove each owned item whose
+hash still matches, keep and report edited ones, remove the block. Links: unlink ours; rendered agents
+deleted when hash matches. Same consent rules as apply; backups of what it changes; manifest entries
+dropped. Tests: byte-for-byte restore of a pre-existing file; created file removed; user edit in
+between → surgical, user edit kept; foreign path untouched; second uninstall is a no-op; `--agents
+copilot` leaves Claude's entries.
+Commit `feat(tiller): add uninstall driven by the ownership manifest`.
+
+### Task 4.6: `tiller onboard [--personal <git-url>] [--user <name>] [--agents ...] [--yes]`
+
+Doctor output; then with `--personal`: `git clone <url> personal/<user>` when absent, `git -C … pull
+--ff-only` when present, never push; `--user` required unless `machine.json.user` is set, and stored
+there. Then apply (same flags). Then list every `profiles/*/` (tiller's and the personal repo's) with
+`profile.md` but no `secrets.env`. Tests use a local bare repo as the URL (no network): clone, pull on
+second run, missing user refused, secrets listing, apply refusal propagates exit 3.
+Commit `feat(tiller): add onboard with a private personal repo`.
+
+### Task 4.7: `install.sh` calls the same link code
+
+`link_skill` and the profile-agent loop call `node lib/apply/link.mjs` (a small CLI on 4.1) with the
+same `ok:/skipped:/linked:` lines; no manifest entry (install.sh keeps no ownership). `lib/install/tests`
+unchanged and green. Commit `refactor(install): link through lib/apply/link.mjs`.
+
+### Step-4 interpretations (for approval)
+
+1. Skills linked by apply = all tracked skills plus the personal ones; profile skills and agents stay
+   with `install.sh --profile`, as the spec says.
+2. Role agents are rendered files, not links, on macOS/Linux too (they are generated from
+   `SKILL.md` + `config/agents.json`); the spec's "symlink" row covers skill dirs and profile agents.
+3. Copilot MCP tool names use the logical server name (`atlassian/getJiraIssue`); a user whose Copilot
+   server is named otherwise gets the tool ignored (documented behaviour), not an error.
+4. `timeoutSec: 120` for decision 6 (default 30; no documented maximum).
+5. A missing `secrets.env` = a profile directory with `profile.md` and without `secrets.env`.
 
 ## Spec interpretations made in this plan (for approval)
 
