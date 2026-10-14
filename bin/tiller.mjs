@@ -101,7 +101,8 @@ function apply(argv, ctx) {
       ctx.stderr(`tiller apply: refused: ${r.reason}\n`)
       return 3
     }
-    ctx.stdout(r.status === 'written' ? `written: ${r.files.join(', ') || 'personal layer'}\n` : `${r.status}\n`)
+    const written = [...r.files, ...(r.links ? [`${r.links} skill links and agent files`] : [])]
+    ctx.stdout(r.status === 'written' ? `written: ${written.join(', ') || 'personal layer'}\n` : `${r.status}\n`)
     return 0
   } catch (e) {
     ctx.stderr(`tiller apply: ${e.message}\n`)
