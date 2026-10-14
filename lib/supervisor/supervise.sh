@@ -17,6 +17,7 @@
 #                              default caps.noProgressSpawns
 #   SUPERVISE_STOP_HOUR        local hour (0-23) from which no child is spawned; unset = none
 #   SUPERVISE_MAX_TURNS        --max-turns per child, default 120
+#   SUPERVISE_MAX_BUDGET_USD   --max-budget-usd per child, default budgetsUsd.run in config/routing.json
 #   SUPERVISE_DISALLOWED_TOOLS space-separated tool names removed from every child
 #   SUPERVISE_SLEEP            seconds between spawns, default 60
 #   SUPERVISE_SLEEP_CMD        command used to sleep, default `sleep` (tests inject a recorder)
@@ -50,6 +51,8 @@ USAGE_WAIT_MIN="$(capdef usageWaitMinutes)"
 USAGE_WAITS_MAX="$(capdef usageWaitsPerDay)"
 STOP_HOUR="${SUPERVISE_STOP_HOUR:-}"
 MAX_TURNS="${SUPERVISE_MAX_TURNS:-120}"
+# 75 mirrors the shipped budgetsUsd.run, for a checkout whose routing.json lacks it.
+MAX_BUDGET="${SUPERVISE_MAX_BUDGET_USD:-$(node -e "try { const b = require('$LIB/../config/routing.json').budgetsUsd; process.stdout.write(String(b.run ?? 75)) } catch { process.stdout.write('75') }")}"
 SLEEP="${SUPERVISE_SLEEP:-60}"
 SLEEP_CMD="${SUPERVISE_SLEEP_CMD:-sleep}"
 CLASSIFY="${SUPERVISE_CLASSIFY:-$LIB/resilience/classify-failure.mjs}"
@@ -87,7 +90,7 @@ SPAWN_OUT=""
 SPAWN_RC=0
 spawn_child() {
   local -a cmd=(claude -p "$(child_prompt)" --permission-mode auto --max-turns "$MAX_TURNS"
-    --output-format json --name "flow-$RUN_ID-$SPAWNS")
+    --max-budget-usd "$MAX_BUDGET" --output-format json --name "flow-$RUN_ID-$SPAWNS")
   if [[ -n "${SUPERVISE_DISALLOWED_TOOLS:-}" ]]; then
     # shellcheck disable=SC2206
     local -a tools=($SUPERVISE_DISALLOWED_TOOLS)

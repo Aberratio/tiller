@@ -181,6 +181,11 @@ queue's tickets and the day's own lanes recorded to the run cap each chunk ticke
 the chunk does not start and the day parks as `budget-exhausted`. Defaults: `run` 75 (five T3 calls),
 `day` 450 (two chunks of three capped runs).
 
+**Supervisor.** `lib/supervisor/supervise.sh` gives every `claude -p` child `--max-turns`
+(`SUPERVISE_MAX_TURNS`, default 120) and `--max-budget-usd` (`SUPERVISE_MAX_BUDGET_USD`, default
+`budgetsUsd.run`, or 75 when `config/routing.json` has none). With `SUPERVISE_MAX_SPAWNS`, that bounds
+a supervised run at spawns × the per-child budget.
+
 Tests: `bash skills/flow-run-ticket/tests/run-tests.sh` (contract check plus both dry-run suites).
 Node 20 or newer is required. Give `node --test` file globs (`'lib/<dir>/tests/*.test.mjs'`), never a
 directory: Node 24 loads a directory argument as a module and fails.
