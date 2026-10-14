@@ -362,8 +362,8 @@ Read the profile's `## gates` section (`facts.gates`). For every gate whose sour
 
    ```bash
    REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
-   gh api repos/$REPO/pulls/$PR_NUMBER/reviews --jq --arg bot "<login>" '.[] | select(.user.login | startswith($bot)) | {state, submitted_at}'
-   gh api repos/$REPO/pulls/$PR_NUMBER/comments --jq --arg bot "<login>" '.[] | select(.user.login | startswith($bot)) | {id, path, line, body}'
+   gh api repos/$REPO/pulls/$PR_NUMBER/reviews --jq '.[] | select(.user.login == "<login>" or .user.login == "<login>[bot]") | {state, submitted_at}'
+   gh api repos/$REPO/pulls/$PR_NUMBER/comments --jq '.[] | select(.user.login == "<login>" or .user.login == "<login>[bot]") | {id, path, line, body}'
    ```
 
    The review can take several minutes — poll roughly every 60 s. If after ~20 minutes there is still nothing (e.g. the bot is configured to skip drafts in this repo), don't block: report that the gate is still pending and that it must be cleared before merge, then finish.
