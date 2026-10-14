@@ -11,7 +11,7 @@ Red → green is the easy part. What this skill carries is everything that turne
 5. **Red → green** with an honest red (it fails on the *assertion*), expected values from an independent source of truth, and the computation that the assertion depends on left unmocked.
 6. **Pin** the behaviour the change claims not to alter — for a bug fix that is one red plus a pin set, not the other way round.
 7. **Bound the blast radius** when an AC says "X is unchanged": a green suite only proves nothing *asserted* moved.
-8. **Report what the suite cannot say** — acceptance criteria that need a human, a camera, or a document.
+8. **Prove green, then report what the suite cannot say** — green is a `verify-claim` re-run of the profile's test command at the committed SHA, with every gate's exit code and output tail pasted; then the acceptance criteria that need a human, a physical device, or a document.
 
 ## Install
 

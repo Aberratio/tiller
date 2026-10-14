@@ -6,19 +6,7 @@ user-invocable: true
 
 # flow-tdd
 
-## Step −1 — Resolve the project profile (before anything else)
-
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
-
-Read the profile it names. Every project-specific fact this skill needs — tracker and project key, main branch,
-branch convention, worktree procedure, ledger path, merge authority, environments, test commands,
-gates — comes from there and from nowhere else.
-
-**No profile resolves → stop and say so.** Do not fall back to the project you saw last. Applying
-one project's merge rule or test command to another is the failure this whole mechanism exists to
-prevent.
+**Step −1 — resolve the profile.** Follow `skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
 
 The red → green loop as it actually runs on real tickets: on tickets whose acceptance criteria carry numbers, in repos where a linter is a merge gate, against seams that are sometimes a build artifact instead of a function, and on changes whose second criterion is "nothing else moved".
 
@@ -55,7 +43,7 @@ Two more things belong in this step:
 - **Inherited does not mean unchecked: before writing a row's test, confirm the named level can actually observe the rule.** The seam list is not renegotiated, but a plan naming a *file* can name one where the assertion cannot fail — the guard under test sits behind an outer guard that fires first, the harness owns that directory, the value the rule turns on never reaches that layer. Check it against the code, not against the plan's confidence. When the level is blind to the rule, that is the DOM case above wearing different clothes: extract the decision to where it is observable (a component taking the id instead of reading the router, a predicate taking the state instead of the query), keep the plan's original level as a mount-it-for-real test so nothing is traded away, and put the substitution in the ledger as a deviation from the agreed seam table. Writing the test where the plan pointed and watching it pass is the failure mode — it reads as coverage of a rule nothing holds.
 - **Before writing the file, check what its directory costs — a test's location can change who is allowed to merge the branch.** Choosing where a test lives normally trades off harness reuse against duplication, and that is the whole decision in most repos. It is not the whole decision in a regulated one: a repository can gate specific paths behind a named human signature, and those paths do not announce themselves — they are usually described by what the *shipping* code in them does, so a test file feels exempt. It is not, because the gate is path-based on purpose. So before creating a test file (and again before moving one), read the repo's merge-authority rules against the **directory you are about to write into**, not against the code you are testing, and say in the report if the branch's merge path changed. Two corollaries: never derive an exemption from the file being "only a test" or "offline tooling" — that generalisation is what merges a change into a signature path unsigned; and when reuse and merge path pull in opposite directions, that is a trade for the branch's owner, presented with both costs, not one you settle inside the loop.
 - **Name the acceptance criteria no test level can reach**, in two classes:
-  - *unobservable* — needs hardware, a camera, a browser session, or a human performing the movement;
+  - *unobservable* — needs hardware, a physical device, a browser session, or a person performing the action;
   - *non-behavioural* — a document, a version policy, a naming convention, a contract "agreed with" another team.
 
   Both travel to Step 7 as explicit human-verification items. A green suite never stands in for either. The non-behavioural class is the easy one to tick off silently, because writing the doc feels like progress.
@@ -76,16 +64,16 @@ The reason still gets written where the code lives — that comment is for the n
 
 ## Step 2 — Probe before the first red
 
-A **probe** is a throwaway script or test that replays real inputs through the shape you intend to build and **prints what happened**. It asserts nothing, so it is neither red nor green. It costs minutes, and across three sessions running it has been the highest-return step of the loop: it validated the approach, selected the fixture, reproduced the ticket's measured numbers, and once *falsified the ticket's own acceptance criterion* before a line of test code existed.
+A **probe** is a throwaway script or test that replays real inputs through the shape you intend to build and **prints what happened**. It asserts nothing, so it is neither red nor green. It costs minutes; it validates the approach, selects the fixture, reproduces the ticket's measured numbers, and can *falsify the ticket's own acceptance criterion* before a line of test code exists.
 
 **The probe is a required step, not a flourish,** whenever any of these holds:
 
-- the ticket's acceptance criteria carry numbers ("0 of 153 frames", "at least 1500 ms", "±1 rep"),
+- the ticket's acceptance criteria carry numbers ("0 of 153 records rejected", "at least 1500 ms", "±1 item"),
 - the task is an extraction whose criterion is parity with the code it came from,
-- believable inputs cannot be hand-authored (motion data, recordings, real corpora),
+- believable inputs cannot be hand-authored (captured traffic, recordings, real corpora),
 - you would otherwise be guessing whether a test *can* go green.
 
-Replay **every** available real input, not one. The spread across the corpus is what exposes an unreachable threshold, and the mismatches usually have explanations worth knowing before a test depends on them (a reference retuned after capture). Then read the output against the ticket — exactly four things can come back:
+Replay **every** available real input, not one. The spread across the corpus is what exposes an unreachable threshold, and the mismatches usually have explanations worth knowing before a test depends on them (a reference value changed after the data was captured). Then read the output against the ticket — exactly four things can come back:
 
 1. **The ticket's numbers reproduce.** The probe's output is the regression test's skeleton, and it has already chosen the fixture: freeze a trimmed copy when the test guards an algorithm, point at the live corpus when it guards the data (`references/test-quality.md`).
 2. **They do not reproduce.** The premise is stale, not the probe — never tune the probe until it matches. Stop, say which claim is false, and treat the corrected ticket as the next deliverable (back out to flow-plan-ticket, rewrite via flow-write-ticket). A probe that will not run at all is a different problem: `references/harness-traps.md`.
@@ -108,29 +96,25 @@ A seam that is not a plain function call — an extraction, a build artifact, a 
 
 ## Step 4 — Red → green
 
-**Honest red.** The test must fail on its **assertion**, for the reason the ticket describes. A failure to mount, a missing browser API, or a stale build artifact is a false red — `references/harness-traps.md` names the recurring ones and how to clear them before trusting the failure.
+Writing the test:
 
-- Expected values come from an **independent source of truth**: a hand-worked example, the format's own definition, the spec, the *other* side's contract (assert a client filename against the server's whitelist regex). Never from re-running the new code, never recomputed the way the code computes it. See `references/test-quality.md`.
-- A regression test over a pipeline records **which stage rejected**, not just a count (`orientation (need upright_back, detected upright_front)`), so a future red reads as a diagnosis.
-- A collaborator that **computes the value under assertion stays real**, however internal the repo convention says it is. The test: replace it with a stub — can the test still fail for the reason the ticket describes? If no, keep it real, and write that reason into the test file when it deviates from the repo's documented mocking rule.
-- **Green means the repo's gates pass**, not that the assertion passes. Restructuring the linter forces (a function decomposed because a complexity cop rejected it) is part of achieving green. Discretionary "extract a helper for readability" cleanups still belong to review.
-- **An awkward test is design feedback.** When only fake timers or a seeded RNG can make it deterministic, first ask whether the code under test needs to read the clock or the RNG at all — deriving the value from data already in hand usually removes the nondeterminism from production, not just from the test.
+1. **The red is honest: the test fails on its assertion, for the reason the ticket describes.** A failure to mount, a missing browser API or a stale build artifact is a false red. Example: `references/harness-traps.md` names the recurring ones and how to clear them.
+2. **Expected values come from an independent source of truth** — a hand-worked example, the format's definition, the spec, the other side's contract — never from re-running or re-computing the new code (`references/test-quality.md`). Example: assert a client filename against the server's whitelist regex.
+3. **A regression test over a pipeline records which stage rejected, not just a count,** so a future red reads as a diagnosis. Example: `schema check (need v2, got v1)`.
+4. **A collaborator that computes the value under assertion stays real**, whatever the repo's mocking convention. Example: stub it — if the test can no longer fail for the ticket's reason, keep it real and write that reason into the test file.
+5. **Green means the repo's gates pass, not the assertion.** Restructuring a gate forces is part of green; discretionary cleanups belong to review. Example: a function decomposed because the complexity cop rejected it.
+6. **An awkward test is design feedback.** Example: a test that needs fake timers asks first whether the code needs the clock at all — deriving the value from data in hand removes the nondeterminism from production too.
 
-**Re-verify the red at the end.** Revert only the implementation file(s), re-run, and check that every test you believe is red goes red for its stated reason. Tests that stay green are pins — relabel them in Step 5. This catches the assertion that was green all along.
+Proving the red, before leaving this step:
 
-**When the module is new, revert against the plan's version, not against nothing.** Deleting a brand-new file makes every test in it fail on `ModuleNotFoundError`, which measures nothing: an import error is not the ticket's red, and it hides how many of your assertions the *obvious* implementation would already have satisfied. When the plan (or the ticket, or the upstream skill) hands you a proposed implementation, copy it verbatim into a scratch directory next to a copy of the test file and run them against each other. What fails there is the genuine red your work earned; what passes is a pin, and belongs in Step 5 and the Step 7 report labelled as one. Do this before writing your own version if the proposed one is short — the split it produces is also the shortest honest answer to "was this change necessary?".
-
-**When neither revert is available, mutate one rule at a time instead.** A review finding that dictates the implementation's shape ("move this scan into a script"), or any task where the destination is specified and there is no plan version to diff against, leaves you writing implementation first — and then both reverts measure nothing. Recover the honest red per *rule* rather than per file: break each rule the change encodes, one at a time, run the suite, and record which tests go red for each. Green under a mutation is a test that was never testing that rule. Report the map (`dropping the v2 classification reddens 2 tests, collapsing escape into corpus reddens 3, dropping the empty-scan guard 1`) — it is stronger evidence than a single up-front red, because it names which assertion holds which rule, and it is the only honest red available for an absence-asserting check whose subject is always clean in the repository.
-
-**One mutation per *input the rule covers*, not one per rule.** Where a single check runs over N names, fields, paths or files, mutating one of them measures that one and nothing else — and a pass there reads as though the whole check works. On ABC-223 a contract gate asserted seven field names against an OpenAPI document; mutating `nextPageToken` went red, so the check was reported as holding. It did not: `items` is also OpenAPI's own array-schema keyword (60 occurrences in that document), `type` is on every schema node (812), `title` is also `info.title`, and a whole-document search for those four **could not fail** — renaming the real envelope key left the gate green. Four of the seven were unpinned, and the one mutation that passed was the one field that happened to be unique. So: enumerate what the check covers, mutate **every** member, and put the count in the report (`8 mutations, 8 caught`). A single green mutation generalises to the others only when they are checked by different code — which, in a loop over a list, they never are.
-
-**And mutate at the granularity of the smallest thing that can drift on its own, not at the granularity of the name.** Enumerating members is only half of it: a check phrased "*some* schema requires these fields" is existential over every occurrence in the document, so renaming the field *everywhere* reddens it while dropping it from **one** endpoint does not. Re-measured on ABC-223, after the rule above had already been applied: all 7 declared field names went red under a document-wide rename (24/24 including every declared path), and 5 of those 7 stayed **green** when the field was removed from exactly one of the 41 schemas carrying it — the paging envelope was the only shape that caught it, because a review finding had already given that one a *denominator* (the frontend declares which of its paths answer a list, so the check counts groups instead of asking whether any exists). So: ask what the drift unit is — an endpoint, a file, a row, a workflow job — and mutate one of those, not one of the names. Where the check has no denominator to count against, single-unit drift is undetectable **by construction**: say so as a numbered residual in the Step 7 report and in the ledger (`5 scoped mutations, 0 caught, no per-path denominator exists`) rather than leaving the count from the name-level pass to imply the check is whole.
-
-**A finding that names more than one site is not closed until every site is measured.** A written finding is a claim about a set, and the set is usually stated in its own text — "the signal path answers first *and* `schema.js` bakes the same answer into newly extracted references". Fixing the site you happened to read first and closing the finding leaves the defect alive through the other one, and the suite cannot tell you, because the half you fixed is the half your tests now cover. Measured on ABC-226: a guard added to the *reading* path was bypassed at the *extraction* path, which persisted the same value where it was later read back as authoritative and trusted — both halves had been named in the branch's own decision ledger eight days earlier, and only one was implemented. So before closing a finding, re-read its text for every file, function or call site it names, and record a measurement per site. Where two sites implement one rule, the fix is usually to share the rule rather than to repair both copies — two copies of a precedence is how the hole existed in the first place.
-
-**A comment that asserts a rule is a mutation site.** Where the code explains why it is shaped this way — "a set rather than one slot, because a second registration would silently unregister the first" — the sentence is a specification somebody wrote instead of a test. On ABC-223 all three unheld rules in the frontend layer were of exactly this form (a second session-loss subscriber being silenced, a defaulted `links` extension, an id dropped from a cache key), each cost one short test, and each went red under its own mutation and nothing else. So read the diff's *rationale* comments as a checklist before leaving Step 4.
-
-**A negative assertion is only as strong as the narrowest fixture that satisfies it.** "Nothing else was said" — `not.toContain`, `expect(warnings).toEqual([])`, "the catch-all did not fire" — is usually the assertion carrying the ticket, because the reported defect is that the *wrong* thing got said. It is also the one a generous fixture silently satisfies for the wrong reason: when a crafted input moves more than the rule under test, some *other* line can be what keeps the forbidden output away, and the test then passes with the rule under test deleted. Mutation catches it only if you happen to mutate that rule, so check it directly instead — for each negative assertion, name which movement in the fixture satisfies it, and if the answer is not the rule under test, take the extra movement out. On ABC-216 both distractor fixtures started out internally consistent (a clip added to the baseline, and `totals.phantom_clips.clips` moved to match); the totals line that consistency produced was what suppressed the catch-all, not the distractor line under test. Dropping the totals movement left the fixtures inconsistent with their own aggregates — the right trade, because self-consistency was not what the criterion was about. Where an inconsistent fixture is the stronger one, say so in a comment: the next reader's instinct is to "fix" it.
+7. **Re-verify the red by reverting only the implementation files.** Every test you believe is red must go red for its stated reason; one that stays green is a pin and is relabelled in Step 5. Example: an assertion that was green all along shows up here and nowhere else.
+8. **For a new module, revert against the plan's version, not against nothing.** Copy the plan's proposed implementation and the test file into a scratch directory and run them together: what fails is the red your work earned, what passes is a pin. Example: deleting the new file only produces `ModuleNotFoundError`, which measures nothing.
+9. **When neither revert exists, mutate one rule at a time.** Break each rule the change encodes, run the suite, and report which tests went red per rule; green under a mutation is a test that never tested that rule. Example: `dropping the empty-scan guard reddens 1, collapsing escape into corpus reddens 3`.
+10. **Mutate every input a check covers, and report the count.** One mutation measures one member; in a loop over a list the others run through the same code, so they are covered only by being mutated too. Example: a check that searches a whole document for seven field names stays green for `type` and `items` when the real field is renamed, because those words occur everywhere — `8 mutations, 8 caught` is the report shape.
+11. **Mutate the smallest unit that can drift on its own — an endpoint, a file, a row — not the name.** An existential check ("some schema has this field") reddens on a document-wide rename and stays green when one site drops it. Where the check has no per-unit denominator, single-unit drift is undetectable by construction: say so as a numbered residual in the Step 7 report and the ledger. Example: `5 scoped mutations, 0 caught, no per-path denominator exists`.
+12. **A finding that names several sites closes only when each site is measured.** Re-read its text for every file, function and call site it names and record a measurement per site; where two sites implement one rule, share the rule instead of repairing both copies. Example: a guard added to the reading path, bypassed by the extraction path that persisted the same value.
+13. **A comment that asserts a rule is a mutation site.** Read the diff's rationale comments as a checklist; each one gets a test that goes red under its own mutation. Example: "a set rather than one slot, because a second registration would silently unregister the first".
+14. **A negative assertion is only as strong as the narrowest fixture that satisfies it.** For each `not.toContain`, empty-warnings or "catch-all did not fire" assertion, name which movement in the fixture satisfies it; if it is not the rule under test, take that movement out, and comment on a deliberately inconsistent fixture so nobody "fixes" it. Example: a totals line, moved only to keep the fixture self-consistent, was what suppressed the catch-all.
 
 ## Step 5 — Pin the preserved behaviour
 
@@ -139,9 +123,9 @@ Add one **pin** — a test that is green on arrival by design — per behaviour 
 - **Bug fixes invert the ratio.** Exactly one test can legitimately be red — the regression test for the reported scenario. Everything a correct fix opens up (the new aggregate's arithmetic, the null case, the fall-back) can only be a pin.
 - A correct small implementation legitimately satisfies several specs at once. That is a signal to stop adding cycles, not to manufacture reds.
 - Checklist before leaving this step: **every arm or branch of a multi-arm rule is reachable by exactly one test** — including the arm that fires alone, and the exact-boundary case.
-- **Before changing a rule, find the tests that already assert it — a pin you break is a decision this repo already took.** Choosing between two candidate rules on their merits is not enough, because the merits are exactly what somebody already weighed when they wrote the pin. On ABC-226 two rules for resolving a reference's working side were measured as *identical over the whole corpus*, so the choice was made on principle — measurement beats a naming convention — and it silently contradicted `schema.test.js`'s pin "does not let the excursions overrule it", which encodes the opposite and had a reason: naming the cycle signal is the author's statement about the movement, while the excursions are one demonstrator's performance of it. Cheap check, and it is a grep not a judgement: search the repo for tests naming the behaviour you are about to invert *before* you implement, not after the suite goes red. Where the pin turns out to be wrong, that is a finding to raise, not a test to update in passing.
-- **Changing what a shared fixture resolves to can make other tests vacuous instead of red — and vacuous tests do not fail.** Same branch, same day: making a fixture stop resolving to a working side left a pin asserting "the mirror is chosen once, at construction" running against an engine that no longer mirrors at all. It passed without touching the path it claimed to pin, and the mutation pass could not see it because every mutation ran through the same dead path. So after you change a fixture's resolution, enumerate the tests that depended on it and ask of each one *can this still fail?* — not *does this still pass?* The tell is a test whose subject is a behaviour the fixture no longer exhibits.
-- **A change that narrows a filter must apply its new floor *inside* the existing veto, not after it — and the pin for that is a fixture where the veto and the floor disagree.** On ABC-213 the narrowing computed `judged ∩ confidently_seen` and then added the torso landmarks unconditionally, one line later. Every existing test stayed green because in all of them the reference saw the torso, so the veto and the floor agreed. The defect only appears when they disagree — a reference that does *not* confidently see a shoulder — and it re-created the exact bug the ticket was fixing: demanding a body part of the user that the reference cannot see. Found by a review bot, not by three agent review rounds. So whenever a diff adds a floor, a default, an "always include" or a fall-back next to an existing filter: write the pin where the two rules point in opposite directions, and state the composed rule in one line (`(judged ∪ torso) ∩ confidently_seen`) — if the code and that line disagree, the code is wrong.
+- **Before changing a rule, find the tests that already assert it — a pin you break is a decision this repo already took.** Choosing between two candidate rules on their merits is not enough, because the merits are what somebody already weighed when they wrote the pin; two rules measured identical over a whole corpus can still contradict a pin that encodes the opposite for a reason the measurement does not see. Cheap check, and it is a grep not a judgement: search the repo for tests naming the behaviour you are about to invert *before* you implement, not after the suite goes red. Where the pin turns out to be wrong, that is a finding to raise, not a test to update in passing.
+- **Changing what a shared fixture resolves to can make other tests vacuous instead of red — and vacuous tests do not fail.** Example: a fixture that stops exercising a fallback leaves the pin "the fallback is chosen once, at construction" passing without touching the path it claims to pin, and every mutation runs through the same dead path. So after you change a fixture's resolution, enumerate the tests that depended on it and ask of each one *can this still fail?* — not *does this still pass?* The tell is a test whose subject is a behaviour the fixture no longer exhibits.
+- **A change that narrows a filter must apply its new floor *inside* the existing veto, not after it — and the pin for that is a fixture where the veto and the floor disagree.** Example: computing `allowed ∩ visible` and then adding the mandatory fields unconditionally one line later keeps every existing test green as long as each fixture has the mandatory fields visible; the defect appears only when one is not. So whenever a diff adds a floor, a default, an "always include" or a fall-back next to an existing filter: write the pin where the two rules point in opposite directions, and state the composed rule in one line (`(allowed ∪ mandatory) ∩ visible`) — if the code and that line disagree, the code is wrong.
 
 ## Step 6 — Bound the blast radius
 
@@ -156,7 +140,19 @@ A fully green suite cannot answer "what else moved?" — it only proves that not
 
 Report the result as a number: which fields moved, which did not (e.g. "32 lines changed, every one a `signed` inside a rejection detail; no verdict, count, reason or channel moved"). That diff, not the suite, is the evidence for the criterion.
 
-## Step 7 — Report what the suite cannot say
+## Step 7 — Prove green, then report what the suite cannot say
+
+**Green is a measurement, not a statement.** Before the report says green:
+
+1. Commit the change (flow-create-commit), so the tree is clean at one SHA.
+2. Re-run the profile's test command at that SHA, from the worktree:
+
+   ```bash
+   node "$TILLER_HOME/lib/resilience/verify-claim.mjs" <profile.md> <repo> pass --cwd "$PWD" --expect-sha "$(git rev-parse HEAD)"
+   ```
+
+   `<repo>` is the repo's short name as the profile's `## test toolchain` table keys it. Repeat once per `## static checks` row with `--section "static checks"` and the row's Check as the match.
+3. Read the JSON line. Green is `"status":"ok"`, `"actual":"pass"`, `"mismatch":false`. `blocked` (dirty tree, wrong SHA, no runnable command) is **not verified** — report it with its `reason`, never as green. `"actual":"fail"` is red: back to Step 4.
 
 Close with:
 
@@ -166,15 +162,16 @@ Close with:
 - any AC measure you substituted, with the numbers on both sides of the substitution,
 - the unreachable ACs from Step 1 as explicit human-verification steps (hardware/human, and document/policy),
 - the blast-radius diff summary, when Step 6 ran,
-- which gates you ran and their result.
+- per gate you ran: the command, its exit code, and the last lines of its output (at most 10), pasted verbatim — a gate with no pasted output is reported as *not run*,
+- each verify-claim JSON line, pasted verbatim, with the SHA it ran at.
 
 ## Done when
 
-A probe ran wherever Step 2 required one, and its numbers are in the report ✓ every seam in the table is red→green or pinned ✓ the red was re-verified honest by reverting the implementation ✓ every gate the repo runs in CI is green locally ✓ unreachable ACs named as human-verification items ✓ every deliberate deviation is a line in the ledger ✓
+A probe ran wherever Step 2 required one, and its numbers are in the report ✓ every seam in the table is red→green or pinned ✓ the red was re-verified honest by reverting the implementation ✓ every gate the repo runs in CI has its exit code and output tail pasted in the report ✓ verify-claim returned `ok` / `pass` at the reported SHA for the test command and every static check ✓ unreachable ACs named as human-verification items ✓ every deliberate deviation is a line in the ledger ✓
 
 ## What this skill does NOT do
 
 - Choose the plan, the branch, or the seams (flow-start-ticket).
 - Review style, architecture, or diff-vs-spec (flow-code-review), or issue a pre-merge verdict (flow-confidence-check).
-- Commit, or open a PR (flow-create-commit, flow-create-pull-request).
+- Write commit messages or open a PR (flow-create-commit, flow-create-pull-request) — Step 7 calls flow-create-commit so verify-claim has a clean SHA to run at.
 - Discretionary refactoring — only restructuring a gate forces happens inside the loop.
