@@ -136,7 +136,7 @@ function status(argv, ctx) {
     return 2
   }
   try {
-    const s = runStatus({ stateHome: stateHomeOf(ctx) })
+    const s = runStatus({ stateHome: stateHomeOf(ctx), platform: ctx.platform })
     if (argv.includes('--json')) ctx.stdout(JSON.stringify(s, null, 2) + '\n')
     else printStatus(s, ctx.stdout)
     return 0
