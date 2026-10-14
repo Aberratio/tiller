@@ -5,30 +5,17 @@ description: Find and prove the cause of a bug, a performance regression, or a "
 
 # Diagnose a bug
 
-## Step −1 — Resolve the project profile (before anything else)
-
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
-
-Read the profile it names. Every project-specific fact this skill needs — tracker and project key, main branch,
-branch convention, worktree procedure, ledger path, merge authority, environments, test commands,
-gates — comes from there and from nowhere else.
-
-**No profile resolves → stop and say so.** Do not fall back to the project you saw last. Applying
-one project's merge rule or test command to another is the failure this whole mechanism exists to
-prevent.
+**Step −1 — resolve the profile.** Follow `skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
 
 The loop is still the skill: a command you can run unattended that tells you, in seconds and
 without argument, whether the bug is present. Everything else — bisection, hypotheses,
 instrumentation — just consumes it. Reading code to build a theory before you have one is the
 failure this skill exists to prevent.
 
-What this skill adds to that discipline is the thing four sessions kept paying for: **the loop
-you owe depends on what you owe at the end.** Three of those four sessions waived the "loop
-asserting the user's exact symptom before you may think" gate — not out of laziness, but because
-the deliverable was a verdict, a plan, or a product decision, and the gate is written for a patch.
-A waived gate is unreviewable. A gate that states its own tiers is not.
+**The loop you owe depends on what you owe at the end.** A gate of "a loop asserting the user's
+exact symptom before you may think" is written for a patch; when the deliverable is a verdict, a
+plan or a decision it gets waived, and a waived gate is unreviewable. This skill states the tiers
+itself (Step 0).
 
 ## Step 0 — Name the deliverable, out loud, first
 
@@ -47,8 +34,8 @@ back "still alive"); say that out loud too.
 
 Read to find out *where the bug lives*: the error string, the code path that emits it, the deploy
 path that ships it, the config that feeds it. Read `CONTEXT.md` and the ADRs for the area — a
-domain rule ("a reference sample must produce exactly one match") is what makes an acceptance criterion
-meaningful rather than decorative, and it has changed a diagnosis before.
+domain rule ("an order has exactly one owner") is what makes an acceptance criterion meaningful
+rather than decorative.
 
 For an environment or deployment bug this step is not optional: you cannot *name* the command to
 run until you know which URL serves the asset and which workflow deploys it. The bug need not
@@ -61,8 +48,8 @@ loop**. Orientation ends the moment you catch yourself explaining the bug to you
 
 ## Step 2 — Build the loop, at the tier Step 0 requires
 
-A **locating loop** may assert one layer below the user's symptom — ranking data instead of a
-missing checkbox, a per-channel pass histogram instead of a stuck button — as long as it produces
+A **locating loop** may assert one layer below the user's symptom — a ranking instead of a
+missing list item, a per-stage pass count instead of a stuck button — as long as it produces
 **numbers that name the cause**. Cheap, fast, and enough to hand someone a plan.
 
 A **regression loop** asserts the user's exact symptom, and is allowed to be *the first commit of
@@ -74,11 +61,8 @@ reproduction rate), **fast** (seconds), and **agent-runnable** (unattended; a hu
 structured HITL script). Paste the invocation and its output the first time it runs.
 
 For a **timing flake**, drive the variable the slow machine actually changes rather than loading the
-machine — imitating the environment reached 6%, amplifying the mechanism reached 90%. Recipe and the
-control that keeps an amplifier honest: `references/loop-recipes.md`.
-
-Recipes, including the two the upstream ladder does not carry — deployed-environment/artifact and
-config-tuning differential — are in `references/loop-recipes.md`.
+machine. Recipe and the control that keeps an amplifier honest: `references/loop-recipes.md`, which
+also carries the deployed-environment/artifact and config-tuning differential recipes.
 
 Then tighten it: faster, sharper signal, more deterministic. A 30-second flaky loop is barely
 better than none; a 2-second deterministic one is a different job.
@@ -103,10 +87,10 @@ Before you trust the repro as ground truth, list the open or in-progress tickets
 migrations touching the same code path or the same data. For each, state whether it would change
 what the repro measures.
 
-This is not hypothetical. A sibling ticket removing some input channels from a ranking would have
-lifted the missing item into the visible top three on its own — making the reported case pass by
-accident while the truncation bug stayed fully alive for every other input, and turning a
-regression test written against today's ranking into a tautology.
+Example: a sibling ticket that removes some inputs from a ranking would lift the missing item into
+the visible top three on its own — the reported case passes by accident, the truncation bug stays
+alive for every other input, and a regression test written against today's ranking becomes a
+tautology.
 
 If something in flight would move the ground truth, the regression test must pin **the condition
 itself** in a fixture (here: the expected item ranked below the cutoff), not today's real-world data.
@@ -117,7 +101,7 @@ Each states its prediction: "if X is the cause, changing Y makes it disappear". 
 hypothesis. Show the ranked list to the user before testing — domain knowledge re-ranks it
 instantly ("we deployed a change to #3 on Tuesday") — but don't block on an AFK user.
 
-**When the loop is differential, this step is already done.** Replaying one recording through two
+**When the loop is differential, this step is already done.** Replaying one input through two
 values of one config field *is* the hypothesis and its test; writing the list out separately
 doubles the work and teaches you nothing. Say that you are collapsing the step, and why.
 
@@ -139,8 +123,8 @@ because the numbers routinely contradict the sentence you were about to write.
 occurs at the call site. A too-shallow seam gives false confidence — and if no correct seam exists
 in code, *that is the finding*, not a reason to skip it. The seam is not always a code test: for a
 missing or malformed deploy artifact it is **a CI assertion on the build output** ("`dist/` must
-contain the WASM assets after Build"), because no unit or e2e test can catch a file that was never
-shipped — the e2e suite ran green against a replay stub while staging was broken. Then: red →
+contain the generated assets after Build"), because no unit or e2e test can catch a file that was
+never shipped — an e2e suite running against a stub stays green while staging is broken. Then: red →
 fix → green → re-run the original, un-minimised loop. The red-green loop itself belongs to
 `flow-tdd`; hand over the probe, it becomes the first red.
 
@@ -178,18 +162,3 @@ you know more now than when you started.
 - **File or rewrite the ticket** — `flow-write-ticket`.
 - **Judge whether the finished branch is shippable** — `flow-code-review`, then
   `flow-confidence-check`.
-
-## Deliberately changed from the upstream `diagnosing-bugs`
-
-- **"No red-capable command, no Phase 2" as an absolute gate** → kept as the default, but tiered by
-  deliverable (Step 0) and paired with explicit permission for orientation reads (Step 1). The
-  absolute version was waived in three of four logged sessions; a rule that gets waived that often
-  is mis-stated, not disobeyed.
-- **Every loop must assert the user's exact symptom** → split into locating vs regression loop.
-- **Hypotheses as an always-separate phase** → collapses into the loop when the loop is
-  differential.
-- **Phase 5 assumes a code seam** → adds the CI-artifact seam, and the case where the right
-  deliverable is a decision rather than a test-and-patch.
-- **Post-mortem hands off to `/improve-codebase-architecture`** → `codebase-design`, which owns
-  that lane here.
-- **Added outright:** verdict mode, the in-flight-work checkpoint, and the confidence basis.

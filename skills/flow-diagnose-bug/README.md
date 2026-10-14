@@ -51,6 +51,23 @@ Naming the deliverable first is the whole point, because it sets how strong the 
 - **The differential loop is its own hypothesis test** — one recording, one field flipped, two
   runs. Splitting that into a separate ranked-hypothesis phase doubles the work.
 
+## Changed from the upstream `diagnosing-bugs`
+
+- **"No red-capable command, no Phase 2" as an absolute gate** → kept as the default, but tiered by
+  deliverable (Step 0) and paired with explicit permission for orientation reads (Step 1). The
+  absolute version was waived in three of four logged sessions; a rule that gets waived that often
+  is mis-stated, not disobeyed.
+- **Every loop must assert the user's exact symptom** → split into locating vs regression loop.
+- **Hypotheses as an always-separate phase** → collapses into the loop when the loop is
+  differential.
+- **Phase 5 assumes a code seam** → adds the CI-artifact seam, and the case where the right
+  deliverable is a decision rather than a test-and-patch.
+- **Post-mortem hands off to `/improve-codebase-architecture`** → `codebase-design`, which owns
+  that lane here.
+- **Added outright:** verdict mode, the in-flight-work checkpoint, and the confidence basis.
+- **Timing-flake recipe:** imitating the slow environment reached a 6% reproduction rate; amplifying
+  the mechanism reached 90%.
+
 ## Where it lives
 
 A **personal skill** in `~/.claude/skills/flow-diagnose-bug/`, not in the shared `agent-skills` repo

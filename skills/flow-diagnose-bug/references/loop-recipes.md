@@ -22,12 +22,12 @@ Pick the cheapest one that can go red on *this* bug; tighten it afterwards.
 ## Deployed-environment / artifact bugs
 
 The bug is not in the code; the code never arrived. Symptom shape: works locally, fails on
-staging, and the error names something structural ("ModuleFactory not set", "Unexpected token <").
+staging, and the error names something structural ("module factory not set", "Unexpected token <").
 
 The loop is a script that fetches the deployed artifacts and asserts on what came back:
 
 ```bash
-for url in "$BASE/assets/foo.wasm" "$BASE/assets/foo.js"; do
+for url in "$BASE/assets/foo.bin" "$BASE/assets/foo.js"; do
   code=$(curl -s -o /tmp/body -w '%{http_code}' "$url")
   type=$(file -b --mime-type /tmp/body)
   head -c 64 /tmp/body | grep -qi '<!doctype html' && verdict=SPA-FALLBACK || verdict=ok
@@ -56,8 +56,8 @@ Recipe: replay one recorded input through the shared engine twice, with exactly 
 and print a per-channel or per-stage verdict rather than a single boolean.
 
 ```
-node probe.js --recording <id> --config current   # 0/401 setup frames pass
-node probe.js --recording <id> --config pre-tune  # 321/401 pass
+node probe.js --input <id> --config current   # 0/401 setup items pass
+node probe.js --input <id> --config pre-tune  # 321/401 pass
 ```
 
 Two runs isolate the cause. The per-stage histogram is what names the culprit without any code
