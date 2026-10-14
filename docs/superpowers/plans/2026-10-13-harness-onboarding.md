@@ -316,8 +316,7 @@ assert the pointer and that no file changed. **This is the one intended change t
   `copilot-instructions.md`, `settings.json` parsed with comments and comments outside owned keys
   kept. Copilot facts re-verified against docs.github.com.
 - **Step 4 — `onboard --personal`, `status`, `uninstall`:** detailed below.
-- **Step 5 — Windows:** junctions, agent-file copies with hashes, `bash.exe` in hook commands,
-  Copilot `bash`+`powershell` keys; CI matrix macOS/Ubuntu/Windows.
+- **Step 5 — Windows:** detailed below.
 - **Step 6 — `apply --adopt <agent>`**, then moving an existing setup into a personal layer.
 
 ## Step 4 — links, rendered agents, `status`, `uninstall`, `onboard`
@@ -410,6 +409,172 @@ unchanged and green. Commit `refactor(install): link through lib/apply/link.mjs`
    server is named otherwise gets the tool ignored (documented behaviour), not an error.
 4. `timeoutSec: 120` for decision 6 (default 30; no documented maximum).
 5. A missing `secrets.env` = a profile directory with `profile.md` and without `secrets.env`.
+
+## Step 5 — Windows
+
+Copilot facts for this step (docs.github.com, 2026-10-14):
+hooks-reference (`bash` = "Shell command for Unix", `powershell` = "Shell command for Windows"; one of
+`bash`/`powershell`/`command` required; `command` is copied to both when they are absent, an explicit
+key wins on its platform; what runs when only the other OS's key is present: not documented; user hooks
+in `%USERPROFILE%\.copilot\hooks\` or `$COPILOT_HOME/hooks/`; which PowerShell binary runs the
+`powershell` key: not documented); use-hooks ("Copilot uses the appropriate key based on the user's
+operating system"; Windows hooks "require ... PowerShell 7.0 or later installed and in your PATH",
+checked with `pwsh --version`); cli-config-dir-reference (`~/.copilot` = `$HOME/.copilot`, Windows
+example `C:\Users\YOUR-USER\.copilot\...`; `COPILOT_HOME` replaces the whole path; the shell tool
+prefers `pwsh` and falls back to `powershell.exe`, which is said of the shell tool, not of hooks;
+junctions not mentioned); add-skills (`~/.copilot/skills` or `~/.agents/skills`, no Windows path form,
+no word on symlinks or junctions).
+Claude Code fact used (code.claude.com/docs/en/hooks, 2026-10-14): a shell-form command hook runs in
+Git Bash on Windows, or PowerShell when Git Bash is not installed; the `shell` field picks explicitly.
+
+Windows behaviour is tested on macOS through an injected `platform`, injected fs operations and an
+injected probe result; nothing in this step runs on Windows until CI has a remote (Task 5.7).
+`fs.symlinkSync(target, path, 'junction')` ignores the type off Windows, so a "win32" link test on
+macOS makes a real symlink and a spy asserts the `'junction'` argument.
+
+Manifest `links[dest].mode` gains `junction` (`source`, as `symlink`) and `copy` (`source`, `hash` of
+the copied bytes).
+
+### Task 5.1: home and Git Bash on win32
+
+`bin/tiller.mjs` gets `homeOf(env, platform)` (exported for tests): win32 → `USERPROFILE ||
+os.homedir()`, ignoring a `HOME` that Git Bash or MSYS tools set; elsewhere unchanged
+(`HOME || USERPROFILE || homedir()`). `probe` records `shell.path` as found (already) and adds
+`shell.posixPath`: the same path with `\` → `/` (`C:/Program Files/Git/bin/bash.exe`), used by the
+adapters. Tests (`probe.test.mjs`, unit on `homeOf`): win32 with `HOME=/c/Users/x` and
+`USERPROFILE=C:\Users\x` → `C:\Users\x`; darwin unchanged; Git Bash from `ProgramFiles` fallback gets
+the forward-slash form; System32 impostor still ignored.
+Commit `feat(machine): resolve the Windows home from USERPROFILE and record Git Bash's path`.
+
+### Task 5.2: `lib/apply/link.mjs` on Windows (junction, copy)
+
+`link(dest, source, { platform, fs })`: win32 + directory source → `fs.symlinkSync(source, dest,
+'junction')`; win32 + file source → `fs.copyFileSync`, returns `{ mode: 'copy', hash }`; POSIX
+unchanged. `fs` defaults to `node:fs` and is injected in tests. `sameTarget(a, b, platform)`: on win32
+strips `\\?\` and `\??\`, trailing separators, compares `path.win32.resolve` case-insensitively; POSIX
+is string equality. `planLink` uses it, so a junction reported as a symlink by `lstat` (Node does) is
+`ok`/`refresh` as on POSIX. `planCopy({ source }, dest, entry)` → `create | ok | refresh | drift |
+skip-foreign`: absent → create; dest hash = entry hash and source hash ≠ → refresh; dest hash ≠ entry
+hash → drift; no entry → skip-foreign unless bytes equal the source (then `ok`, taken over).
+`unlink` removes a junction (`fs.unlinkSync`; Node removes directory reparse points) or a copy whose
+hash still matches. The "step 5" throw goes. Tests (`link.test.mjs`, synthetic dirs): win32 dir →
+spy sees `'junction'` and the link resolves; win32 file → copy with hash; `sameTarget` table (prefix,
+trailing `\`, case); copy create/ok/refresh/drift/foreign; unlink leaves an edited copy and a foreign
+junction; POSIX tests unchanged.
+Commit `feat(apply): link by junction and copy with a hash on Windows`.
+
+### Task 5.3: apply, status and uninstall use junctions on Windows
+
+`planLinks` drops the `unsupported` action and its note; on win32 a skill link is planned and
+recorded with `mode: 'junction'`. `planGone`, `linkState` and uninstall's `planLinkGone` treat
+`junction` like `symlink` (through `sameTarget`) and `copy` by hash (`ok | drifted | stale` when the
+source changed or vanished). `runApply` and `runUninstall` accept an injected `probeMachine` (default
+`probe`), since a win32 probe of a POSIX temp dir finds no `bash.exe`. Tests (library calls of
+`runApply`/`runStatus`/`runUninstall` with `platform: 'win32'`, synthetic HOME, both env vars set or
+deleted): first apply records junctions for every skill and `rendered` agents as before; second apply
+unchanged; foreign skill dir skipped; status `ok`, then `missing` after removal; uninstall removes
+the junctions and leaves a foreign one.
+Commit `feat(apply): apply, report and uninstall skill junctions on Windows`.
+
+### Task 5.4: `install.sh` profile agents copied on Windows
+
+The `node lib/apply/link.mjs <source> <dest>` CLI uses 5.2 on win32: skill dirs → junction, profile
+agent files → copy. Each copy is recorded in the manifest as `{ agent: 'claude', kind: 'agent',
+mode: 'copy', source, hash, origin: 'install' }` (decision 1): `tiller apply` never plans it as gone,
+`uninstall` leaves it alone (as it does install.sh's symlinks), `status` lists it with an `install`
+tag and its `ok | drifted | stale` state. New CLI output `refreshed` for a copy whose source changed; install.sh prints
+`refreshed: agent <name>`. Tests (`link.test.mjs`, spawning the CLI with `TILLER_STATE_HOME` set and
+the platform injected through an exported `main(argv, { platform, fs, stateHome })`): copy, ok on
+rerun, refresh after a source edit, skipped after a dest edit; library `runApply` and `runUninstall`
+leave an `origin: 'install'` entry and its file untouched; `runStatus` reports it;
+`lib/install/tests` unchanged and green.
+Commit `feat(install): copy profile agents on Windows and refresh them when the source changes`.
+
+### Task 5.5: hook commands name `bash.exe`; no Git Bash, no hook
+
+Adapters take `{ platform, shell }` from the probe. Claude on win32:
+`TILLER_HOOK=<id> '<shell.posixPath>' '<script, forward slashes>'` (Claude runs it in Git Bash, so the
+prefix and quoting stay POSIX; the manifest prefix match is unchanged). Copilot `bash` key on win32
+names `bash.exe` the same way. When `probe.shell` is null (win32 without Git Bash), `runApply` drops
+every hook from the desired state and prints `private-access hook unavailable: needs Git Bash (winget
+install Git.Git)`; an owned hook entry is then removed by the normal plan. Tests: Claude and Copilot
+goldens for win32 with `tillerHome = 'C:\\tiller home'` and `shell.posixPath = 'C:/Program
+Files/Git/bin/bash.exe'`; POSIX goldens unchanged; the POSIX command still runs through `sh -c` with a
+spaced `TILLER_HOME`; library `runApply` on win32 with a no-shell probe writes no hook and removes a
+previously owned one.
+Commit `feat(adapters): run hook scripts through Git Bash on Windows and skip them without it`.
+
+### Task 5.6: Copilot `powershell` key and Windows env lines
+
+Every Copilot hook entry carries both keys on every OS (spec), so one hooks file works on either:
+`bash` as today; `powershell` = `& '<bash.exe>' '<copilot-pretooluse.sh>' '<hook>'` with PowerShell
+quoting (`'` → `''`), forward-slash paths, and `$LASTEXITCODE` passed on with `; exit
+$LASTEXITCODE` so a non-zero wrapper exit stays a deny. On win32 `<bash.exe>` is `shell.posixPath`;
+on darwin/linux it is `bash` (decision 3: both keys on every OS). `lib/hooks/copilot-pretooluse.sh` exits 1 on an empty stdin (a payload lost between PowerShell and
+Git Bash must deny, not allow). `copilotEnvLines` on win32 prints
+`[Environment]::SetEnvironmentVariable('K', 'v', 'User')` instead of `export`. Tests: hooks golden
+with both keys per platform; the wrapper denies an empty payload (`lib/tests/private-access.test.mjs`);
+a quoting test with `'` in `TILLER_HOME`; env-lines golden for win32;
+when `pwsh` is on PATH (CI Windows only, `skip` elsewhere) the rendered `powershell` string runs a
+stub hook and its exit code survives.
+Commit `feat(adapters): fill the Copilot powershell hook key with a Git Bash call`.
+
+### Task 5.8: `private-access.sh` judges Windows-form paths
+
+On Windows the payload's `cwd` and paths arrive as `C:\Users\x\tiller\brains\b\f.md`; today `norm`
+treats that as relative (`$cwd/C:\...`) and `names_protected`/`word_hit` only know `/`, so a protected
+path is allowed (fail open). Change: a path or `cwd` matching `^[A-Za-z]:[\\/]` switches the call to
+Windows mode, in which every path and the Bash command have `\` read as a separator, the drive letter
+is upper-cased, and the result goes through `cygpath -u` (shipped with Git Bash) before `realpath`;
+`names_protected` and the Bash scan accept `[\\/]` between `brains`/`profiles` and the name in that
+mode. No `cygpath` in Windows mode → any call naming a protected root is denied. POSIX paths are
+untouched (a `\` in a POSIX file name keeps its meaning). Files: `lib/hooks/private-access.sh`,
+`lib/tests/private-access.test.mjs`, `lib/testing/private-access.mjs` (a stub `cygpath` on PATH that
+maps `C:/` to the synthetic HOME's root, so the cases run on macOS; on the Windows CI job the real
+`cygpath` is used and the stub is not installed). Tests, each against a none brain, a read brain and
+another project's profile: `C:\...\brains\<b>\f.md` Read denied; `c:\...` (lower-case drive)
+denied; mixed `C:/...\brains/<b>\f.md` denied; Windows-form `cwd` resolves the right profile (own
+profile allowed, another denied); Grep/Glob with a Windows-form `path`; Bash `type
+C:\...\brains\<b>\f.md` and `cat brains\<b>/f.md` denied; read brain + Windows-form Edit denied;
+Windows-form path outside `TILLER_HOME` allowed; Windows mode without `cygpath` → protected denied,
+unrelated allowed; every existing POSIX case unchanged. Not covered, noted for manual QA: segment
+case on a case-insensitive filesystem (`...\BRAINS\<b>`), and 8.3 short names (`TILLER~1`).
+Commit `fix(hooks): judge Windows-form paths in the private-access hook`.
+
+### Task 5.7: CI matrix
+
+`.github/workflows/test.yml`: on push and pull_request; matrix `os: [macos-latest, ubuntu-latest,
+windows-latest]`, `node: [22, 24]`; steps checkout, setup-node, then the test command with glob
+arguments (`node --test 'lib/apply/tests/*.test.mjs' ...`) under `shell: bash` (Git Bash on the
+Windows runner). Tests that need a POSIX-only feature (`sh -c`, `chmod`, POSIX symlinks without
+junction) get `{ skip: process.platform === 'win32' && '<reason>' }`, each named in the commit. The
+leak guard runs on ubuntu only. No remote exists, so nothing runs the file: it is checked locally
+with `ruby -ryaml -e 'YAML.load_file(ARGV[0])'` (macOS ships Ruby), the platform skips are added from
+reading the tests (5.8's cases run on Windows with the real `cygpath`), and the first real run is
+recorded once a remote exists. Commit `ci: run the suite on macOS,
+Ubuntu and Windows`.
+
+### Step-5 interpretations (for approval)
+
+Owner answers 2026-10-14: Tasks 5.1–5.6, 5.8, 5.7 approved, executed in that order.
+
+1. **(approved 2026-10-14)** Copies made by `install.sh` are manifest entries with `origin:
+   'install'`; apply and uninstall skip them, status shows them (Task 5.4).
+2. **(approved 2026-10-14)** Role agents stay `rendered` on Windows (step-4 interpretation 2), so in
+   `tiller apply` the spec's "copy" row covers nothing; copy mode serves only 5.4.
+3. **(approved 2026-10-14)** The Copilot `powershell` key is rendered on every OS next to `bash`
+   (`& 'bash'` off Windows), so the hooks file has one shape everywhere (Task 5.6).
+4. **Manual QA (Windows, real Copilot):** how Copilot launches the `powershell` key and whether the
+   hook's stdin reaches `bash.exe` through `&` is not documented. Plan: `&` with inherited stdin; if the
+   payload arrives empty, switch to `$input | & ...`. Today an empty payload passes
+   `private-access.sh` (it allows a call with no tool name), so a lost stdin would fail open; 5.6 makes
+   `copilot-pretooluse.sh` exit non-zero (deny) on an empty payload.
+5. **(approved 2026-10-14)** Windows home = `USERPROFILE`, not `HOME` (the spec says `os.homedir()`,
+   which on Windows reads `USERPROFILE`); Copilot's docs name `%USERPROFILE%\.copilot`.
+6. **Manual QA (Windows, both agents):** skill discovery through a junction is undocumented for Claude
+   Code and Copilot; treated as working until checked.
+7. **(approved 2026-10-14)** Forward-slash Windows paths inside hook commands (Git Bash and
+   PowerShell accept both; it avoids backslash escaping).
 
 ## Spec interpretations made in this plan (for approval)
 
