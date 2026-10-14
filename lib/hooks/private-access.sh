@@ -124,6 +124,9 @@ writes() {
 
 esc() { printf '%s' "$1" | sed 's/[.[\*^$()+?{|]/\\&/g'; }
 
+# The command with quoted strings dropped, so a flag or a word inside a message is not judged.
+unquoted() { printf '%s' "$1" | sed -E "s/\"[^\"]*\"//g; s/'[^']*'//g"; }
+
 # ERE for whatever may precede "helm" when a command names the tiller home's helm/: the home as
 # resolved and as given, its ~ and $HOME spellings, $TILLER_HOME, and, from a cwd inside the home,
 # a relative path. Other helm paths (kubernetes charts, ~/.config/helm) must stay reachable.
@@ -149,10 +152,27 @@ helm_bases() {
 # helm.md and machines/, or be nothing but git -C <helm> commit/push/pull.
 scan_helm() {
   local cmd bases hits m rest seg ok=1
+  if [ "$row" != _none ]; then
+    # helm.mjs reads and writes every project; record.sh is the only door, and only for this one.
+    printf '%s' "$1" | grep -Eq '(^|[^A-Za-z0-9_-])helm\.mjs([^A-Za-z0-9_.-]|$)' &&
+      deny "helm is closed to project sessions (profile \"$row\"); write through lib/helm/record.sh"
+    if printf '%s' "$1" | grep -q 'lib/helm/record\.sh'; then
+      { printf '%s' "$1" | grep -Eq 'TILLER_(PROFILE|HOME|HELM_DIR)|--project'; } ||
+        unquoted "$1" | grep -Eq '(^|[^A-Za-z0-9_.-])(cd|pushd)([^A-Za-z0-9_.-]|$)' &&
+        deny "helm is closed to project sessions (profile \"$row\"); record.sh records as this project only, without TILLER_PROFILE, --project or cd"
+    fi
+  fi
   cmd="$(printf '%s' "$1" | sed -E 's#lib/helm/record\.sh##g; s/$/ /')"
   bases="$(helm_bases)"
   hits="$(printf '%s' "$cmd" | grep -oE "${bases}helm(/[^[:space:]\"'\`;|&()<>]*)?[^A-Za-z0-9_.-]")" || return 0
   [ "$row" = _none ] || deny "helm is closed to project sessions (profile \"$row\"); write through lib/helm/record.sh"
+  # Force and amend rewrite what other machines already pulled; push is not a write above.
+  while IFS= read -r seg; do
+    case "$seg" in *git*) ;; *) continue ;; esac
+    unquoted "$seg" | grep -Eq '(^|[[:space:]])(-[A-Za-z]*f[A-Za-z]*|--force[^[:space:]]*|--amend|\+[^[:space:]]+)([[:space:]]|$)' &&
+      deny "helm: events go through lib/helm/record.sh"
+  done <<<"$(printf '%s' "$cmd" | sed -E 's/&&|;|\|\||[|&]/\
+/g')"
   writes "$cmd" || return 0
   while IFS= read -r m; do
     [[ "$m" =~ ^${bases}helm(.*)$ ]] || { ok=0; break; }

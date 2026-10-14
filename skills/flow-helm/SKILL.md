@@ -15,9 +15,10 @@ Each command is written out in full, because shell state does not persist betwee
 ## Where it runs
 
 - **Outside any project** (no profile resolves): everything below.
-- **Inside a project**: the private-access hook denies every path under `helm/`. Only
-  `"$TILLER_HOME/lib/helm/record.sh"` works there, for that project. Do not work around a deny;
-  say the full view needs a session outside the project.
+- **Inside a project**: the private-access hook denies every path under `helm/` and every call to
+  `helm.mjs`. Only `"$TILLER_HOME/lib/helm/record.sh"` works there, run from the session's own
+  directory, for that project. Do not work around a deny; say the full view needs a session
+  outside the project.
 - Exit 4 from any command: there is no helm. Say `./install.sh --helm <git-url>` (existing helm) or
   `./install.sh --helm --new <git-url>` (first machine) and stop.
 

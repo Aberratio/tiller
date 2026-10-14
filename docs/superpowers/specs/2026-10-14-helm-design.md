@@ -104,13 +104,17 @@ One `record.sh` call each, never a gate (a failure is reported, the skill contin
 
 `private-access.sh` gains one protected root, `$TILLER_HOME/helm/`:
 
-- A session that resolves a profile: every read and write under `helm/` is denied, Bash included.
-  `lib/helm/record.sh` is allowed because the command names the script, not the helm path.
+- A session that resolves a profile: every read and write under `helm/` is denied, Bash included,
+  and so is any command naming `helm.mjs`. `lib/helm/record.sh` is allowed because the command
+  names the script, not the helm path, unless the command also names `TILLER_PROFILE`,
+  `TILLER_HOME`, `TILLER_HELM_DIR`, `--project` or a `cd`.
 - A session that resolves no profile (`_none`): read allowed; writes allowed only to `helm.md` and
-  `machines/`. Events are written only through `record.sh`.
+  `machines/`, plus `git -C <helm> commit|push|pull` without `-f`, `--force*`, `--amend` or a `+`
+  refspec. Events are written only through `record.sh`.
 
 The Known gap of the brains design applies unchanged: a script that builds the path at run time is
-not stopped.
+not stopped, and neither is a wrapper script that runs `record.sh` from another project's directory
+or with an overridden profile (a write-only spoof).
 
 ## Machines
 
