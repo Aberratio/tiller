@@ -39,8 +39,9 @@ once at the end: their events may be missing.
 - Kinds: `promise` (to a person, with a due), `deadline` (with a due), `next`, `parked` (summary
   is the condition for return), `note`.
 - Move: a new event of the same kind with the new `--due` and `--supersedes <old id>`. Close or
-  cancel: `--kind done --supersedes <id>`. Ids come from `status --json`. Never edit a file in
-  `events/`.
+  cancel: `--kind done --supersedes <id>`. Ids come from `status --json`, which runs only outside a
+  project, so moving or closing an event is done from a session outside the project, with
+  `--project <name>`. Never edit a file in `events/`.
 
 ## Register a project
 
@@ -54,7 +55,8 @@ then record `--kind registered --summary "Registered" --project <name>`.
 1. `node "$TILLER_HOME/lib/helm/helm.mjs" calendar-pending`. Exit 5: this machine lacks the
    `calendar` capability; name a machine that has it (from `status --json`) and stop.
 2. For each line, search the calendar for the event id first. Found: record
-   `--kind note --summary "In calendar" --calendar-for <id> --link <event url>` and move on.
+   `--project <project> --kind note --summary "In calendar" --calendar-for <id> --link <event url>` (the
+   project is on the `calendar-pending` line; calendar work runs outside a project) and move on.
 3. Not found: ask with `AskUserQuestion`, one deadline per question, create as the recommended
    option. Only on a yes, create an all-day event on the due date whose description contains
    `helm: <id>`, then record the note as in step 2.

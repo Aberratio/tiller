@@ -45,7 +45,8 @@ O="node $TILLER_HOME/lib/onboard/onboard.mjs"
    Then report in one line what stays for a human: the TODOs left in the profile
    (environments, release, known issues), the `## tools` rows to change from `default`, and the
    project's own names to add to `profiles/<name>/leak-terms.txt`.
-   Then, from one of the project's repos, `"$TILLER_HOME/lib/helm/record.sh" --kind registered --summary "Onboarded" --source flow-onboard-project`
+   Then, `cd` into one of the project's repos (or run from outside with `--project <name>`),
+   `"$TILLER_HOME/lib/helm/record.sh" --kind registered --summary "Onboarded" --source flow-onboard-project`
    (silent without a helm), and tell the human the register row is added with `flow-helm`
    from a session outside the project.
 5. **Drift.** `$O drift <name>` lists, read-only: changed main branches, required checks and
