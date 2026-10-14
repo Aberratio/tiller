@@ -182,7 +182,7 @@ directory: Node 24 loads a directory argument as a module and fails.
 |---|---|
 | `config/models.json` | each model: runtime, model id, status, context window, price, features, data policy |
 | `config/lanes.json` | each lane's needs and caps (capability floor, context, cost per call, ladder steps) and the escalation rules |
-| `config/prices.json` | USD per million tokens per `<runtime>/<model>`; a model with no entry cannot run under a USD budget |
+| `config/prices.json` | USD per million tokens per `<runtime>/<model>`; a model with no entry cannot run under a USD budget; `limits.maxTurns` and `limits.wallClockMs` bound every Node-driver lane call |
 | `config/mcp-servers.json` | the connector name each runtime uses for a logical MCP server; a lane request's `mcpServers` overrides it |
 | `config/hitl-words.json` | stopwords per language (L19) and state words (L15) for the hitl linter; lint options extend both |
 | `schemas/route-decision.json` | one journal record per routed dispatch: the model chosen for a lane call and why the others were not |
