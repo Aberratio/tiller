@@ -55,7 +55,11 @@ Every failure and every park carries a `kind` from `kinds.json`; nothing is free
 
 `caps` are harness defaults. A profile's `## run policy` may lower `fixRounds` and `ciFix` (never
 above their `max`); `dayCeiling` and `maxParallel` have no harness default and must come
-from the profile.
+from the profile. Every cap needs a consumer in a script under `lib/` or `skills/`; the self-check
+fails on a cap only `kinds.json` or a test names.
+
+**`ci-infra`** is retried as transport (backoff up to `backoffAttempts`) when a lane failure classifies
+as it. The CI wait reports cancelled and timed-out checks as red, so no CI rerun exists to cap.
 
 **`harness-blocked`** — a tool, permission or classifier denial. Detected from an error with
 permission or classifier text, or an exec-lane result with `ran: false`. Retried once, identical
