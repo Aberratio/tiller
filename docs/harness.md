@@ -176,7 +176,10 @@ broken on the next launch.
 `day`. The Node driver makes a lane call only while the ticket's recorded spend (every run in its
 driver journal), the per-call caps of calls still in flight and this call's cap stay within `run`;
 otherwise the run parks as `budget-exhausted` with one open decision. Replayed steps are not counted
-again. Without `run` in the args there is no run cap.
+again. Without `run` in the args there is no run cap. Before each chunk, the day driver adds what the
+queue's tickets and the day's own lanes recorded to the run cap each chunk ticket has left; over `day`,
+the chunk does not start and the day parks as `budget-exhausted`. Defaults: `run` 75 (five T3 calls),
+`day` 450 (two chunks of three capped runs).
 
 Tests: `bash skills/flow-run-ticket/tests/run-tests.sh` (contract check plus both dry-run suites).
 Node 20 or newer is required. Give `node --test` file globs (`'lib/<dir>/tests/*.test.mjs'`), never a
