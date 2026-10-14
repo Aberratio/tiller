@@ -38,12 +38,18 @@ function ttyPrompt(question) {
   }
 }
 
+// Git Bash and MSYS tools set HOME to a /c/Users/... form that Windows-native agents never read.
+export function homeOf(env, platform) {
+  if (platform === 'win32') return env.USERPROFILE || homedir()
+  return env.HOME || env.USERPROFILE || homedir()
+}
+
 function context(overrides = {}) {
   const env = overrides.env ?? process.env
   return {
     env,
-    platform: process.platform,
-    home: env.HOME || env.USERPROFILE || homedir(),
+    platform: overrides.platform ?? process.platform,
+    home: homeOf(env, overrides.platform ?? process.platform),
     tillerHome: TILLER_HOME,
     isTTY: Boolean(process.stdin.isTTY),
     prompt: ttyPrompt,
