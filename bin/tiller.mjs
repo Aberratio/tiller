@@ -4,20 +4,23 @@
 //   tiller doctor [--json]
 //   tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>]
 //   tiller status [--json]
+//   tiller onboard [--personal <git-url>] [--user <name>] [--yes] [--dry-run] [--agents claude,...]
 //   tiller uninstall [--yes] [--dry-run] [--agents claude,...]
 //
 // Exit: 0 done, 2 usage, 3 refused, 4 failed.
-import { existsSync, readFileSync, readSync, realpathSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, readSync, realpathSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { probe } from '../lib/machine/probe.mjs'
 import { capabilities } from '../lib/machine/capabilities.mjs'
 import { runApply } from '../lib/apply/apply.mjs'
+import { writeAtomic } from '../lib/apply/merge.mjs'
 import { printStatus, runStatus } from '../lib/apply/status.mjs'
 import { runUninstall } from '../lib/apply/uninstall.mjs'
 
-const USAGE = 'usage: tiller doctor [--json] | tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>] | tiller status [--json] | tiller uninstall [--yes] [--dry-run] [--agents claude,...]'
+const USAGE = 'usage: tiller doctor [--json] | tiller onboard [--personal <git-url>] [--user <name>] [--yes] [--dry-run] [--agents claude,...] | tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>] | tiller status [--json] | tiller uninstall [--yes] [--dry-run] [--agents claude,...]'
 const TILLER_HOME = dirname(dirname(fileURLToPath(import.meta.url)))
 
 // Synchronous so the whole apply stays one synchronous pass; returns null at end of input.
@@ -34,7 +37,6 @@ function ttyPrompt(question) {
     line += ch
   }
 }
-const LATER = new Set(['onboard'])
 
 function context(overrides = {}) {
   const env = overrides.env ?? process.env
@@ -68,7 +70,7 @@ function doctor(argv, ctx) {
 }
 
 function parseApply(argv) {
-  const opts = { yes: false, dryRun: false, agents: null, user: null }
+  const opts = { yes: false, dryRun: false, agents: null, user: null, personal: null }
   for (let i = 0; i < argv.length; i++) {
     const [flag, inline] = argv[i].split(/=(.*)/s)
     const value = () => inline ?? argv[++i]
@@ -76,11 +78,15 @@ function parseApply(argv) {
     else if (flag === '--dry-run') opts.dryRun = true
     else if (flag === '--agents') opts.agents = (value() ?? '').split(',').filter(Boolean)
     else if (flag === '--user') opts.user = value()
+    else if (flag === '--personal') opts.personal = value()
     else return null
   }
-  if ((opts.agents && !opts.agents.length) || opts.user === undefined) return null
+  if ((opts.agents && !opts.agents.length) || opts.user === undefined || opts.personal === undefined) return null
   return opts
 }
+
+const stateHomeOf = ctx => ctx.env.TILLER_STATE_HOME || join(ctx.home, '.tiller')
+const personalRootOf = ctx => ctx.env.TILLER_PERSONAL_ROOT || join(ctx.tillerHome, 'personal')
 
 function machineUser(stateHome) {
   const file = join(stateHome, 'machine.json')
@@ -89,13 +95,17 @@ function machineUser(stateHome) {
 
 function apply(argv, ctx) {
   const opts = parseApply(argv)
-  if (!opts) {
+  if (!opts || opts.personal) {
     ctx.stderr(USAGE + '\n')
     return 2
   }
-  const stateHome = ctx.env.TILLER_STATE_HOME || join(ctx.home, '.tiller')
+  return applyWith(opts, ctx)
+}
+
+function applyWith(opts, ctx) {
+  const stateHome = stateHomeOf(ctx)
   const user = opts.user ?? machineUser(stateHome)
-  const personalDir = user ? join(ctx.env.TILLER_PERSONAL_ROOT || join(ctx.tillerHome, 'personal'), user) : null
+  const personalDir = user ? join(personalRootOf(ctx), user) : null
   try {
     const r = runApply({
       tillerHome: ctx.tillerHome, home: ctx.home, env: ctx.env, platform: ctx.platform, stateHome, personalDir,
@@ -120,7 +130,7 @@ function status(argv, ctx) {
     return 2
   }
   try {
-    const s = runStatus({ stateHome: ctx.env.TILLER_STATE_HOME || join(ctx.home, '.tiller') })
+    const s = runStatus({ stateHome: stateHomeOf(ctx) })
     if (argv.includes('--json')) ctx.stdout(JSON.stringify(s, null, 2) + '\n')
     else printStatus(s, ctx.stdout)
     return 0
@@ -132,13 +142,13 @@ function status(argv, ctx) {
 
 function uninstall(argv, ctx) {
   const opts = parseApply(argv)
-  if (!opts || opts.user) {
+  if (!opts || opts.user || opts.personal) {
     ctx.stderr(USAGE + '\n')
     return 2
   }
   try {
     const r = runUninstall({
-      stateHome: ctx.env.TILLER_STATE_HOME || join(ctx.home, '.tiller'), agents: opts.agents, platform: ctx.platform,
+      stateHome: stateHomeOf(ctx), agents: opts.agents, platform: ctx.platform,
       yes: opts.yes, dryRun: opts.dryRun, isTTY: ctx.isTTY, prompt: ctx.prompt, out: ctx.stdout,
     })
     if (r.status === 'refused') {
@@ -153,17 +163,66 @@ function uninstall(argv, ctx) {
   }
 }
 
+// Profile directories set up from a profile.md that still lack their secrets.env; `_template` is the
+// skeleton new profiles are copied from, not a profile.
+function missingSecrets(roots) {
+  return roots.flatMap(root => {
+    const dir = join(root, 'profiles')
+    if (!existsSync(dir)) return []
+    return readdirSync(dir).filter(n => !n.startsWith('_')).map(n => join(dir, n))
+      .filter(p => existsSync(join(p, 'profile.md')) && !existsSync(join(p, 'secrets.env')))
+  })
+}
+
+// Clone when absent, fast-forward when present; onboard never pushes.
+function syncPersonal(url, dir, ctx) {
+  const args = existsSync(dir) ? ['-C', dir, 'pull', '--ff-only', '--quiet'] : ['clone', '--quiet', url, dir]
+  const r = spawnSync('git', args, { env: ctx.env, encoding: 'utf8' })
+  if (r.error || r.status !== 0) throw new Error(`git ${args.includes('pull') ? 'pull --ff-only' : 'clone'} ${existsSync(dir) ? dir : url}: ${(r.stderr || r.error?.message || '').trim()}`)
+  ctx.stdout(`personal: ${args.includes('pull') ? 'pulled' : 'cloned'} ${dir}\n`)
+}
+
+function onboard(argv, ctx) {
+  const opts = parseApply(argv)
+  if (!opts) {
+    ctx.stderr(USAGE + '\n')
+    return 2
+  }
+  const stateHome = stateHomeOf(ctx)
+  const user = opts.user ?? machineUser(stateHome)
+  if (opts.personal && !user) {
+    ctx.stderr('tiller onboard: --personal needs --user <name> the first time\n')
+    return 2
+  }
+  doctor([], ctx)
+  try {
+    const personalDir = join(personalRootOf(ctx), user ?? '')
+    if (opts.personal && opts.dryRun) ctx.stdout(`personal: would ${existsSync(personalDir) ? 'pull' : 'clone'} ${personalDir}\n`)
+    else if (opts.personal) syncPersonal(opts.personal, personalDir, ctx)
+    if (opts.user && !opts.dryRun && opts.user !== machineUser(stateHome)) {
+      const file = join(stateHome, 'machine.json')
+      const machine = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {}
+      writeAtomic(file, JSON.stringify({ ...machine, user: opts.user }, null, 2) + '\n')
+    }
+  } catch (e) {
+    ctx.stderr(`tiller onboard: ${e.message}\n`)
+    return 4
+  }
+  const code = applyWith(opts, ctx)
+  if (code !== 0) return code
+  const missing = missingSecrets([ctx.tillerHome, ...(user ? [join(personalRootOf(ctx), user)] : [])])
+  for (const p of missing) ctx.stdout(`missing secrets.env: ${p}\n`)
+  return 0
+}
+
 export function main(argv, overrides) {
   const ctx = context(overrides)
   const [cmd, ...rest] = argv
   if (cmd === 'doctor') return doctor(rest, ctx)
+  if (cmd === 'onboard') return onboard(rest, ctx)
   if (cmd === 'apply') return apply(rest, ctx)
   if (cmd === 'status') return status(rest, ctx)
   if (cmd === 'uninstall') return uninstall(rest, ctx)
-  if (LATER.has(cmd)) {
-    ctx.stderr(`tiller ${cmd}: not available yet\n`)
-    return 2
-  }
   ctx.stderr(USAGE + '\n')
   return 2
 }
