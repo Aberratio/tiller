@@ -169,6 +169,8 @@ with kind `locked` (exit 4) without touching the run's state. A lock left by a d
 broken on the next launch.
 
 Tests: `bash skills/flow-run-ticket/tests/run-tests.sh` (contract check plus both dry-run suites).
+Node 20 or newer is required. Give `node --test` file globs (`'lib/<dir>/tests/*.test.mjs'`), never a
+directory: Node 24 loads a directory argument as a module and fails.
 
 ## Config and run records
 
