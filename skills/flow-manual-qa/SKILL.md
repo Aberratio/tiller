@@ -32,9 +32,7 @@ could not run; it is never filled in by guessing.
 The gap this fills is **detection, execution and memory**. A ticket's criteria are a floor, not a
 ceiling: testers find most real defects in scenarios nobody wrote down, and Step 2 generates those
 on purpose. `flow-tdd` names the criteria no test level can reach; `flow-confidence-check` marks
-findings `needs-user`. Nobody executes the naming, and nobody remembers it across tickets — which is
-why once four tickets sat in In QA with zero verification records between them and a weekly
-three working days away.
+findings `needs-user`. Nobody executes the naming, and nobody remembers it across tickets.
 
 A project may also have an automated QA lane per surface, listed in `## test toolchain`. This skill
 does not depend on one: where a lane exists, a criterion it can verify is handed to it by name;
@@ -42,106 +40,72 @@ where none exists, the criterion stays in Step 1's buckets like any other.
 
 ## Step 0 — What is actually deployed
 
-Before reading a single criterion: establish the SHA the environment serves and that it contains the
-ticket's merge, using the way `## environments` says the deployed SHA is read. A verification against
-yesterday's bundle is worse than no verification, because it produces a record. Name the check used.
+Before reading a single criterion, prove each of the following and name the check used for each. A
+verification against the wrong build is worse than none, because it produces a record.
 
-**A green CI job proves a build, not a rollout.** Name the artefact that proves the *deployed* state
-and which one it is: a GitOps desired-state commit and image tag, the object's `last-modified` on the
-origin, a version stamped in the bundle. A deploy job that only *dispatches* a workflow in another
-repository proves nothing about a running pod — once a card recorded "redeployed 08:47 UTC"
-from a merge timestamp, twice, before anyone checked. **If the running instance cannot be observed**,
-say *desired state confirmed, rollout unobserved*. Never round that up.
+1. **Prove the surface.** Read the ticket's Environment field, then the surface map in
+   `## environments`. A repository can publish more than one surface, each from its own deploy and
+   on its own schedule; the deploy workflows' path filters and target names hold the mapping. A SHA
+   proved for one surface is not evidence about another.
+2. **Prove the SHA.** Establish the SHA that surface serves, the way `## environments` says it is
+   read, and that it contains the ticket's merge.
+   - A green CI job proves a build, not a rollout. Name the artefact that proves the *deployed* state
+     — a GitOps desired-state commit and image tag, the object's `last-modified` on the origin, a
+     version stamped in the bundle. A job that only dispatches a workflow elsewhere proves nothing
+     about what runs. Running instance not observable → *desired state confirmed, rollout
+     unobserved*, never rounded up.
+   - Containment in the served artefact beats containment in git: `git merge-base --is-ancestor`
+     proves the branch the bundle was built from, not what a user loads. When the change has a
+     signature (a string, a constant, an exported name), grep the *served* bundle for it.
+   - A code-split route file is usually a stub (under Vite, a `__vite__mapDeps` array and little
+     else). Follow it to the chunk that holds code, grep that, and record which chunk the count came
+     from. A zero counts only from a file known to hold code.
+3. **Name the path from a user action to the code** — the route, the request, the field in the
+   response the new code reads. A grep for the symbol proves it was written; a call site in
+   application code and a request the surface actually makes prove it can run. Example: a field
+   present in the types, the schema, the engine and its tests, with no reader in any component, is not
+   observable anywhere. No path → the criterion is **not verifiable yet** (Step 7), never *verified*,
+   never *shipped*. "Merged" is a fact about the repository and is said as one.
+4. **Probe the instrument.** Prove each capability the steps depend on — a signed-in session, an
+   upload path, a download directory, a regex, a formatter's config resolution — by observing it, and
+   force a known error to confirm the instrument reports it before trusting its silence. A statement
+   about tooling in the prompt is a claim to test, not a fact to inherit. Example: `grep` without `-E`
+   reads `?` literally, and a formatter run on a copy outside the repo resolves no config.
+5. **Re-prove when time has passed.** Ask what merged since and whether it touched a path a step
+   exercises. A pass that spans a deploy is two passes.
 
-**Ask which surface before which SHA, because a repository can publish more than one.** Read the
-ticket's own Environment field first, then the surface map in `## environments`. One pass
-over five tickets was handed one staging pin and three of the five did not live behind it: two
-workflows synced two directories to two buckets, carrying builds two days apart. A SHA established
-for one surface is not evidence about another; the deploy workflows' path filters and bucket names
-are where the mapping lives.
+With a browser in the session, read `references/browser-evidence.md` before the first step. When a
+harness simulates the user (injected input, a scripted persona driving the real bundle), read
+`references/simulated-sessions.md` before judging anything it produced.
 
-**Deployed is not reachable, and this is the one that has cost the most.** A current bundle
-containing the merge is exactly what makes the wrong answer feel safe:
-
-- **ABC-213.** A comment recorded two criteria as *"Shipped and verifiable
-  on staging"* on the strength of a merge. Measured two days later: the new symbol existed only in the
-  new front end, **no application code called it**, and the only deployed user surface still ran the
-  old behaviour. The claim stood on the ticket for six days.
-- **ABC-215.** The blocker had merged and a user surface now existed — and the criterion
-  was *still* unobservable: the route fetched a document that did not carry the field the new branch
-  reads, so the branch could never fire there.
-- **ABC-226.** A field in the types, the schema, the engine, an ADR and 31 tests — and no
-  reader in any component. A grep for the symbol alone would have said "present".
-
-So before recording any criterion as verifiable, name **the path from a user action to the code**:
-which route, which request, which field in the response. A grep for the exported symbol proves it was
-written; a call site in application code, and a request the surface actually makes, prove it can run.
-With no such path the criterion is **not verifiable yet** (Step 7) — never *verified*, never
-*shipped*. "Merged" is a fact about the repository and belongs in a sentence that says so.
-
-**Containment in the served artefact beats containment in git.** `git merge-base --is-ancestor`
-proves the merge is in the branch the bundle was built from, not that it reached anything a user
-loads. When the fix has a signature — a string, a constant, an exported name — grep the *served*
-bundle for it. On ABC-213 this took a criterion from "shipped" to *not verifiable yet*: the name was
-absent from all 46 chunks of the deployed bundle.
-
-**A code-split route file is usually a stub, and grepping it reads exactly like a missing feature.**
-Under Vite the file named after a route holds a `__vite__mapDeps` array and almost nothing else. Once
-a containment check over three route files returned **zero for all nine signature
-strings**; following each stub to its real chunk found all nine. Fetch the stub, read the first path
-out of the dependency map, grep *that*, and record which chunk the count came from. A zero is only
-evidence once the file grepped is known to hold code.
-
-**Re-establish Step 0 if any time has passed.** A pin written in the morning can be false by lunch.
-Ask what merged since, and whether it touched a code path any manual step exercises. A pass that
-spans a deploy is two passes.
-
-**Verify the instrument, not just the environment — and never on the prompt's say-so.** Before the
-first step, prove each capability the steps depend on — a signed-in session, an upload path, a
-download directory, a regex, a formatter's config resolution — by observing it and naming the check,
-the same way a SHA is proved. Force a known error and confirm the instrument reports it before
-trusting its silence. **A statement in the prompt about tooling is a claim to test, not a fact to
-inherit.** One pass opened with "the browser is fixed" and it was not; in another a
-`grep` without `-E` read `?` literally and zero hits looked like a missing feature, and a formatter
-run on a copy in `/tmp` was judged by defaults because config resolves by file path.
-
-**With a browser in the session, read `references/browser-evidence.md` before the first step.** It
-carries the checks that make a browser observation citable: the bundle the browser actually loads,
-the running process's argv over its config file, and the failure modes that have been misdiagnosed.
-
-**When a harness simulates the user** — injected sensor data, a scripted persona driving the real
-bundle — read `references/simulated-sessions.md` before judging anything it produced: which
-conditions it actually modelled, where a verdict may come from, and the triage before any `failed`.
-
-**The fail-safe, when the environment cannot be confirmed:** an error on a step whose code path the
+**Fail-safe when the environment cannot be confirmed:** an error on a step whose code path the
 unconfirmed deploy changed is **`not verified` ("environment not ready"), never `failed`**. Write the
-rule into the charter before the run, or the first 500 will be filed as a defect against the wrong
-owner.
+rule into the charter before the run.
 
 ## Step 1 — Classify every criterion before testing any of it
 
 **Most acceptance criteria do not need a human, and treating them as if they do is how a QA pass
 becomes theatre.** Put each one in exactly one bucket, and write the bucket down:
 
-- **Pinned by a test** — cite the file and what would go red. This is the majority: of ABC-223's six
-  criteria, five were pinned by unit, contract and boundary checks, and one needed a browser.
+- **Pinned by a test** — cite the file and what would go red. This is the majority: of a typical ticket's six
+  criteria, five are pinned by unit, contract and boundary checks, and one needs a browser.
 - **Verifiable from an artefact** — a generated report, a committed contract, a schema diff. Read the
   artefact, not the generator.
 - **Automatable — hand to `flow-tdd`** (or to the profile's QA lane for that surface, when one is
   listed) — the observation needs a browser, but nothing about it needs a *person*: the state can be
   reached deterministically and the same check is worth running on every merge. **A browser makes the
-  wrong mistake cheap**: clicking through a scenario the repo could pin forever. Precedent: ABC-212's
-  AC2 read as `manual only` until it turned out the repo already replayed recorded frames through a
-  real browser with the backend stubbed — an e2e assertion, not a QA pass. Ask before every browser
+  wrong mistake cheap**: clicking through a scenario the repo could pin forever. Example: a criterion read
+  as `manual only` until it turned out the repo already replayed recorded input through a real
+  browser with the backend stubbed — an e2e assertion, not a QA pass. Ask before every browser
   step: *is the state I need reachable from a fixture?* If yes, this bucket.
 - **Manual only** — the observation genuinely requires **a person, a real room, a real clock or a
-  real file**: a second person in frame, a moved camera, bad light, a twelve-hour session actually
+  real file**: a second person present, a moved device, bad light, a twelve-hour session actually
   expiring. A browser alone neither disqualifies nor qualifies a criterion. Only these reach Step 2.
 - **Not satisfiable as written** — the criterion asks for something no code in this repository can
   produce. A **ticket defect, not a test failure**: name the owner, point at (or file) the ticket that
-  owns it, and say plainly it was not tested because it cannot be. Precedent: ABC-224's AC4 asked for
-  "the API's own reason" on an oversized upload while the gateway refuses before the API runs — three
-  review rounds and a bot approval missed it; the fix was a descope plus ABC-227, not a test.
+  owns it, and say plainly it was not tested because it cannot be. Example: a criterion asked for
+  "the API's own reason" on an oversized upload while the gateway refuses before the API runs; the fix
+  was a descope plus a ticket for the gateway's owner, not a test.
 
 ## Step 2 — Attack the criterion before you accept it
 
@@ -150,35 +114,35 @@ the generators below and keep each scenario that would produce a different obser
 scenarios are part of the charter, and a failure found there is a finding, not a bonus. Each generator
 is named after a real defect found by asking the question.
 
-- **The transition, not the state.** ABC-306: charts render for a user with data and for one with
-  none — and stay empty for the user who *acquires* data while the page is open. Ask: what changes
+- **The transition, not the state.** Charts render for a user with data and for one with none — and
+  stay empty for the user who *acquires* data while the page is open. Ask: what changes
   underneath this screen while somebody is looking at it?
 - **Two paths to the same truth.** Whenever one fact is reachable two ways, compare them. A search
-  endpoint and a slider returned 11 of 20 matching items; wearables split a 23:00–13:00 sleep across two
-  days while the tracker gave all 14 hours to one (ABC-304). *If it works in one case and not in the
+  endpoint and a slider returned 11 of 20 matching items; one source split a 23:00–13:00 interval
+  across two days while another gave all 14 hours to one. *If it works in one case and not in the
   same scenario elsewhere, it is a bug* — the disagreement is the defect before anyone decides which
   side is right.
 - **"Unchanged" needs a captured baseline, or it is not a criterion.** *"Behaviour is unchanged"*
   cannot fail against a memory. Name the artefact that fixes what "today" was — ideally the same
-  observation on the release this one replaces, same subject, fixture and browser. ABC-230:
-  two captures made hours earlier on the previous release gave every session a
-  line-for-line expectation, so *absences* were assertions rather than impressions — a controlled A/B,
-  the only shape in which "unchanged" is falsifiable. Without a baseline, the criterion belongs in
+  observation on the release this one replaces, same subject, fixture and browser. Two
+  captures made hours earlier on the previous release give every session a line-for-line expectation,
+  so *absences* are assertions rather than impressions — a controlled A/B, the only shape in which
+  "unchanged" is falsifiable. Without a baseline, the criterion belongs in
   *not satisfiable as written*.
-- **The second pass.** The first run is the one the developer tested. ABC-305: a required field stays
+- **The second pass.** The first run is the one the developer tested. A required field stays
   required until you fill it, change another field, clear it again, and walk straight through. Ask:
   what does doing this twice, or out of order, change?
 - **Upgrade, not install.** A fresh install is a different program from an updated one; crashes
-  cluster on the first launch after an update (ABC-308). If the check needs two builds, name the builds
+  cluster on the first launch after an update. If the check needs two builds, name the builds
   and who must produce them rather than substituting a clean install.
-- **Empty, absent, too many.** Zero is a state and so is 49 — a user held 49 historical access codes
+- **Empty, absent, too many.** Zero is a state and so is 49 — a user held 49 historical records
   against a UI built for two. Ask what none looks like, and what absurdly many looks like.
 - **Arrive from outside the flow.** Deep link, back button, a link out of an email, questions skipped.
   One assessment produced three different result pages for the same answers depending on whether it
   was completed, skipped through, or opened by URL — and one dropped a link entirely.
-- **Someone else in the frame.** The environment is an input. In camera-based motion testing, half a
-  face in the foreground corrupted tracking *more* than a second person hugging the subject; ankles
-  mattered more than knees. Ask what a real room contains that the spec assumes away.
+- **What else is in the room.** The physical environment is an input. In sensor-based testing, a
+  small occlusion close to the sensor corrupted results *more* than a whole second subject further
+  away. Ask what a real setting contains that the spec assumes away.
 - **Two clocks.** Account timezone and device timezone are different values and an app can read both.
   Anything with a date is two questions.
 
@@ -187,8 +151,8 @@ mocking a response, deleting a record to force re-entry — legitimate, and each
 observation proves. A step reached by hand-editing `created_at` verifies the read path and says
 nothing about how a user gets there; write that limit into the step.
 
-**Pin the setup so the run repeats.** Tape on the floor for camera distance, the same people, one
-variable moved at a time. A finding nobody can reproduce is a rumour.
+**Pin the setup so the run repeats.** Marked positions and distances, the same people and devices,
+one variable moved at a time. A finding nobody can reproduce is a rumour.
 
 **Reproduce before reporting, because the repeat is where the second bug lives.** One clean
 reproduction is the minimum; a second run separates one defect from two.
@@ -217,9 +181,9 @@ Three tests before ranking anything:
   and name who decides — the ticket's owner, or the `## escalation` Human. Routing is a result.
   Silence is not.
 
-**Record the observation that undermines your own hypothesis.** ABC-209 was titled "usage not counted
-for non-admin" and its reporter appended that enabling as the main admin *also* failed. That line let
-the investigation find the real cause (a trial subscription) and retire the title as a red herring.
+**Record the observation that undermines your own hypothesis.** A ticket titled "usage not counted for
+non-admin" carried its reporter's note that the main admin *also* failed; that line led to the real
+cause (a trial subscription) and retired the title as a red herring.
 
 ## Step 4 — Write steps that can fail
 
@@ -246,15 +210,19 @@ proves it**. Three states:
   **and by whom**:
   - `observed-by-human` — handed over, answered, written down.
   - `observed-by-agent` — **only when a trace, screenshot or video was written to the evidence
-    directory `## environments` names, and the record names the file.** No artefact, no
-    `observed-by-agent`; the result is `not verified`. An agent that reports a click it cannot show
-    has re-created the failure this skill exists to prevent, and it reads as more credible because it
-    sounds specific. `references/browser-evidence.md` has the checks that make the artefact real.
+    directory `## environments` names during this run, the record names the file, and the artefact
+    check below passed for it.** No artefact, no `observed-by-agent`; the result is `not verified`.
+    An agent that reports a click it cannot show has re-created the failure this skill exists to
+    prevent, and it reads as more credible because it sounds specific.
+    `references/browser-evidence.md` has the checks that make the artefact real.
   - A step run **partly** by each is two records, not one rounded up.
 - **failed** — what was observed instead, with enough detail to become a bug ticket.
 - **not verified** — and *why*, plus the date it becomes verifiable. Never write "verified" for a step
   nobody ran, and never let a partial result round up: "four of five criteria verified, the fifth
   returns tomorrow" is a complete answer; "verified" is a false one.
+
+**Record the run start before the first agent-run step** (`date -u +%Y-%m-%dT%H:%M:%SZ`); the
+artefact check measures against it.
 
 ## Step 6 — The record on the ticket
 
@@ -263,10 +231,20 @@ One comment per verification pass, per criterion, on the ticket in the profile's
 not there: criterion, Step 1 bucket, observation, environment **and surface**, SHA, date, who
 observed it, and — when an agent did — the artefact file.
 
+**Before posting, check every artefact the record names:**
+
+```bash
+node "$TILLER_HOME/skills/flow-manual-qa/scripts/check-artefacts.mjs" --since <run start> <artefact> [<artefact> ...]
+```
+
+It prints one JSON line. `"pass":true` → the `observed-by-agent` records stand; paste the line into
+the pass report. Each entry in `failures` (`missing`, `empty`, `not-a-file`, `older-than-run`) turns
+the criterion that cites it into `not verified`, with the problem named. `"status":"error"` means
+nothing was checked: no agent record is posted as verified.
+
 **Correcting a record means editing the false sentence, not only adding a true one below it.** A ticket
-is read from the top and skimmed. ABC-213 carried *"Shipped and verifiable on staging"* from
-the merge; the correction was a fresh comment three days later and the false heading stood three
-days more. Edit the original: **strike the sentence, do not delete it**, add the accurate one, and put
+is read from the top and skimmed: a correction posted as a fresh comment leaves the false heading
+standing above it. Edit the original: **strike the sentence, do not delete it**, add the accurate one, and put
 a dated amendment note above saying what it said and which measurement falsified it. In a regulated
 record the trace of how long the untruth stood is itself evidence. Nothing else in the comment changes.
 
@@ -284,25 +262,21 @@ a register. Read it before classifying: a criterion already parked there is upda
 report says so in one line; this skill never invents a register path.
 
 **Not verifiable yet** is for a criterion whose behaviour is pinned but which has no deployed surface to
-observe it on. ABC-215 earned the row: the core was imported by no application code, so the
-observation waited on ABC-218 rather than on a human. Name the ticket that unblocks it, or the row is a
-shrug.
+observe it on — for example, a core module no application code imports yet, so the observation waits
+on another ticket rather than on a human. Name the ticket that unblocks it, or the row is a shrug.
 
 **A blocker that has cleared is not a criterion that has passed — re-measure, and expect the reason to
-have moved.** When ABC-218 merged, ABC-215's row did not clear: a surface existed, and it read a
-different document. **Rewrite the blocker rather than deleting the row**, and say which happened —
+have moved.** When the unblocking ticket merges, a surface may exist and still read a different
+document than the one the new code expects. **Rewrite the blocker rather than deleting the row**, and say which happened —
 "blocked on X" becoming "blocked on Y" is a different fact from "verified".
 
-**Re-measure a blocker in the same breath as reporting it.** Once this fired twice in one
-hour: a row said a ticket waited on a push that had happened four minutes earlier, and its replacement
-was unblocked before anyone read it. A blocker is a claim about the present tense — re-read it
+**Re-measure a blocker in the same breath as reporting it.** A blocker is a claim about the present tense — re-read it
 immediately before it goes into a comment, a register row or a message, and name the check
 ("`ls-remote` at 11:02") over the state.
 
-**When a criterion leaves this ticket, the register is not where the next reader will look.** Once
-ownership of two split-out halves was correct in the tracker and stale in a day plan, a
-decisions ledger and a memory file — and two sessions came within one step of re-filing tickets
-(ABC-228, ABC-229) that had existed for three days. When a row moves out: put the fact on **the
+**When a criterion leaves this ticket, the register is not where the next reader will look**, and a
+fact correct in the tracker but stale in a plan or a ledger gets the split-out tickets filed twice.
+When a row moves out: put the fact on **the
 ticket** (its description's descope section, not only a comment), link both ways, then **correct every
 document that asserted the old state**. Search the ticket key, and `## known issues`, before filing
 anything.
@@ -344,20 +318,12 @@ labels reused across tiers, options and outcomes made one matrix untestable as w
 - **A check that failed to reproduce is not a pass.** For a race or an intermittent crash, a clean run
   is *did not reproduce*, in those words.
 - **One owner per section of the charter.** It is a shared file and peer sessions in a `flow-run-day`
-  wave write to it; two sessions recorded one environment finding twice in one day. Say who owns
-  Step 0, and route later findings into the addendum.
+  wave write to it. Say who owns Step 0, and route later findings into the addendum.
 
 ## Red flags — the step is not finished
 
-- A manual step that passes on a fresh install and was never tried on an upgrade.
-- A criterion about data with one path exercised, when two paths produce it.
-- A finding with no verdict, no frequency, and no named owner.
-- A scenario dropped because the build, the account or the staffed hours were missing.
-- "Verified" after one run of a bug reported as intermittent.
-- Two specs open, neither declared authoritative, and testing carried on anyway.
-- An agent-run step recorded as `verified` with no trace, screenshot or video named.
-- A browser step clicked through for a state a fixture could have produced.
-- One SHA established, and criteria on a second surface judged against it.
+Beyond the rules above:
+
 - A tool failure blamed on the far end without reading the browser's own console log — see
   `references/browser-evidence.md`.
 - A condition reported as tested when a simulation only scaled a number for it, or a harness failure
@@ -369,6 +335,6 @@ Every criterion is in exactly one bucket with its evidence ✓ every `manual onl
 through the Step 2 generators and the surviving scenarios are in the charter ✓ every manual step names
 its failure condition ✓ every finding carries a verdict with its reason and, where it is not ours, a
 named owner ✓ every answer is in one of three states, none rounded up, each naming who observed it and
-— if an agent did — the artefact ✓ the deployed surface is named per ticket ✓ the register (or, with
+— if an agent did — the artefact, with a passing `check-artefacts` line ✓ the deployed surface is named per ticket ✓ the register (or, with
 none declared, the ticket) reflects what is still unchecked ✓ every `automatable` criterion is handed to
 `flow-tdd` or the profile's QA lane by name.

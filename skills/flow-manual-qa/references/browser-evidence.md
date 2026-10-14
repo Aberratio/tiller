@@ -29,10 +29,10 @@ wrong cause. **Before recording *why* a browser step could not run, read the arg
 - **Verify it exists on disk and is not empty.** Measured: a snapshot with a `filename` wrote
   a **0-byte** file while reporting success, and a screenshot with a *relative* filename ignored
   `--output-dir` and landed in the session's cwd. Pass absolute paths, prefer screenshots over
-  snapshot-to-file, and `ls -la` the result before citing it. Seen again (ABC-230): the
-  relative-filename case recurred and was caught by the `ls -la`.
+  snapshot-to-file, and run `scripts/check-artefacts.mjs` on the result before citing it (SKILL.md
+  Step 6); the relative-filename case recurs.
 - **Subtract your own requests from the console log before attributing anything to the product.** Probes,
-  guessed URL shapes and second tabs leave their failures in the same log. ABC-230: three `404`s on a
+  guessed URL shapes and second tabs leave their failures in the same log. Example: three `404`s on a
   guessed endpoint shape were the agent's, and an early draft of the record attributed them to the wrong
   tab. State the error **classes** with counts, name which are yours, and say how "zero errors from
   application code" was established — the grep, and what it left.

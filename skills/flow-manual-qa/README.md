@@ -45,6 +45,8 @@ by `--check`: a `TODO`, or a Path line with no code span, refuses the profile.
   differently.
 - A protected write is anything under a non-`agent` `## merge authority` path or an `## inviolables`
   item.
+- `scripts/check-artefacts.mjs` follows the script I/O contract in `docs/harness.md`; its tests run
+  with `node --test 'skills/flow-manual-qa/scripts/tests/*.test.mjs'`.
 
 ## Rules earned in field use
 
@@ -67,7 +69,8 @@ Each rule below was added after a real verification pass went wrong without it.
 - Verdict states, three tests before ranking
 - Record the observation that undermines the hypothesis
 - `observed-by-agent` needs an artefact
-- Artefact exists and is not empty
+- Artefact exists, is not empty, and is newer than the run start — checked by
+  `scripts/check-artefacts.mjs` before the record is posted
 - Subtract own requests from the console log
 - Read at the consumer boundary, not the transport
 - Correct by striking, not appending
