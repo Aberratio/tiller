@@ -3,6 +3,8 @@
 //
 //   tiller doctor [--json]
 //   tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>]
+//   tiller status [--json]
+//   tiller uninstall [--yes] [--dry-run] [--agents claude,...]
 //
 // Exit: 0 done, 2 usage, 3 refused, 4 failed.
 import { existsSync, readFileSync, readSync, realpathSync } from 'node:fs'
@@ -13,8 +15,9 @@ import { probe } from '../lib/machine/probe.mjs'
 import { capabilities } from '../lib/machine/capabilities.mjs'
 import { runApply } from '../lib/apply/apply.mjs'
 import { printStatus, runStatus } from '../lib/apply/status.mjs'
+import { runUninstall } from '../lib/apply/uninstall.mjs'
 
-const USAGE = 'usage: tiller doctor [--json] | tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>] | tiller status [--json]'
+const USAGE = 'usage: tiller doctor [--json] | tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>] | tiller status [--json] | tiller uninstall [--yes] [--dry-run] [--agents claude,...]'
 const TILLER_HOME = dirname(dirname(fileURLToPath(import.meta.url)))
 
 // Synchronous so the whole apply stays one synchronous pass; returns null at end of input.
@@ -31,7 +34,7 @@ function ttyPrompt(question) {
     line += ch
   }
 }
-const LATER = new Set(['onboard', 'uninstall'])
+const LATER = new Set(['onboard'])
 
 function context(overrides = {}) {
   const env = overrides.env ?? process.env
@@ -127,12 +130,36 @@ function status(argv, ctx) {
   }
 }
 
+function uninstall(argv, ctx) {
+  const opts = parseApply(argv)
+  if (!opts || opts.user) {
+    ctx.stderr(USAGE + '\n')
+    return 2
+  }
+  try {
+    const r = runUninstall({
+      stateHome: ctx.env.TILLER_STATE_HOME || join(ctx.home, '.tiller'), agents: opts.agents, platform: ctx.platform,
+      yes: opts.yes, dryRun: opts.dryRun, isTTY: ctx.isTTY, prompt: ctx.prompt, out: ctx.stdout,
+    })
+    if (r.status === 'refused') {
+      ctx.stderr(`tiller uninstall: refused: ${r.reason}\n`)
+      return 3
+    }
+    if (r.status !== 'unchanged') ctx.stdout(`${r.status === 'written' ? 'uninstalled' : r.status}\n`)
+    return 0
+  } catch (e) {
+    ctx.stderr(`tiller uninstall: ${e.message}\n`)
+    return 4
+  }
+}
+
 export function main(argv, overrides) {
   const ctx = context(overrides)
   const [cmd, ...rest] = argv
   if (cmd === 'doctor') return doctor(rest, ctx)
   if (cmd === 'apply') return apply(rest, ctx)
   if (cmd === 'status') return status(rest, ctx)
+  if (cmd === 'uninstall') return uninstall(rest, ctx)
   if (LATER.has(cmd)) {
     ctx.stderr(`tiller ${cmd}: not available yet\n`)
     return 2
