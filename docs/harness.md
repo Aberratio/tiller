@@ -163,7 +163,10 @@ journal line `{"type":"result","label","outcome","detail","escalatedFrom"}`: `ou
 **Resume.** Every phase writes a checkpoint; a relaunch with the same args skips finished phases
 and restarts the unfinished one. A day relaunch skips finished children and resumes started ones.
 A usage limit writes `supervisor: paused-usage <reset>` to `state.md`; a finished day writes
-`supervisor: done`.
+`supervisor: done`. One process per ticket: the driver holds the `ticket-run-<TICKET>` lock under
+the state root for the whole run, and a relaunch while another live process holds it is refused
+with kind `locked` (exit 4) without touching the run's state. A lock left by a dead process is
+broken on the next launch.
 
 Tests: `bash skills/flow-run-ticket/tests/run-tests.sh` (contract check plus both dry-run suites).
 

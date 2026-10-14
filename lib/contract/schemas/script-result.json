@@ -42,6 +42,7 @@
         "ceiling",
         "policy",
         "duplicate",
+        "locked",
         "script-error"
       ]
     },
