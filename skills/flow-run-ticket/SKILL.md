@@ -116,6 +116,8 @@ join each lane's spend to its outcome.
 A merge the agent may not make parks with the pull request open and lands on the ready-to-sign
 list (`readyToSign` in the result); it is not a failure and not a question.
 
+A run that ends parked is recorded in the helm (silent when there is none): `"$TILLER_HOME/lib/helm/record.sh" --kind parked --summary "<ticket>: <condition for return>" --link <PR url when one exists> --source flow-run-ticket`.
+
 ## Step 4 — When it comes back
 
 **Read every gate from its source before quoting it.** Gate fields written into the state file are a

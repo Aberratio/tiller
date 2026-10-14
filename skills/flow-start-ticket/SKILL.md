@@ -74,6 +74,7 @@ git checkout -b <branch> origin/<main>
 
 - Assign the ticket to the user (`tracker.me` → account id) unless it's already theirs.
 - Transition to In Progress: `tracker.transitions` → pick the transition whose target status is In Progress → `tracker.transition`. If no such transition exists from the current status, say so and leave the status alone — never force a different transition.
+- Record the start in the helm (silent when there is none; a failure is reported and never stops the skill): `"$TILLER_HOME/lib/helm/record.sh" --kind milestone --summary "<KEY> started: <title>" --link <ticket url> --source flow-start-ticket`.
 
 ## Step 5 — Plan, briefly
 

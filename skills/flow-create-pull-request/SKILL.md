@@ -330,6 +330,8 @@ Use a heredoc so multi-line body formatting is preserved (the body from Step 7, 
 
 Display the PR URL on success, noting it was opened as a draft.
 
+Then record it in the helm (silent when there is none; a failure is reported and never stops the skill): `"$TILLER_HOME/lib/helm/record.sh" --kind milestone --summary "PR opened: <title>" --link <PR url> --source flow-create-pull-request`.
+
 ---
 
 ### Step 11 — Inline review comments (off by default)

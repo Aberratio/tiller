@@ -223,6 +223,7 @@ Skip when scope is `none` or no in-scope findings exist.
    No PR yet: keep the comment file next to the saved report, suggest the `flow-create-pull-request` skill, offer to post right after creation.
 3. List `needs-user` findings and anything unresolved as explicit next steps for the engineer.
 4. Learnings write path (always ask, never silent): if the user rejected findings during the run as invalid or intentional, make ONE batch offer at the end to append them to the discovered learnings file - drafted entries shown first - and optionally suggest CLAUDE.md / AGENTS.md rule additions derived from them. A direct "remember this for reviews" appends right away (draft shown first). No learnings location yet: create `doc/review-learnings.md` and suggest a `## Review learnings` pointer section in the repo's root CLAUDE.md referencing it. Never append automatically from auto-fix acceptances.
+5. Record the verdict in the helm (silent when there is none; a failure is reported and never stops the skill): `"$TILLER_HOME/lib/helm/record.sh" --kind milestone --summary "Confidence: <verdict> on <branch>" --link <PR url when one exists> --source flow-confidence-check`.
 
 ## Decisions that are the owner's go to them as a choice, never as prose
 

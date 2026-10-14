@@ -67,6 +67,8 @@ matters to this project has an open question with `Blocks spec: yes`.
    an MVP and later phases, each with an estimate as a range and a date from a `deadline`
    decision. Run `node "$TILLER_HOME/lib/discovery/discovery.mjs" check <name> --spec <dir>` until it exits 0. Then hand off in one line each:
    tickets through `flow-write-ticket`, the profile through `flow-onboard-project`.
+   For every dated roadmap phase, `"$TILLER_HOME/lib/helm/record.sh" --project <name> --kind deadline --summary "<phase>" --due <date> --source flow-discovery`
+   (silent without a helm). A phase moved later gets a new deadline with `--supersedes <id>`.
 
 Each step ends with a commit in the brain (`git -C <brain> add -A && git -C <brain> commit -m "<step>: <summary>"`), so the register's history
 is the history of the conversation.
