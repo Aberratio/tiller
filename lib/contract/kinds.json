@@ -25,7 +25,7 @@
     "ready-to-sign":      { "exit": 4,    "escalate": "sign",  "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
     "schema":             { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "escalate-tier", "max": 2 } },
     "ci-red":             { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "fix-round", "cap": "ciFix" } },
-    "ci-infra":           { "exit": 3,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "rerun", "cap": "ciInfraRerun" } },
+    "ci-infra":           { "exit": 3,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "backoff", "cap": "backoffAttempts" } },
     "ci-timeout":         { "exit": 2,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "recall", "cap": "waitCiRecalls" } },
     "conflict":           { "exit": 3,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "rebase", "cap": "rebase" } },
     "toolchain":          { "exit": 3,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
@@ -41,12 +41,13 @@
     "policy":             { "exit": 4,    "escalate": "chain", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
     "duplicate":          { "exit": 4,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
     "locked":             { "exit": 4,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
-    "script-error":       { "exit": 1,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } }
+    "script-error":       { "exit": 1,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "budget-exhausted":   { "exit": 4,    "escalate": "chain", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } }
   },
   "caps": {
     "fixRounds":         { "default": 2, "max": 3 },
+    "secondOpinions":    { "default": 1 },
     "ciFix":             { "default": 2, "max": 3 },
-    "ciInfraRerun":      { "default": 1 },
     "confidencePasses":  { "default": 2 },
     "reverifyPerPass":   { "default": 8 },
     "rebase":            { "default": 2 },
@@ -56,6 +57,7 @@
     "backoffAttempts":   { "default": 5 },
     "backoffFirstSeconds": { "default": 30 },
     "backoffMaxSeconds": { "default": 480 },
+    "cooldownMinutes":   { "default": 15 },
     "waitCiSeconds":     { "default": 540 },
     "waitCiRecalls":     { "default": 6 },
     "supervisorSpawns":  { "default": 8 },
@@ -66,13 +68,13 @@
   "lanes": [
     "exec", "premise", "pr-description", "log-prose", "sweep-summary",
     "plan", "implement", "fix", "review-axis", "confidence-dim", "reverify",
-    "conflict", "qa-judge", "resolver", "owner-proxy"
+    "conflict", "qa-judge", "resolver", "owner-proxy", "second-opinion"
   ],
   "phases": [
     "start", "premise", "plan", "implement", "review", "pr", "ci", "review-bot",
     "confidence", "gate", "merge", "qa", "cleanup", "logs"
   ],
-  "tiers": ["T0", "T1", "T2", "T3"],
+  "tiers": ["T0", "T1", "T2", "T3", "T4"],
   "callOutcomes": ["ok", "invalid", "blocked", "harness-blocked", "error"],
   "runStatuses": ["running", "merged", "open-pr", "ready-to-sign", "parked", "paused-usage", "died"],
   "decisionStatuses": ["open", "resolved", "withdrawn"],

@@ -1,0 +1,5 @@
+{
+  "status": "blocked",
+  "kind": "budget-exhausted",
+  "reason": "a budget stop is a policy refusal, not a blocked answer"
+}

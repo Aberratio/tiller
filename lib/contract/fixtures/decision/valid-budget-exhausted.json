@@ -1,0 +1,17 @@
+{
+  "id": "ABC-12-D2",
+  "runId": "r",
+  "ticket": "ABC-12",
+  "kind": "budget-exhausted",
+  "status": "open",
+  "question": "The run spent $68.20 of its $75 cap and stopped before the next call. Raise the cap for one relaunch, or hand the ticket back?",
+  "options": [
+    "raise budgetsUsd.run and relaunch",
+    "hand the ticket back to the manual queue"
+  ],
+  "recommendation": "hand the ticket back to the manual queue",
+  "why": "spent $68.20 + next call cap $15 > run cap $75",
+  "reversalCost": "low: checkpoints are kept either way",
+  "blocks": "ABC-12 review",
+  "at": "2026-09-28T10:00:00Z"
+}

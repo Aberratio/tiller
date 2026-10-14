@@ -70,6 +70,10 @@ ledger entry is reclassified by script as `usage-limit`.
 **`ready-to-sign`** — a run that reaches a path it may not merge parks with the PR left open and
 added to a ready-to-sign list; only a human signature moves it further.
 
+**`budget-exhausted`** — a USD cap from `config/routing.json` `budgetsUsd` would be passed by the
+next unit of work. Nothing more is called; the run or day parks with an open decision (raise the
+cap and relaunch, or hand the work back). Not retried, outside the ceiling.
+
 **Owner proxy** — a profile's `## owner proxy` section names the proxy role and a closed mandate
 list drawn from `kinds.json` `mandates`. The proxy decides only what that list names; no section, or
 `none`, means no unattended day run and every mandate step parks for the human. The chain, the

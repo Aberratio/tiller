@@ -1,0 +1,5 @@
+{
+  "status": "refused",
+  "kind": "budget-exhausted",
+  "reason": "run spent $68.20 of its $75 cap; the next call is capped at $15"
+}
