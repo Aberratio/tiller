@@ -12,8 +12,9 @@ import { fileURLToPath } from 'node:url'
 import { probe } from '../lib/machine/probe.mjs'
 import { capabilities } from '../lib/machine/capabilities.mjs'
 import { runApply } from '../lib/apply/apply.mjs'
+import { printStatus, runStatus } from '../lib/apply/status.mjs'
 
-const USAGE = 'usage: tiller doctor [--json] | tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>]'
+const USAGE = 'usage: tiller doctor [--json] | tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>] | tiller status [--json]'
 const TILLER_HOME = dirname(dirname(fileURLToPath(import.meta.url)))
 
 // Synchronous so the whole apply stays one synchronous pass; returns null at end of input.
@@ -30,7 +31,7 @@ function ttyPrompt(question) {
     line += ch
   }
 }
-const LATER = new Set(['onboard', 'status', 'uninstall'])
+const LATER = new Set(['onboard', 'uninstall'])
 
 function context(overrides = {}) {
   const env = overrides.env ?? process.env
@@ -110,11 +111,28 @@ function apply(argv, ctx) {
   }
 }
 
+function status(argv, ctx) {
+  if (argv.some(a => a !== '--json')) {
+    ctx.stderr(USAGE + '\n')
+    return 2
+  }
+  try {
+    const s = runStatus({ stateHome: ctx.env.TILLER_STATE_HOME || join(ctx.home, '.tiller') })
+    if (argv.includes('--json')) ctx.stdout(JSON.stringify(s, null, 2) + '\n')
+    else printStatus(s, ctx.stdout)
+    return 0
+  } catch (e) {
+    ctx.stderr(`tiller status: ${e.message}\n`)
+    return 4
+  }
+}
+
 export function main(argv, overrides) {
   const ctx = context(overrides)
   const [cmd, ...rest] = argv
   if (cmd === 'doctor') return doctor(rest, ctx)
   if (cmd === 'apply') return apply(rest, ctx)
+  if (cmd === 'status') return status(rest, ctx)
   if (LATER.has(cmd)) {
     ctx.stderr(`tiller ${cmd}: not available yet\n`)
     return 2
