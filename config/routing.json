@@ -1,6 +1,6 @@
 {
   "tiers": { "T1": "haiku", "T2": "sonnet", "T3": "opus" },
-  "budgetsUsd": { "T1": 1, "T2": 4, "T3": 15 },
+  "budgetsUsd": { "T1": 1, "T2": 4, "T3": 15, "run": 75, "day": 450 },
   "concurrency": 3,
   "lanes": {
     "exec": { "tier": "T1" },
