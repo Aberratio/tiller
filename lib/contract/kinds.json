@@ -45,7 +45,7 @@
   },
   "caps": {
     "fixRounds":         { "default": 2, "max": 3 },
-    "ciFix":             { "default": 2 },
+    "ciFix":             { "default": 2, "max": 3 },
     "ciInfraRerun":      { "default": 1 },
     "confidencePasses":  { "default": 2 },
     "reverifyPerPass":   { "default": 8 },

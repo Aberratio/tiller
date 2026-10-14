@@ -53,8 +53,8 @@ Every failure and every park carries a `kind` from `kinds.json`; nothing is free
 | `agentMayEmit` | whether an agent lane may put it in `awaiting[]`; every other kind is derived by a script |
 | `retry` | `mode` plus a fixed `max` or a `cap` key into `caps` |
 
-`caps` are harness defaults. A profile's `## run policy` may lower `fixRounds` (never above its
-`max`) and change `ciFix`; `dayCeiling` and `maxParallel` have no harness default and must come
+`caps` are harness defaults. A profile's `## run policy` may lower `fixRounds` and `ciFix` (never
+above their `max`); `dayCeiling` and `maxParallel` have no harness default and must come
 from the profile.
 
 **`harness-blocked`** — a tool, permission or classifier denial. Detected from an error with
