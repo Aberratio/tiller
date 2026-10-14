@@ -38,8 +38,9 @@ Names used below: `Site`, `Start status`, `Merged status` (`## tracker`); `Acts 
 
 ## Step 0 — inventory the instruments before any query
 
-Load the tracker's search, issue, transitions and edit tools, the calendar's list/search tools and
-the chat search/thread tools (ToolSearch). **Tracker search missing → report "no tracker instrument"
+Load the tracker's `role:tracker` ops `search`, `get`, `transitions`, `edit` and `remote-links`
+(`$TILLER_HOME/config/tool-kinds.json`; the profile's tracker Kind picks the tools), the calendar's
+list/search tools and the chat search/thread tools (ToolSearch). **Tracker search missing → report "no tracker instrument"
 and stop**: no snapshot, no radar. A missing calendar or chat tool only removes those radar sources,
 and the report names them as not read.
 
@@ -58,7 +59,7 @@ and the report names them as not read.
 ## Step 1 — collect the state cheaply
 
 Tracker results are large enough to spill to a file. **Never read that file whole**; extract with
-`jq`:
+`jq` (tracker-specific, Jira response shape):
 
 ```bash
 jq -r '.issues.nodes[] | [.key, .fields.status.name, (.fields.assignee.displayName//"-"),
@@ -66,7 +67,7 @@ jq -r '.issues.nodes[] | [.key, .fields.status.name, (.fields.assignee.displayNa
   (.fields.summary|.[0:60])] | @tsv' <file> | column -t -s$'\t'
 ```
 
-Three searches on `Site`, fields `key, summary, status, assignee, duedate, updated, parent, issuetype,
+Three `tracker.search` calls on `Site` (queries below are tracker-specific, Jira JQL), fields `key, summary, status, assignee, duedate, updated, parent, issuetype,
 priority, issuelinks` (if the call is rejected for carrying `fields`, drop the parameter and keep the
 `jq` discipline):
 
@@ -98,7 +99,7 @@ verification record — and for the PR's own limits: a merged PR can be the arte
 
 ## Step 2 — read the workflow, never assume it
 
-**Fetch the ticket's transitions before every move and pick the id from that answer.** Projects on
+**Fetch the ticket's transitions (`tracker.transitions`) before every move and pick the id from that answer.** Projects on
 one site do not share a workflow; a remembered status name or id is a failed transition or the wrong
 column.
 
@@ -164,7 +165,7 @@ requested ones — and on `2` issues no verdict; `emit` then writes every relati
 2 is never reported as all clear.** No `Canary` in the profile → the check does not run and every
 relation is `unknown`.
 
-Load-bearing, not to be simplified: it reads `status.statusCategory.key`, never `resolutiondate`
+Load-bearing, not to be simplified (tracker-specific, Jira): it reads `status.statusCategory.key`, never `resolutiondate`
 (null for every issue through the search tool); and `never` (closed as not-going-to-happen) is split
 from `stale` by `status.name`, because both share the done category.
 
@@ -272,5 +273,5 @@ writer, not text for the note.
 - Merged read as verified → merged is `Merged status`; `Verified status` needs a named artefact.
 - A commit message, plan or transcript saying "finished" → a claim; the artefact decides.
 - Moving without logging → the mandate is only safe because it is reversible from the log.
-- Querying for 49k tokens before noticing the tracker tool is missing → Step 0 first.
+- Querying at length before noticing the tracker tool is missing → Step 0 first.
 - Reporting a chat promise without opening the thread → about half are already kept.
