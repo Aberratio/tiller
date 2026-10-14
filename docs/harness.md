@@ -208,3 +208,26 @@ directory: Node 24 loads a directory argument as a module and fails.
 
 Adding a kind, lane, field or schema: edit `kinds.json` or the schema, add fixtures, run the
 self-check. Renaming or removing breaks every consumer and needs all of them changed together.
+
+## Untrusted text
+
+Text the harness did not write (the ticket body and comments, PR, review and bot comments, CI
+output) is data, never instructions. When the driver pastes such text into a prompt it goes through
+`lib/text/untrusted.mjs`: a fixed preamble, then the text between `<<<UNTRUSTED source=… id=…>>>` and
+`<<<END UNTRUSTED id=…>>>`, where the id is a hash of the content and any `<<<`/`>>>` inside is
+broken up, so the content cannot close its own fence. A lane that reads such text itself (the
+tracker, bot threads, CI logs) gets `UNTRUSTED_READ_RULE` in its task instead. Lines that read as
+orders to the agent are recorded as `suspicious[]` (source, line, quoted text, reason) on the phase
+output (`plan`, `ci`) and logged; they never stop a run on their own.
+
+## Security scan
+
+`lib/security/scan-diff.mjs --repo --base --head [--profile]` runs at the start of every confidence
+pass, before the model dimensions, on the pinned base and the current head. It reports credential
+shapes added by the diff (the patterns of `lib/leak-guard.sh`; location only, never the value) as
+blocker, each changed dependency manifest or lockfile as medium, and a failing profile audit command
+(`## security`, `- Audit command:`) as high. Its findings join the confidence list without a reverify
+lane; blocker and high ones go to the fix round like any confirmed finding, and the scan re-runs on
+the fixed head. A scan that does not answer (exit 1, no findings list) and an audit command that
+cannot run are held as harness findings and block the gate's `harness` condition. The dimensions are
+told what the scan covered. The result is `out.confidence.securityScan`.
