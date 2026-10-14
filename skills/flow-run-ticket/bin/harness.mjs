@@ -205,7 +205,7 @@ export function caps(factsObj) {
   const c = Object.fromEntries(Object.entries(kinds.caps).map(([k, v]) => [k, v.default]))
   const rp = factsObj.runPolicy || {}
   if (Number.isInteger(rp.fixRounds)) c.fixRounds = Math.min(rp.fixRounds, kinds.caps.fixRounds.max)
-  if (Number.isInteger(rp.ciFix)) c.ciFix = rp.ciFix
+  if (Number.isInteger(rp.ciFix)) c.ciFix = Math.min(rp.ciFix, kinds.caps.ciFix.max)
   return c
 }
 
