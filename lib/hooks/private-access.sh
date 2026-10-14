@@ -18,9 +18,9 @@ deny() {
   exit 0
 }
 
-# Any brains/<x> or profiles/<x> that is not a template, in free text.
+# Any brains/<x> or profiles/<x> that is not a template, or any helm/ path, in free text.
 names_protected() {
-  printf '%s' "$1" | grep -Eq '(^|[^A-Za-z0-9_.-])(brains|profiles)/[A-Za-z0-9]'
+  printf '%s' "$1" | sed -E 's#lib/helm/##g' | grep -Eq '(^|[^A-Za-z0-9_.-])(brains|profiles)/[A-Za-z0-9]|(^|[^A-Za-z0-9_.-])helm/'
 }
 
 # Absolute, symlinks resolved; a missing tail is kept as written under its nearest existing parent.
@@ -48,6 +48,14 @@ level_of() {
 judge() {
   local p="$1" w="$2" rest name lvl
   case "$p" in
+    "$home/helm"|"$home/helm/"*)
+      [ -n "$broken" ] && deny "helm denied: $broken"
+      [ "$row" = _none ] || deny "helm is closed to project sessions (profile \"$row\"); write through lib/helm/record.sh"
+      rest="${p#"$home/helm"}"; rest="${rest#/}"
+      if [ "$w" = 1 ]; then
+        case "$rest" in helm.md|machines/*) ;; *) deny "helm: events go through lib/helm/record.sh" ;; esac
+      fi
+      return 0 ;;
     "$home/brains"|"$home/profiles") return 0 ;;
     "$home/brains/access.json")
       [ "$w" = 1 ] && deny "brains/access.json is written only through lib/brain-access.sh"
@@ -118,6 +126,14 @@ scan_bash() {
   if [ -n "$broken" ]; then
     names_protected "$cmd" && deny "Bash names a protected path: $broken"
     return 0
+  fi
+  # Only path forms count: the record script under lib/ is the sanctioned writer, and a bare "helm"
+  # is often another tool.
+  local h
+  h="$(printf '%s' "$cmd" | sed -E 's#lib/helm/##g')"
+  if printf '%s' "$h" | grep -Eq "(^|[^A-Za-z0-9_.-])helm/|/helm([[:space:]\"';|&)]|\$)"; then
+    [ "$row" = _none ] || deny "helm is closed to project sessions (profile \"$row\"); write through lib/helm/record.sh"
+    word_hit "$h" helm/events && writes "$h" && deny "helm: events go through lib/helm/record.sh"
   fi
   word_hit "$cmd" brains/access.json && writes "$cmd" && deny "brains/access.json is written only through lib/brain-access.sh"
   while IFS= read -r b; do
