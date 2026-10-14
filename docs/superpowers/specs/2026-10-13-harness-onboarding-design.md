@@ -133,14 +133,21 @@ names; it integrates nothing else.
 ## Apply
 
 1. Resolve layers, expand variables, render each agent's targets.
-2. Read each native file. Invalid JSON stops the apply with no write. Copilot files are parsed with
-   comments allowed; comments outside owned keys survive.
-3. Compare every owned key with the hash recorded in `owned.json`. A mismatch is drift: the user
+2. Read each native file. A file that does not parse is never written. In a terminal the user
+   chooses to skip that file and apply the rest, or quit; without a terminal, or with `--dry-run`,
+   it stops the apply with no write. Copilot files are parsed with comments allowed; comments outside
+   owned keys survive.
+3. An existing file the manifest does not know yet, and which the plan would change, is asked about
+   once per file before anything is written: merge (owned keys only, with a backup), skip (no write,
+   no manifest entry, so the question returns on the next apply) or quit. `--yes` answers merge and
+   prints each such file with its backup path. A hand-merged private-access hook left by the old
+   `install.sh --hooks` is reported; in a terminal without `--yes` the user may remove that entry.
+4. Compare every owned key with the hash recorded in `owned.json`. A mismatch is drift: the user
    chooses to adopt the current value into the personal layer, overwrite it, or release the key.
    Without a terminal, drift refuses the apply.
-4. Show the diff. Write on consent, or with `--yes`. Without a terminal and without `--yes`, refuse.
-5. Back up each file to be changed, write to a temporary file, rename over the original.
-6. Record each written key as a JSON pointer plus value hash. A Claude hook entry has no id field,
+5. Show the diff. Write on consent, or with `--yes`. Without a terminal and without `--yes`, refuse.
+6. Back up each file to be changed, write to a temporary file, rename over the original.
+7. Record each written key as a JSON pointer plus value hash. A Claude hook entry has no id field,
    so tiller's command starts with `TILLER_HOOK=<id> ` and the manifest records the entry by that
    prefix; Copilot hooks live in tiller's own file. User hooks in the same array are untouched.
 
