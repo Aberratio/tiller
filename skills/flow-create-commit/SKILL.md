@@ -1,11 +1,13 @@
 ---
 name: flow-create-commit
-description: Create git commits in the project's commit format - read from the profile's `## commits` section, plain single-line Conventional Commits (e.g. "feat(auth): add token validation") when the profile declares none. Use this skill whenever the user wants to commit changes, write a commit message, amend or fix a commit message, or asks "commit this" - even if they don't mention the format. Also used by flow-create-pull-request to validate and repair commit messages before opening a PR. Fills the ticket key from the branch name when the format asks for one, picks the right Conventional Commits type, keeps the message to one line, and never adds co-author trailers.
+description: Create git commits in the project's commit format - read from the profile's `## commits` section, plain single-line Conventional Commits (e.g. "feat(auth): add token validation") when the profile declares none. Use this skill whenever the user wants to commit changes, write a commit message, amend or fix a commit message, or asks "commit this" - even if they don't mention the format. Also used by flow-create-pull-request to validate and repair commit messages before opening a PR. Fills the ticket key from the branch name when the format asks for one, picks the right Conventional Commits type, defaults to a one-line message with no co-author trailers.
 ---
 
 # Create Commit
 
-One line only - no body, no footers, no co-author trailers. The type table, the placeholder
+Default message shape: one line - no body, no footers, no co-author trailers. The profile's
+`## commits` section may override it; today it declares the format only (`docs/profile-schema.md`),
+so the default holds unless that section says otherwise. The type table, the placeholder
 rules and the validation checklist live in `references/conventional-commits.md`; read it before
 composing any message.
 
@@ -69,8 +71,8 @@ git commit -m "<the composed message>"
 
 Rules:
 
-- **Never** add `Co-Authored-By` or any other trailer.
-- **Never** use multi-line messages.
+- By default, no `Co-Authored-By` or any other trailer, and no multi-line message (see the default
+  at the top).
 - Show the resulting commit with `git log -1 --oneline`.
 
 ---
