@@ -136,6 +136,13 @@ the gate was decided on.
 3. Ask the user exactly one thing — whether this was a stop or a death. Everything else about the
    state is readable, that is not.
 
+### After a day of runs
+
+When the runs of a day are back, read them as a whole before the next day starts: `flow-retro`
+writes `retros/<date>.md` beside the profile from every run under the profile's run-state directory
+(park causes that recur, decisions left open, spend per lane, verdicts overturned) and proposes the
+edits that evidence supports. It applies none of them; each proposal comes back as a choice.
+
 ## Decisions are questions, never prose
 
 Anything the run leaves for the user goes back as a choice with the options named, each with what it

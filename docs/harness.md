@@ -206,6 +206,13 @@ the chunk does not start and the day parks as `budget-exhausted`. Defaults: `run
 `budgetsUsd.run`, or 75 when `config/routing.json` has none). With `SUPERVISE_MAX_SPAWNS`, that bounds
 a supervised run at spawns × the per-child budget.
 
+**Retro.** `skills/flow-retro/bin/retro.mjs --profile <file> [--root dir] [--date d] [--dry-run]` reads
+every `driver-result.json`, `day-result.json`, `decisions.jsonl`, driver journal and verdict ledger
+under the profile's run-state directory and writes `retros/<date>.md` beside the profile: runs, park
+causes, open decisions, spend, overturn rates, then proposals with evidence lines. A proposal targets
+a profile section, a cap, a lane schema or the run-ticket skill, never merge authority, inviolables
+or the owner-proxy mandate; nothing is applied.
+
 Tests: `bash skills/flow-run-ticket/tests/run-tests.sh` (contract check plus both dry-run suites).
 Node 20 or newer is required. Give `node --test` file globs (`'lib/<dir>/tests/*.test.mjs'`), never a
 directory: Node 24 loads a directory argument as a module and fails.
