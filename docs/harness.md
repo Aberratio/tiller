@@ -116,6 +116,11 @@ Fixed prompt:
   record carries `sameModel: true`. Its verdicts downgrade a finding only with a reason and
   evidence, never raise one, and never widen merge authority. Called at most `caps.secondOpinions`
   (1) times per run: when two review axes disagree on a file or the fix rounds run out.
+- A measured score (`config/measured.json`) only demotes. One below the hand score in `models.json`
+  replaces it; one above is ignored; a pinned model with no hand score takes a measured score only
+  when that score fails the lane. A pinned model measured below `gateFloor` is dropped from that
+  gate lane with one stderr line per model, lane and eval run; the route record says
+  `measured:<evalRun>` on every demoted candidate.
 
 ## State records
 
@@ -151,6 +156,7 @@ profile: all take the args object `skills/flow-run-ticket/bin/harness.mjs` build
 | `day-args --profile --date --queue waves.json` | `<root>/args-day.json`; refused without an owner proxy, a day ceiling or a valid queue |
 | `drive --args` / `drive-day --args` | a ticket or a day on the Node driver; one script-result line, the result in `driver-result.json` / `day-result.json` |
 | `supervise-env --profile [--disallow tool]...` | `SUPERVISE_STOP_HOUR` and `SUPERVISE_DISALLOWED_TOOLS` for `lib/supervisor/supervise.sh` |
+| `calibrate --profile [--root dir] [--out file] [--min-n N] [--dry-run]` | `config/measured.json` from every `verdicts.jsonl` under the profile's run-state directory; one script-result line naming the pairs measured and the pairs skipped for too few verdicts |
 | `run`, `classify`, `sleep`, `write`, `push`, `command`, `resume`, `base-head` | what the exec lane invokes during a run; see the file header |
 
 Args carry the rendered facts, the lane schemas, model tiers resolved through
@@ -207,6 +213,7 @@ directory: Node 24 loads a directory argument as a module and fails.
 | `config/prices.json` | USD per million tokens per `<runtime>/<model>`; a model with no entry cannot run under a USD budget; `limits.maxTurns` and `limits.wallClockMs` bound every Node-driver lane call |
 | `config/mcp-servers.json` | the connector name each runtime uses for a logical MCP server; a lane request's `mcpServers` overrides it |
 | `config/hitl-words.json` | stopwords per language (L19) and state words (L15) for the hitl linter; lint options extend both |
+| `config/measured.json` | `{ "<model>": { "<lane>": { score, n, evalRun } } }`, written by `calibrate` (`lib/journal/calibrate.mjs`): `score` is one minus the overturn rate over `n` verdicts, at least `--min-n` (10); machine-local and git-ignored; `TILLER_MEASURED` names another file |
 | `schemas/route-decision.json` | one journal record per routed dispatch: the model chosen for a lane call and why the others were not |
 | `schemas/hitl-request.json` | anything put to a person; `lib/hitl/lint.mjs` enforces its wording before it is sent |
 | `tickets/<ticket>/verdicts.jsonl` | append-only lane verdicts plus `overturned` lines; read as an overturn rate per lane and model |
