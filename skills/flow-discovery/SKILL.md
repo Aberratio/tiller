@@ -37,6 +37,9 @@ requirements · stack and integrations · data and data protection · budget · 
 accepts and what "done" means · maintenance after launch. A spec is not ready while an area that
 matters to this project has an open question with `Blocks spec: yes`.
 
+A single idea that is not yet a project, or a question inside an existing project, is a
+`flow-brainstorm` session, not a discovery: discovery ends in a spec, brainstorming in one decision.
+
 ## Steps
 
 0. **Brain.** `node "$TILLER_HOME/lib/discovery/discovery.mjs" new <name>` for a client, `... new <name> --pet` for a pet project. Exit 3:

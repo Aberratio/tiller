@@ -133,3 +133,4 @@ Premise verified or corrected ✓ kind named ✓ seams stated in the columns flo
 - Find a bug's root cause (flow-diagnose-bug runs first; this skill plans what the diagnosis found — its "plan" deliverable exits straight into here, carrying the cause, the numbers and an unwritten regression test).
 - Write tests or implementation (flow-tdd inherits the seam table from here).
 - Review, commit, or open a PR (flow-code-review, flow-create-commit, flow-create-pull-request).
+- Explore what to build when there is no ticket yet (flow-brainstorm).

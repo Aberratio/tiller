@@ -11,6 +11,9 @@ to change, that is a finding about the skill, not about the project.
 A project that does not exist yet starts with `flow-discovery`: the spec and roadmap are agreed
 first, with the client or alone, and recorded in a brain. Onboarding follows once there is a repo.
 
+An open question inside a project that already has a profile goes through `flow-brainstorm`
+(`docs/brainstorming.md`): one session, one recorded decision, then a ticket.
+
 ## Scripted path
 
 ```bash

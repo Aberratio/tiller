@@ -148,6 +148,7 @@ A hit means the fact belongs in a profile, not that the term list is wrong.
 |---|---|
 | `flow-start-ticket` | open work on a ticket: branch, status, plan |
 | `flow-plan-ticket` | turn a specified ticket into a plan |
+| `flow-brainstorm` | explore what to build before a ticket exists; one recorded decision |
 | `flow-tdd` | build test-first |
 | `flow-code-review` | two-axis review, no verdict |
 | `flow-confidence-check` | final verdict on a finished branch |

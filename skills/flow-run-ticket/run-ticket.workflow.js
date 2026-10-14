@@ -1291,7 +1291,7 @@ async function main() {
 
   if (todo('cleanup')) {
     CUR = 'cleanup'; phase('cleanup')
-    out.cleanup = out.merge.merged ? { removed: ((await run('git/cleanup.mjs', ['--repo', REPO_PATH, '--base', BASE])).removed || []).length } : { skipped: true }
+    out.cleanup = out.merge.merged ? { removed: ((await run('git/cleanup.mjs', ['--repo', REPO_PATH, '--branch', BRANCH, '--worktree', WT, '--base', BASE])).removed || []).length } : { skipped: true }
     await checkpoint('cleanup', out.cleanup)
   }
 }
