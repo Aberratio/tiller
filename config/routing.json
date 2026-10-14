@@ -1,6 +1,6 @@
 {
-  "tiers": { "T1": "haiku", "T2": "sonnet", "T3": "opus" },
-  "budgetsUsd": { "T1": 1, "T2": 4, "T3": 15, "run": 75, "day": 450 },
+  "tiers": { "T1": "haiku", "T2": "sonnet", "T3": "opus", "T4": [] },
+  "budgetsUsd": { "T1": 1, "T2": 4, "T3": 15, "T4": 15, "run": 75, "day": 450 },
   "concurrency": 3,
   "lanes": {
     "exec": { "tier": "T1" },
@@ -17,6 +17,7 @@
     "conflict": { "tier": "T3", "gate": true },
     "qa-judge": { "tier": "T3", "gate": true },
     "resolver": { "tier": "T3", "gate": true },
-    "owner-proxy": { "tier": "T3", "gate": true }
+    "owner-proxy": { "tier": "T3", "gate": true },
+    "second-opinion": { "tier": "T3", "gate": true }
   }
 }

@@ -21,7 +21,8 @@
         "conflict",
         "qa-judge",
         "resolver",
-        "owner-proxy"
+        "owner-proxy",
+        "second-opinion"
       ]
     },
     "model": {
@@ -55,6 +56,10 @@
     "attempt": {
       "type": "integer",
       "minimum": 1
+    },
+    "sameModel": {
+      "type": "boolean",
+      "description": "the second opinion came from the model that produced the contested output: no other admitted model at its tier or above"
     },
     "rejected": {
       "type": "array",

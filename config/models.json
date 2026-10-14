@@ -48,7 +48,8 @@
         "premise",
         "pr-description",
         "log-prose",
-        "sweep-summary"
+        "sweep-summary",
+        "second-opinion"
       ],
       "capability": {}
     },

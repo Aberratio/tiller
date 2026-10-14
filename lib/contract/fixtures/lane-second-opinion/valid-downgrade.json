@@ -1,0 +1,9 @@
+{
+  "reviewedSha": "c0ffee1",
+  "verdicts": [
+    { "id": "STD-1", "axis": "standards", "verdict": "downgrade", "severity": "medium", "reason": "the buffer is bounded by the caller", "evidence": "src/pose.ts:12 `const buf = new Array(MAX)`" },
+    { "id": "SPEC-2", "axis": "spec", "verdict": "uphold", "severity": "high", "reason": "the ticket names the field", "evidence": "spec line 4: `returns a patientId`" }
+  ],
+  "report": "one of two findings stands",
+  "awaiting": []
+}

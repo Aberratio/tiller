@@ -1,0 +1,1 @@
+{"lane":"second-opinion","model":"opus","runtime":"claude","decisionId":"0123456789abcdef","rejectedCount":2,"escalatedFrom":null,"attempt":1,"sameModel":true,"rejected":[{"model":"haiku","why":"not-pinned"},{"model":"sonnet","why":"not-pinned"}]}

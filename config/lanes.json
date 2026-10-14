@@ -89,7 +89,7 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
     },
     "implement": {
       "class": "judgment",
@@ -101,7 +101,7 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
     },
     "fix": {
       "class": "judgment",
@@ -113,7 +113,7 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
     },
     "review-axis": {
       "class": "judgment",
@@ -125,7 +125,7 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
     },
     "confidence-dim": {
       "class": "judgment",
@@ -137,7 +137,7 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
     },
     "reverify": {
       "class": "judgment",
@@ -149,7 +149,7 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
     },
     "conflict": {
       "class": "judgment",
@@ -161,7 +161,7 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
     },
     "qa-judge": {
       "class": "judgment",
@@ -173,7 +173,7 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
     },
     "resolver": {
       "class": "judgment",
@@ -185,7 +185,7 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
     },
     "owner-proxy": {
       "class": "judgment",
@@ -197,7 +197,19 @@
       },
       "minContext": 200000,
       "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 0
+      "maxLadderSteps": 1
+    },
+    "second-opinion": {
+      "class": "judgment",
+      "gate": true,
+      "minCapability": 0.85,
+      "needs": {
+        "tools": true,
+        "structuredOutput": "schema"
+      },
+      "minContext": 200000,
+      "maxCostUsdPerCall": 15,
+      "maxLadderSteps": 1
     }
   }
 }

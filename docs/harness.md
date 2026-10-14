@@ -109,6 +109,13 @@ Fixed prompt:
   refused by the classifier non-deterministically.
 - Every `agent()` label is `<phase>:<lane>:<tier>[:<detail>]`, e.g. `review:review-axis:T3:standards`,
   so spend joins to phases exactly.
+- A gate lane's ladder steps sideways or up only: the next candidate sits at the failed model's tier
+  or above (`maxLadderSteps` 1), never below. A non-gate lane climbs its cost order one step.
+- `second-opinion` is a gate lane routed with `avoid: <model of the contested output>`: another
+  admitted model at that tier or above goes first; with none, the same model answers and the route
+  record carries `sameModel: true`. Its verdicts downgrade a finding only with a reason and
+  evidence, never raise one, and never widen merge authority. Called at most `caps.secondOpinions`
+  (1) times per run: when two review axes disagree on a file or the fix rounds run out.
 
 ## State records
 
@@ -194,6 +201,7 @@ directory: Node 24 loads a directory argument as a module and fails.
 
 | File | Purpose |
 |---|---|
+| `config/routing.json` | tiers (`T1`-`T3` one model each; `T4` an optional model list, empty until a profile needs it) and each lane's tier and gate flag |
 | `config/models.json` | each model: runtime, model id, status, context window, price, features, data policy |
 | `config/lanes.json` | each lane's needs and caps (capability floor, context, cost per call, ladder steps) and the escalation rules |
 | `config/prices.json` | USD per million tokens per `<runtime>/<model>`; a model with no entry cannot run under a USD budget; `limits.maxTurns` and `limits.wallClockMs` bound every Node-driver lane call |

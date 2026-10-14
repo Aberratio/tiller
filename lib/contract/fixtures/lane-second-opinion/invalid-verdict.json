@@ -1,0 +1,7 @@
+{
+  "reviewedSha": "c0ffee1",
+  "verdicts": [
+    { "id": "STD-1", "verdict": "escalate", "severity": "blocker", "reason": "x", "evidence": "y" }
+  ],
+  "awaiting": []
+}
