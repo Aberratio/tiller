@@ -157,7 +157,7 @@ scan_helm() {
     printf '%s' "$1" | grep -Eq '(^|[^A-Za-z0-9_-])helm\.mjs([^A-Za-z0-9_.-]|$)' &&
       deny "helm is closed to project sessions (profile \"$row\"); write through lib/helm/record.sh"
     if printf '%s' "$1" | grep -q 'lib/helm/record\.sh'; then
-      { printf '%s' "$1" | grep -Eq 'TILLER_(PROFILE|HOME|HELM_DIR)|--project'; } ||
+      { printf '%s' "$1" | grep -Eq '(^|[^A-Za-z0-9_])TILLER_(PROFILE|HOME|HELM_DIR)=|--project'; } ||
         unquoted "$1" | grep -Eq '(^|[^A-Za-z0-9_.-])(cd|pushd)([^A-Za-z0-9_.-]|$)' &&
         deny "helm is closed to project sessions (profile \"$row\"); record.sh records as this project only, without TILLER_PROFILE, --project or cd"
     fi
