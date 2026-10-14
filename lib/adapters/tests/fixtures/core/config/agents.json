@@ -1,0 +1,6 @@
+{
+  "flow-demo": {
+    "model": "sonnet",
+    "tools": ["shell", "read", "search", "web", "role:tracker.get", "role:chat.search"]
+  }
+}

@@ -6,6 +6,7 @@
         "type": "command",
         "matcher": "Read|Grep|Glob|Edit|Write|Bash",
         "bash": "'/opt/tiller/lib/hooks/copilot-pretooluse.sh' '/opt/tiller/lib/hooks/private-access.sh'",
+        "timeoutSec": 120,
         "env": {
           "TILLER_HOME": "/opt/tiller",
           "EXAMPLE": "1"
