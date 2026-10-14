@@ -121,6 +121,12 @@ Fixed prompt:
   when that score fails the lane. A pinned model measured below `gateFloor` is dropped from that
   gate lane with one stderr line per model, lane and eval run; the route record says
   `measured:<evalRun>` on every demoted candidate.
+- The routing state is read at launch from the journals under the profile's run-state directory
+  (`~/.claude/run-state/<profile>`, or `TILLER_RUN_STATE`; an explicit `--root` reads only itself):
+  `recent` mean tokens per model and lane (input plus cache writes in, output out, replayed lines
+  left out) and `cooldown` for every model rate-limited within `caps.cooldownMinutes` (15). A rate
+  limit during the run cools that model for the same window; a cooldown every candidate shares is
+  lifted rather than parking the lane. Each lane journal line carries `at`.
 
 ## State records
 
@@ -160,7 +166,8 @@ profile: all take the args object `skills/flow-run-ticket/bin/harness.mjs` build
 | `run`, `classify`, `sleep`, `write`, `push`, `command`, `resume`, `base-head` | what the exec lane invokes during a run; see the file header |
 
 Args carry the rendered facts, the lane schemas, model tiers resolved through
-`lib/routing/resolve.mjs` (a gate lane is never below the session tier), review-bot skip patterns,
+`lib/routing/resolve.mjs` (a profile override moving a gate lane below T3 refuses the launch, as does a
+tier that lists no model), review-bot skip patterns,
 `hardStopChannels`, the caps and the explicit `STATE_ROOT`. Every lane runs under `with-backoff`
 and `classify-failure`; a green claim passes `verify-claim` before a gate reads it.
 

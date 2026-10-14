@@ -28,6 +28,8 @@
 //       run the day on the Node day driver (lib/driver/day.mjs); one script-result line
 //   harness.mjs supervise-env --profile <file> [--disallow <tool>]...
 //       SUPERVISE_STOP_HOUR and SUPERVISE_DISALLOWED_TOOLS for lib/supervisor/supervise.sh
+//   harness.mjs calibrate --profile <file> [--root <run-state dir>] [--out <file>] [--min-n N] [--dry-run]
+//       fold every run's verdict ledger under the profile's run-state directory into config/measured.json
 //
 // Output: one script-result line (docs/harness.md, "Script I/O").
 
@@ -41,6 +43,8 @@ import { awaitingRules } from '../../../lib/contract/awaiting.mjs'
 import { claudeToolName } from '../../../lib/driver/adapters/claude.mjs'
 import { outwardRoleOps, resolveTools } from '../../../lib/driver/adapters/tools.mjs'
 import { runtimeAvailability } from '../../../lib/driver/adapters/index.mjs'
+import { checkMeasured, cooldownFrom, journalsUnder, recentFrom } from '../../../lib/journal/calibrate.mjs'
+import { readJournal } from '../../../lib/driver/journal.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 export const CORE = resolve(HERE, '..', '..', '..')
@@ -168,14 +172,23 @@ function routing(factsObj, root) {
 
 // The driver routes each lane call itself; it gets the catalogue, the lane policy and what was
 // reachable at launch. A profile tier override is honoured by pinning the overriding model to the lane.
-function router(resolved) {
+// The state also carries what the journals under `journalsRoot` say: measured scores
+// (config/measured.json, or the file TILLER_MEASURED names), recent mean tokens per model and lane,
+// and the models rate-limited within the last caps.cooldownMinutes.
+function router(resolved, journalsRoot, c) {
   const read = f => JSON.parse(readFileSync(join(CORE, 'config', f), 'utf8'))
   const catalogue = read('models.json')
   for (const [lane, r] of Object.entries(resolved)) {
     const m = r.model && catalogue.models[r.model]
     if (m && !(m.pinnedLanes || []).includes(lane)) m.pinnedLanes = [...(m.pinnedLanes || []), lane]
   }
-  return { catalogue, lanes: read('lanes.json'), state: { asOf: new Date().toISOString(), runtimes: runtimeAvailability() } }
+  const asOf = new Date().toISOString()
+  const measuredPath = process.env.TILLER_MEASURED || join(CORE, 'config', 'measured.json')
+  const measured = existsSync(measuredPath) ? JSON.parse(readFileSync(measuredPath, 'utf8')) : {}
+  const bad = checkMeasured(measured)
+  if (bad.length) refuse(`${measuredPath}: ${bad.join('; ')}`)
+  const lines = existsSync(journalsRoot) ? journalsUnder(journalsRoot).journals.flatMap(readJournal) : []
+  return { catalogue, lanes: read('lanes.json'), state: { asOf, runtimes: runtimeAvailability(), measured, recent: recentFrom(lines), cooldown: cooldownFrom(lines, asOf, c.cooldownMinutes) } }
 }
 function routingConfig() {
   const { tiers, budgetsUsd, concurrency } = JSON.parse(readFileSync(join(CORE, 'config', 'routing.json'), 'utf8'))
@@ -256,6 +269,9 @@ function rootFor(opts, profileName) {
   const run = opts.run || `${opts.ticket || basename(String(opts.spec || 'spec'), '.md')}-${opts.date}`
   return resolve(opts.root || process.env.STATE_ROOT || join(homedir(), '.claude', 'run-state', profileName, run))
 }
+// Where the profile's runs live: the journals routing state and calibration read. An explicit run
+// root reads itself only, so a custom layout never picks up a stranger's journals.
+const runStateFor = (opts, profileName, root) => resolve(process.env.TILLER_RUN_STATE || (opts.root || process.env.STATE_ROOT ? root : join(homedir(), '.claude', 'run-state', profileName)))
 
 function common(opts) {
   if (!opts.profile || !opts.date) refuse('--profile and --date are required')
@@ -275,7 +291,7 @@ function common(opts) {
       harnessBin: join(HERE, 'harness.mjs'),
       lib: LIB,
       routing: resolved,
-      router: router(resolved),
+      router: router(resolved, runStateFor(opts, f.profile, root), caps(f)),
       ...routingConfig(),
       caps: caps(f),
       kinds: Object.fromEntries(Object.entries(kinds.kinds).map(([k, v]) => [k, { escalate: v.escalate, ceiling: v.ceiling }])),
@@ -432,6 +448,20 @@ function superviseEnv(opts) {
   emit(0, { status: 'ok', channels, env: { SUPERVISE_STOP_HOUR: hour ? String(Number(hour[1])) : '', SUPERVISE_DISALLOWED_TOOLS: tools.join(' ') } })
 }
 
+// Calibration over every run under the profile's run-state directory (lib/journal/calibrate.mjs).
+function calibrate(opts) {
+  if (!opts.profile) refuse('--profile is required')
+  const f = facts(resolve(opts.profile))
+  const dir = resolve(opts.root || process.env.TILLER_RUN_STATE || join(homedir(), '.claude', 'run-state', f.profile))
+  const argv = [join(LIB, 'journal', 'calibrate.mjs'), '--root', dir, '--out', resolve(opts.out || join(CORE, 'config', 'measured.json'))]
+  if (opts['min-n']) argv.push('--min-n', String(opts['min-n']))
+  if (opts['dry-run']) argv.push('--dry-run')
+  const p = spawnSync(process.execPath, argv, { encoding: 'utf8' })
+  process.stdout.write(p.stdout)
+  process.stderr.write(p.stderr || '')
+  process.exit(p.status ?? 1)
+}
+
 // ------------------------------------------------------------------------------ main
 
 const [cmd, ...argv] = process.argv.slice(2)
@@ -451,6 +481,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     case 'drive-day': driveDay(opts); break
     case 'resume': resumeInline(opts); break
     case 'supervise-env': superviseEnv(opts); break
+    case 'calibrate': calibrate(opts); break
     default: refuse(`unknown command "${cmd}"`)
   }
 }
