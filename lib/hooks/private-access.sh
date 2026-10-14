@@ -26,11 +26,27 @@ deny() {
   exit 0
 }
 
-# Any brains/<x> or profiles/<x> that is not a template, or any helm path, in free text. Unanchored
-# on purpose: this only runs when the home or the matrix cannot be trusted.
+# Any brains/<x> or profiles/<x> that is not a template, or any helm path, in free text; either
+# separator, since JSON doubles a Windows backslash. Unanchored on purpose: this only runs when the
+# home or the matrix cannot be trusted.
 names_protected() {
-  printf '%s' "$1" | sed -E 's#lib/helm/record\.sh##g' |
-    grep -Eq '(^|[^A-Za-z0-9_.-])(brains|profiles)/[A-Za-z0-9]|helm/|/helm([^A-Za-z0-9_.-]|$)'
+  printf '%s' "$1" | sed -E 's#lib[/\\]+helm[/\\]+record\.sh##g' |
+    grep -Eq '(^|[^A-Za-z0-9_.-])(brains|profiles)[/\\]+[A-Za-z0-9]|helm[/\\]|[/\\]helm([^A-Za-z0-9_.-]|$)'
+}
+
+drive_path() { case "$1" in [A-Za-z]:[\\/]*) return 0 ;; esac; return 1; }
+
+# In Windows mode a path reads \ as a separator and a drive path goes through cygpath, so C:\x, c:/x
+# and /c/x judge alike; otherwise the path is returned as given.
+posix_path() {
+  local p="$1"
+  [ "$win" = 1 ] || { printf '%s\n' "$p"; return 0; }
+  p="${p//\\//}"
+  if drive_path "$p"; then
+    p="$(printf '%s' "${p:0:1}" | tr '[:lower:]' '[:upper:]')${p:1}"
+    p="$(cygpath -u "$p")" || return 1
+  fi
+  printf '%s\n' "$p"
 }
 
 # Absolute, symlinks resolved; a missing tail is kept as written under its nearest existing parent.
@@ -100,7 +116,7 @@ judge_path() {
     names_protected "$input" && deny "no path in the tool input"
     return 0
   fi
-  n="$(norm "$1")" || deny "could not normalise $1"
+  n="$(posix_path "$1")" && n="$(norm "$n")" || deny "could not normalise $1"
   judge "$n" "$2"
 }
 
@@ -204,6 +220,7 @@ scan_helm() {
 # The command text names every path it reaches only when it is written out; see the spec's Known gap.
 scan_bash() {
   local cmd="$1" b p lvl
+  [ "$win" = 1 ] && cmd="${cmd//\\//}"
   if [ -n "$broken" ]; then
     names_protected "$cmd" && deny "Bash names a protected path: $broken"
     return 0
@@ -228,14 +245,21 @@ scan_bash() {
 }
 
 main() {
-  local p
+  local p pattern
   tool="$(jq -r '.tool_name // empty' <<<"$input" 2>/dev/null)" || tool=""
   cwd="$(jq -r '.cwd // empty' <<<"$input" 2>/dev/null)" || cwd=""
   if [ -z "$tool" ] || [ -z "$cwd" ]; then
     names_protected "$input" && deny "malformed hook input"
     return 0
   fi
-  home="$(realpath "$TILLER_HOME")" || { names_protected "$input" && deny "TILLER_HOME unreadable"; return 0; }
+  win=0
+  if drive_path "$cwd" || drive_path "$TILLER_HOME" || drive_path "$(f file_path)" || drive_path "$(f notebook_path)" \
+    || drive_path "$(f path)" || f command | grep -Eq '(^|[^A-Za-z0-9])[A-Za-z]:[\\/]'; then
+    win=1
+    command -v cygpath >/dev/null || { names_protected "$input" && deny "Windows path and no cygpath to read it"; return 0; }
+  fi
+  cwd="$(posix_path "$cwd")" || { names_protected "$input" && deny "could not normalise the cwd"; return 0; }
+  home="$(posix_path "$TILLER_HOME")" && home="$(realpath "$home")" || { names_protected "$input" && deny "TILLER_HOME unreadable"; return 0; }
 
   broken=""
   if row="$(profile_name "$home/profiles" "$cwd")"; then
@@ -257,7 +281,9 @@ main() {
     Glob)
       p="$(f path)"; p="${p:-$cwd}"
       judge_path "$p" 0
-      judge_path "$(glob_target "$(norm "$p")" "$(f pattern)")" 0 ;;
+      p="$(posix_path "$p")" || deny "could not normalise $p"
+      pattern="$(f pattern)"; [ "$win" = 1 ] && pattern="${pattern//\\//}"
+      judge_path "$(glob_target "$(norm "$p")" "$pattern")" 0 ;;
     Bash) scan_bash "$(f command)" ;;
   esac
   return 0
