@@ -160,11 +160,13 @@ scan_helm() {
     case "$rest" in /*) rest="${rest#/}"; rest="${rest%?}" ;; *) rest="" ;; esac
     case "$rest" in *..*) ok=0; break ;; helm.md|machines/?*) ;; *) ok=0; break ;; esac
   done <<<"$hits"
+  # A cd into machines/ can climb back out with a relative path the hit itself never shows.
+  printf '%s' "$cmd" | grep -Eq '(^|[^A-Za-z0-9_.-])\.\.(/|[^A-Za-z0-9_.-]|$)' && ok=0
   [ "$ok" = 1 ] && return 0
   while IFS= read -r seg; do
     [[ "$seg" =~ ^[[:space:]]*$ ]] && continue
     case "$seg" in *'$('*) deny "helm: events go through lib/helm/record.sh" ;; esac
-    [[ "$seg" =~ ^[[:space:]]*git[[:space:]]+-C[[:space:]]*\"?${bases}helm/?\"?[[:space:]]+(commit|push|pull)([[:space:]][^|<>\`]*)?$ ]] ||
+    [[ "$seg" =~ ^[[:space:]]*git[[:space:]]+-C[[:space:]]*\"?${bases}helm/?\"?[[:space:]]+(commit|push|pull)([[:space:]][^|&<>\`]*)?$ ]] ||
       deny "helm: events go through lib/helm/record.sh"
   done <<<"$(printf '%s' "$cmd" | sed -E 's/&&|;/\
 /g')"
