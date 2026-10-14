@@ -61,14 +61,11 @@ link_skill() {
   local src="${3:-$REPO_DIR}/$skill"
   local dest="$skills_dir/$skill"
 
-  if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
-    echo "ok:      $skill (already installed in $skills_dir)"
-  elif [ -e "$dest" ] || [ -L "$dest" ]; then
-    echo "skipped: $skill ($dest already exists and is not a link to this repo)" >&2
-  else
-    ln -s "$src" "$dest"
-    echo "linked:  $skill -> $dest"
-  fi
+  case "$(node "$ROOT_DIR/lib/apply/link.mjs" "$src" "$dest")" in
+    ok) echo "ok:      $skill (already installed in $skills_dir)" ;;
+    linked) echo "linked:  $skill -> $dest" ;;
+    *) echo "skipped: $skill ($dest already exists and is not a link to this repo)" >&2 ;;
+  esac
 }
 
 target="claude"
@@ -197,14 +194,11 @@ if [ -n "$profile" ] && [ "$1" = "all" ] && [ -d "$PROFILE_DIR/agents" ]; then
   for f in "$PROFILE_DIR/agents"/*.md; do
     [ -e "$f" ] || continue
     name="$(basename "$f")"
-    if [ -L "$agents_dir/$name" ] && [ "$(readlink "$agents_dir/$name")" = "$f" ]; then
-      echo "ok:      agent $name (already linked)"
-    elif [ -e "$agents_dir/$name" ] || [ -L "$agents_dir/$name" ]; then
-      echo "skipped: agent $name ($agents_dir/$name already exists and is not a link to this profile)" >&2
-    else
-      ln -s "$f" "$agents_dir/$name"
-      echo "linked:  agent $name -> $agents_dir/$name"
-    fi
+    case "$(node "$ROOT_DIR/lib/apply/link.mjs" "$f" "$agents_dir/$name")" in
+      ok) echo "ok:      agent $name (already linked)" ;;
+      linked) echo "linked:  agent $name -> $agents_dir/$name" ;;
+      *) echo "skipped: agent $name ($agents_dir/$name already exists and is not a link to this profile)" >&2 ;;
+    esac
   done
 fi
 
