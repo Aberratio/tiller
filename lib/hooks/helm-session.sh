@@ -13,5 +13,11 @@ input="$(cat)"
 cwd="$(jq -r '.cwd // empty' <<<"$input" 2>/dev/null)"
 cwd="${cwd:-$PWD}"
 row="$(profile_name "$TILLER_HOME/profiles" "$cwd")" || row=_none
+# A named profile that does not exist (a blank .tiller-profile included) is not "outside any
+# project": refresh only, and show nothing, as the access hook denies the helm there.
+if [ "$row" != _none ] && [ ! -f "$TILLER_HOME/profiles/$row/profile.md" ]; then
+  node "$LIB/helm/helm.mjs" session --row _none --quiet --cwd "$cwd" || true
+  exit 0
+fi
 node "$LIB/helm/helm.mjs" session --row "$row" --cwd "$cwd" || true
 exit 0
