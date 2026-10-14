@@ -78,7 +78,7 @@ specifics stay out of the body. Still unclear after one careful read → ask ONE
 Genuinely ambiguous → offer 2–3 candidates, one line of rationale each.
 
 **Epic deflection.** The user already has a written spec or PRD for the work → suggest a
-spec-to-backlog skill (`atlassian:spec-to-backlog`, if installed). Decomposing a spec into an epic
+spec-to-backlog skill (tracker-specific, Jira: `atlassian:spec-to-backlog`, if installed). Decomposing a spec into an epic
 and children is its job, not this one's.
 
 ### 3. Load the template
@@ -108,7 +108,7 @@ source defines a usage log, record the miss in the format it gives.
     structural issue link, not a prose bullet;
   - the parent epic → never restated in the body; it is the `parent` field;
   - an external doc (Notion, Confluence, Sentry, Drive, Slack…) named without a URL → resolve it
-    (`notion-search`, `searchConfluenceUsingCql`) or ask; render `[Display text](https://...)`.
+    (`role:docs.search`, `$TILLER_HOME/config/tool-kinds.json`) or ask; render `[Display text](https://...)`.
 
 ### 5. Anti-pattern scan (the critical step)
 
@@ -141,9 +141,8 @@ Related but distinct → continue and propose `relates to` in step 9.
 
 **A ticket split out of an existing one: read that ticket's issue links before searching by title.**
 A split-out ticket is usually already linked to its parent and phrased in the other half's
-vocabulary, so the title search misses it while the link is in plain sight — two tickets were nearly
-filed twice that way (ABC-228, ABC-229) because planning documents still said "not filed". **The
-tracker is the oracle; a plan, a ledger and a memory are claims about it.** Believe the link, then
+vocabulary, so the title search misses it while the link is in plain sight, and planning documents
+may still say "not filed". **The tracker is the oracle; a plan, a ledger and a memory are claims about it.** Believe the link, then
 fix the documents.
 
 ### 8. Preview
@@ -254,7 +253,7 @@ scope and intent, change only the framing.
 - **Drive-by metadata changes** — the user may have set that priority deliberately.
 - **Re-framing intent** — change *how* it is framed, never *what* it asks for.
 - **A half-done descope** — the ticket descoped *from* must stop demanding the moved criteria, or it
-  can never close on its own terms (ABC-212 still asked for ABC-228's work for three days).
+  can never close on its own terms.
 
 ### Descoping a criterion out of a ticket
 
@@ -270,26 +269,24 @@ Both halves in one pass, or it is not done:
 4. Both directions linked, and a comment on the descoped ticket recording who decided and that the
    struck criteria are reversible.
 
-The shape to copy: ABC-224's size half → ABC-227.
-
 ---
 
 ## Sweeping a whole epic
 
-The cost is no longer per-ticket judgement but deciding **which tickets to touch at all**.
+The cost is no longer per-ticket judgement but deciding **which tickets to touch at all**. The
+queries and pagination notes below are tracker-specific (Jira JQL); other kinds use the equivalent.
 
 1. **Count first, then read.** `parent = <EPIC> AND statusCategory != Done` with
    `searchResultMode: count`.
 2. **Leave Done tickets alone, and say so** — unless the epic is on the profile's Done-description
    rewrites list (below).
-3. **Do not edit a ticket that already reads well** — in the sweep that earned this, about two
-   thirds needed nothing, and an edit that improves nothing still lands in every feed. The signature
+3. **Do not edit a ticket that already reads well** — most need nothing, and an edit that improves nothing still lands in every feed. The signature
    of the ones worth rewriting: a `## Parent` line restating the Epic Link; a `## Contract` preamble
    about how documents are referenced; a *Why now* / *Implementation notes* / *Approach* essay longer
    than the criteria; leaked internal vocabulary.
 4. **Pagination is unreliable.** ~5 issues per response regardless of `maxResults`; `nextPageToken`
-   has skipped from the second key to the last and reported `hasNextPage: false` with 95 unread.
-   **Walk by key range** (`AND key > X-8150 AND key < X-8170`) and use `remainingCount` to spot a
+   can skip keys and report `hasNextPage: false` with issues unread.
+   **Walk by key range** (`AND key > PROJ-150 AND key < PROJ-170`) and use `remainingCount` to spot a
    truncated range.
 5. **Finish with a leakage sweep, not a memory of having been careful**: `parent = <EPIC> AND
    (description ~ "<term>" OR …)` over the profile's internal-vocabulary terms, then the same against
