@@ -6,19 +6,7 @@ user-invocable: true
 
 # Start a ticket
 
-## Step −1 — Resolve the project profile (before anything else)
-
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
-
-Read the profile it names. Every project-specific fact this skill needs — tracker kind and project key, main branch,
-branch convention, worktree procedure, ledger path, merge authority, environments, test commands,
-gates — comes from there and from nowhere else.
-
-**No profile resolves → stop and say so.** Do not fall back to the project you saw last. Applying
-one project's merge rule or test command to another is the failure this whole mechanism exists to
-prevent.
+**Step −1 — resolve the profile.** Follow `skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
 
 Everything that should happen between "I'll take this ticket" and the first line of code, in one pass: ticket → branch → status → plan. The companion skills close the loop later (flow-create-commit for commits, flow-create-pull-request for the PR, flow-confidence-check for the pre-merge review).
 
@@ -27,7 +15,7 @@ Everything that should happen between "I'll take this ticket" and the first line
 The profile is the source of:
 
 - the tracker (`## tracker`: kind, site) and the project key (`## identity`),
-- the branch name convention (`## branching` → `Convention:`). With no convention declared there, the default is `<ticket>-<slug>` (e.g. `ABC-1234-accuracy-gate`) when a ticket exists, else `<type>/<slug>` (e.g. `fix/null-check-in-lookup`),
+- the branch name convention (`## branching` → `Convention:`). With no convention declared there, the default is `<ticket>-<slug>` (e.g. `ABC-1234-token-validation`) when a ticket exists, else `<type>/<slug>` (e.g. `fix/null-check-in-lookup`),
 - the main branch and what merging to it means (`## repos`).
 
 The repo's own docs (`CLAUDE.md`/`AGENTS.md`, anything they link for issue tracking) add the parent epic, if the repo pins one. If neither names a project and the user gave no ticket key, ask — never guess a project.
