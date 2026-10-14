@@ -6,19 +6,7 @@ user-invocable: true
 
 # flow-plan-ticket
 
-## Step −1 — Resolve the project profile (before anything else)
-
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
-
-Read the profile it names. Every project-specific fact this skill needs — tracker and project key, main branch,
-branch convention, worktree procedure, ledger path, merge authority, environments, test commands,
-gates — comes from there and from nowhere else.
-
-**No profile resolves → stop and say so.** Do not fall back to the project you saw last. Applying
-one project's merge rule or test command to another is the failure this whole mechanism exists to
-prevent.
+**Step −1 — resolve the profile.** Follow `skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
 
 The step between "this ticket is mine" and the first test, for work that arrives already written as a spec: objective, success criteria, constraints, non-goals. Nothing is left to specify — what is left is to find out whether the ticket is still true, what it touches, and which parts of it nobody involved is allowed to do.
 
@@ -95,7 +83,7 @@ Probe rather than assume. `gh api repos/<org>/<repo> --jq .permissions` answers 
 
 An acceptance criterion nobody on this ticket can execute becomes an explicit hand-off task with a named owner and a fallback — land the executable half, raise the follow-up — instead of a criterion that gets quietly ticked. Git steps (commit, push, tag, PR) are the human's, or delegated to flow-create-commit / flow-create-pull-request; the plan marks them so.
 
-**Ask what the seam table did to merge authority, and ask it against the repo's own path list.** A hand-off is usually a step you can see in the plan; this one is a *consequence* of Step 4 and is invisible in the steps. Where a seam lands can decide who may click merge — a repo whose merge rules are path-scoped turns "put the pure function in the core" into "this branch now needs a human signature", and the plan that does not say so discovers it at merge time, which is the expensive end. So: take the paths the seam table implies, hold them against the profile's `## merge authority` table (`facts.mergeAuthority`) — read from the profile and never from memory — and when a seam buys a signature, **record the trade in the decision, not only in the hand-off table** — the alternative seam that would not have bought it is what makes it a decision the owner can overturn. A generalisation from one path named in a prompt to "therefore the sibling directory is exempt" is how an unsigned merge shipped into a signature path on one project.
+**Ask what the seam table did to merge authority, and ask it against the repo's own path list.** A hand-off is usually a step you can see in the plan; this one is a *consequence* of Step 4 and is invisible in the steps. Where a seam lands can decide who may click merge — a repo whose merge rules are path-scoped turns "put the pure function in the core" into "this branch now needs a human signature", and the plan that does not say so discovers it at merge time, which is the expensive end. So: take the paths the seam table implies, hold them against the profile's `## merge authority` table (`facts.mergeAuthority`) — read from the profile and never from memory — and when a seam buys a signature, **record the trade in the decision, not only in the hand-off table** — the alternative seam that would not have bought it is what makes it a decision the owner can overturn. Never generalise from one path named in a prompt to "therefore the sibling directory is exempt".
 
 **Complete when** every step is marked agent-executable or hand-off, each hand-off names its owner, its exact command, and its fallback, and the paths the seam table implies have been held against the repo's merge rule.
 
@@ -121,7 +109,7 @@ The plan is a document with these parts, in this order:
 3. **The spine** — the seam table (code), the protocol and its definition of done (data/ops), or the job and its evidence (pipeline).
 4. **Steps** — 3–7 of them, each naming the area it touches, its test level, and its agent-or-hand-off marker.
 5. **Hand-offs and gates** — owner, exact command, fallback, from Step 5.
-6. **What no test level reaches** — in two classes: needs a human, a camera, or a device; and non-behavioural (a document, a version policy, a naming convention, something "agreed with" another team). Both are real work, and the second is the one that gets ticked silently because writing it feels like progress.
+6. **What no test level reaches** — in two classes: needs a human or a physical device; and non-behavioural (a document, a version policy, a naming convention, something "agreed with" another team). Both are real work, and the second is the one that gets ticked silently because writing it feels like progress.
 7. **Traceability** — every acceptance criterion mapped to the step, hand-off, or verification item that satisfies it.
 
 Write it to the caller's path when one was named, else to the path from Step 0 when the repo has one or the plan runs past ~7 steps; otherwise present it in the session. Say where it ended up either way, because the next two skills read it.
