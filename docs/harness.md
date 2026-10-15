@@ -83,24 +83,8 @@ list drawn from `kinds.json` `mandates`. The proxy decides only what that list n
 `none`, means no unattended day run and every mandate step parks for the human. The chain, the
 routine that walks it and the lane outputs are in `docs/escalation.md`.
 
-## Exec lane
-
-Lane `exec`, tier T1, one `agent()` call per command, output schema `schemas/lane-exec.json`.
-Fixed prompt:
-
-> Run exactly this command with the Bash tool, once, and nothing else: `<command>`.
-> Return JSON: `command` as given, `ran`, `exitCode`, `stdout` verbatim (untrimmed, unparsed).
-> If the tool call is refused, return `ran: false`, `exitCode: null`, `stdout: ""` and the literal
-> refusal text as `denial`. Do not retry, explain, or fix anything.
-
-- The command is one script invocation by absolute path, each argument single-quoted. No pipes,
-  `&&`, loops or heredocs: compound commands are refused where the single command passes.
-- The runner then checks, in order: the result validates; `command` equals what was sent;
-  `ran: false` → `harness-blocked` path; `stdout` parses as one JSON line that validates as a
-  script result with this `exitCode`. Any check failing is kind `schema`: one retry on the same
-  tier with the error appended, one retry a tier up, then a fail-closed gate condition if the
-  value feeds a gate.
-- A `pending` result is re-called at most `caps.waitCiRecalls` times, then `ci-timeout`.
+Scripts run directly from the driver, never through a model. A `pending` result is re-called at
+most `caps.waitCiRecalls` times, then `ci-timeout`.
 
 ## Agent lanes
 
@@ -166,7 +150,7 @@ each ticket in its own `drive.mjs` process. Neither reads a profile: both take t
 | `drive --args` / `drive-day --args` | a ticket or a day on the Node driver; one script-result line, the result in `driver-result.json` / `day-result.json` |
 | `supervise-env --profile [--disallow tool]...` | `SUPERVISE_STOP_HOUR` and `SUPERVISE_DISALLOWED_TOOLS` for `lib/supervisor/supervise.sh` |
 | `calibrate --profile [--root dir] [--out file] [--min-n N] [--dry-run]` | `config/measured.json` from every `verdicts.jsonl` under the profile's run-state directory; one script-result line naming the pairs measured and the pairs skipped for too few verdicts |
-| `run`, `classify`, `sleep`, `write`, `push`, `command`, `resume`, `base-head` | what the exec lane invokes during a run; see the file header |
+| `run`, `classify`, `sleep`, `write`, `push`, `command`, `resume`, `base-head` | what the runner invokes during a run; see the file header |
 
 Args carry the rendered facts, the lane schemas, model tiers resolved through
 `lib/routing/resolve.mjs` (a profile override moving a gate lane below T3 refuses the launch, as does a
@@ -231,7 +215,7 @@ directory: Node 24 loads a directory argument as a module and fails.
 
 | File | Purpose |
 |---|---|
-| `config/routing.json` | tiers (`T1`-`T3` one model each; `T4` an optional model list, empty until a profile needs it; `T0` appears only in spend records, for exec and script lanes that never run a model, and is never routed) and each lane's tier and gate flag |
+| `config/routing.json` | tiers (`T1`-`T3`, each a model name or a model list whose first entry is used; a tier that is empty or not listed is refused; `T0` appears only in spend records, for script lanes that never run a model, and is never routed) and each lane's tier and gate flag; every lane must have a caller |
 | `config/models.json` | each model: runtime, model id, status, context window, features, data policy; no price |
 | `config/lanes.json` | each lane's needs and caps (capability floor, context, cost per call, ladder steps) and the escalation rules |
 | `config/prices.json` | the only price table: USD per million tokens per `<runtime>/<model>`; an active model with no entry is refused at launch, an `"unverified": true` entry only warns, and a model with no entry is never routed or run under a USD budget; `limits.maxTurns` and `limits.wallClockMs` bound every Node-driver lane call |

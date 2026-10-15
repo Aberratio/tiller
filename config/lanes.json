@@ -19,18 +19,6 @@
     ]
   },
   "lanes": {
-    "exec": {
-      "class": "mechanical",
-      "gate": false,
-      "minCapability": 0.6,
-      "needs": {
-        "tools": true,
-        "structuredOutput": "schema"
-      },
-      "minContext": 100000,
-      "maxCostUsdPerCall": 1,
-      "maxLadderSteps": 1
-    },
     "premise": {
       "class": "probe",
       "gate": false,
@@ -140,18 +128,6 @@
       "maxLadderSteps": 1
     },
     "reverify": {
-      "class": "judgment",
-      "gate": true,
-      "minCapability": 0.85,
-      "needs": {
-        "tools": true,
-        "structuredOutput": "schema"
-      },
-      "minContext": 200000,
-      "maxCostUsdPerCall": 15,
-      "maxLadderSteps": 1
-    },
-    "conflict": {
       "class": "judgment",
       "gate": true,
       "minCapability": 0.85,

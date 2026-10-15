@@ -23,9 +23,9 @@ installs and a check run at the wrong moment cost more than any marker.
 
 `lib/git/update-from-base.mjs` reports a conflict and never resolves it; the runner parks on the
 base condition with the files named and dispatches no lane (tests in
-`skills/flow-run-ticket/tests/run-ticket.test.mjs` assert this). The `conflict` lane exists in the
-contract (`lib/contract/schemas/lane-conflict.json`, T3, gate lane) but is not dispatched yet;
-this skill is the procedure that lane follows and its output is that schema.
+`skills/flow-run-ticket/tests/run-ticket.test.mjs` assert this). Routing has no `conflict` lane;
+`lib/contract/schemas/lane-conflict.json` is kept as the output shape for when one is added, and
+this skill is the procedure it would follow.
 
 ## Rules earned in field use
 

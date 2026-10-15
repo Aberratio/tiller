@@ -11,9 +11,7 @@
         "toolUse": true
       },
       "dataPolicy": "no-train",
-      "pinnedLanes": [
-        "exec"
-      ],
+      "pinnedLanes": [],
       "capability": {}
     },
     "opus": {
@@ -33,7 +31,6 @@
         "review-axis",
         "confidence-dim",
         "reverify",
-        "conflict",
         "qa-judge",
         "resolver",
         "owner-proxy",
@@ -56,7 +53,6 @@
       },
       "dataPolicy": "no-train",
       "pinnedLanes": [
-        "exec",
         "premise",
         "pr-description",
         "log-prose",

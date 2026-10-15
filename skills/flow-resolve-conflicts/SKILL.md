@@ -104,7 +104,7 @@ A question in an interactive session goes to the user with options and a recomme
 
 `lib/git/update-from-base.mjs` never resolves: a conflict parks the run with the base condition
 `blocked` and the conflicting files named, and no lane is dispatched. A session picks it up with
-this skill. When a `conflict` lane is dispatched, it follows Steps 1–7 in the run's worktree, pushes
+this skill. Routing has no `conflict` lane today; if one is added, it follows Steps 1–7 in the run's worktree, pushes
 nothing, and returns one `lane-conflict` object (`lib/contract/schemas/lane-conflict.json`):
 
 - `resolved` — true only when no file is left and Step 6 is green at `headSha`;
