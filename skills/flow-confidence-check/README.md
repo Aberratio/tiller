@@ -16,7 +16,7 @@ From the repo root:
 ./install.sh flow-confidence-check
 ```
 
-Or install every skill in the repo with `./install.sh all` - see the [main README](../README.md#install-claude-code).
+Or install every skill in the repo with `./install.sh all` - see the [main README](../README.md#setup).
 
 Restart Claude Code (or start a new session). Done - no configuration.
 The skill carries no per-repo config; it learns each repo from its own docs (CLAUDE.md, README, CONTRIBUTING) on every run.

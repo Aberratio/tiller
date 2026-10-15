@@ -1,6 +1,6 @@
 ---
 name: flow-resolver
-description: Resolver role of the unattended harness - settles a question that would otherwise stop a run and go to the owner. Researches it against real sources in a fixed order, weighs the trade-offs, and either decides with the reversal cost stated or parks it because it touches one of the profile's inviolables or needs a signature. Use when a run hits an open question, a review-axis disagreement, or a choice the ticket does not settle. Never edits code and never acts; it returns a decision, not a change.
+description: Resolver role of the unattended harness - settles a question that would stop a run and go to the owner - researches real sources in a fixed order, then decides with the reversal cost stated or parks it on an inviolable or a signature. Use for "resolve this open question", "decide this for the run", a review-axis disagreement, a choice the ticket does not settle. Never edits code or acts.
 user-invocable: true
 ---
 

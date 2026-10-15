@@ -1,6 +1,6 @@
 ---
 name: flow-helm
-description: Cross-project overview from the private helm - which project is at which stage, what is next, what is due, what was promised, which machine holds which clone. Use when the user asks what is on across projects, what is due or overdue, for the status of all projects, whether they promised anyone anything, to record a promise or a deadline ("I promised X by Friday", "add this deadline"), to move or close one, to put deadlines in the calendar, to add a project to the helm register, or when a day plan needs the order across projects.
+description: Cross-project overview from the private helm: stage, next step, deadlines, promises and which machine holds which clone. Use for "what is on across projects", "what is due or overdue", "status of all projects", "did I promise anyone anything", "I promised X by Friday", "add this deadline", putting deadlines in the calendar, or the order across projects for a day plan.
 user-invocable: true
 ---
 

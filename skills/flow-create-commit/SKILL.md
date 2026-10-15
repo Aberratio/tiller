@@ -1,6 +1,6 @@
 ---
 name: flow-create-commit
-description: Create git commits in the project's commit format - read from the profile's `## commits` section, plain single-line Conventional Commits (e.g. "feat(auth): add token validation") when the profile declares none. Use this skill whenever the user wants to commit changes, write a commit message, amend or fix a commit message, or asks "commit this" - even if they don't mention the format. Also used by flow-create-pull-request to validate and repair commit messages before opening a PR. Fills the ticket key from the branch name when the format asks for one, picks the right Conventional Commits type, defaults to a one-line message with no co-author trailers.
+description: Create git commits in the project's commit format (profile `## commits`; plain single-line Conventional Commits when none). Use for "commit this", "write a commit message", "fix this commit message", "amend the commit", even without naming the format. Also used by flow-create-pull-request to repair messages. One-line message, no co-author trailers.
 ---
 
 # Create Commit

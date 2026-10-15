@@ -1,6 +1,6 @@
 ---
 name: flow-retro
-description: Use after an unattended day or a batch of ticket runs has come back, when the runs under a profile's run-state directory have not been read as a whole - parks that recur, decisions left open, spend concentrated in one lane, verdicts overturned - or when someone asks what the harness should change before the next run. Writes a dated note that proposes edits; it changes nothing.
+description: Use after an unattended day or batch of ticket runs has come back and the runs have not been read as a whole - recurring parks, open decisions, spend concentrated in one lane, overturned verdicts - for "run a retro", "what should the harness change", "how did the day go". Writes a dated note proposing edits; changes nothing.
 user-invocable: true
 ---
 
@@ -55,7 +55,7 @@ decision. The script throws rather than propose one.
 Report the note's path and its proposals as choices: for each, what it gains, what it loses and
 what reversing it costs. Nothing is applied here. An accepted profile edit goes through the profile;
 an accepted cap through `## run policy`; an accepted routing change through `## model routing` or
-`harness.mjs calibrate`, which writes `config/measured.json` from the same ledgers.
+`harness.mjs calibrate`, which writes `config/measured.json` (generated, git-ignored) from the same ledgers.
 
 ## Hard stops
 

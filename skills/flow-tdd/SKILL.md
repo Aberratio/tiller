@@ -1,6 +1,6 @@
 ---
 name: flow-tdd
-description: Drive a ticket's implementation test-first - inherit the seam table from the agreed plan, probe before the first red, run red-green at the level the repo's own conventions ask for, pin the behaviour the change must not alter, and bound the blast radius. Use when the user says "implement this test-first", "TDD this", "red-green", "write the test first", "let's do ABC-1234 with tests", when a bugfix needs a regression test, or when a plan's steps name test levels.
+description: Drive a ticket's implementation test-first - inherit the seam table from the agreed plan, probe before the first red, run red-green at the level the repo's conventions ask for, pin unchanged behaviour, bound the blast radius. Use for "implement this test-first", "TDD this", "red-green", "write the test first", or a regression test once a bug's cause is known.
 user-invocable: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: flow-manual-qa
-description: Use when deciding which acceptance criteria still need a human and keeping the record of what nobody has verified - a ticket reaches one of the profile's QA statuses (In QA, Ready for testing), someone asks what is unverified before a release or a weekly, a confidence check leaves `needs-user` findings, or an acceptance criterion cannot be satisfied as written.
+description: Use when deciding which acceptance criteria still need a human and keeping the record of what nobody has verified - for "what needs manual QA", "what is still unverified before the release", a ticket reaching one of the profile's QA statuses, `needs-user` findings from a confidence check, or an acceptance criterion that cannot be satisfied as written.
 user-invocable: true
 ---
 

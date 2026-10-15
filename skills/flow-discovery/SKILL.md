@@ -1,6 +1,6 @@
 ---
 name: flow-discovery
-description: Agree what a new project is before any code - with a client (prepare a meeting, digest its notes or transcript, draft the recap, record what the client confirmed) or alone for a pet project (a live interview) - and end with a spec and a phased roadmap with deadlines. Keeps a register of decisions and open questions in a brain, so any line of the spec can be traced to when it was agreed and on what evidence. Use when the user starts a new project from scratch, says "new client", "discovery", "kickoff", "prepare the meeting with <client>", "here are the notes from the call", "the client confirmed", "let's spec my side project", or asks what is still open before a spec.
+description: Agree what a new project is before any code, with a client or alone, ending in a spec and a phased roadmap, with a register of decisions and open questions traceable to evidence. Use for "new client", "discovery", "kickoff", "prepare the meeting with <client>", "here are the notes from the call", "the client confirmed", "let's spec my side project", or what is still open before a spec.
 user-invocable: true
 ---
 

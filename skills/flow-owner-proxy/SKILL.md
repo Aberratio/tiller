@@ -1,6 +1,6 @@
 ---
 name: flow-owner-proxy
-description: Owner-proxy role of the unattended harness - takes a step that needs the owner's mandate (start the next queued ticket, approve a peer session's step, resume a run, lift a cap once, mark a draft PR ready) while the owner is away, but only when the project profile's owner proxy section grants that mandate. Acts and reports; never signs, never writes to an outward channel, never starts work of its own. Use when a run or a peer session waits on the owner for a step inside the mandate.
+description: Owner-proxy role of the unattended harness - takes a step that needs the owner's mandate (start the next queued ticket, approve a peer step, resume a run, mark a draft PR ready) while the owner is away, only inside what the profile's owner proxy section grants. Use for "act as the owner proxy", "approve this step for the owner". Never signs, never writes to an outward channel.
 user-invocable: true
 ---
 

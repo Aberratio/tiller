@@ -14,7 +14,7 @@ From the repo root:
 ./install.sh flow-create-pull-request flow-create-commit
 ```
 
-Or install every skill in the repo with `./install.sh all` - see the [main README](../README.md#install-claude-code).
+Or install every skill in the repo with `./install.sh all` - see the [main README](../README.md#setup).
 
 ## When to use it
 

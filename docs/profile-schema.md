@@ -30,23 +30,24 @@ range it reads and refuses a profile outside it, older or newer. This document d
 
 ## Required sections
 
-Every profile has these headings, in this order. A section with nothing in it says `none`, never
+A profile uses these headings, in this order; the table marks the optional ones, which may be left out.
+A section that is present and has nothing in it says `none`, never
 nothing — a missing section reads as an oversight, an explicit `none` reads as a decision. `none`
 may be followed on the same line by a dash and the reason.
 
 | Section | What it carries | Consumed by |
 |---|---|---|
-| `## identity` | project name, Jira project key(s), board name | start-ticket, plan-ticket, pm |
+| `## identity` | project name, Jira project key(s), board name | start-ticket, pm, manual-qa |
 | `## tracker` | `Kind` (`jira` \| `none`), `Site`, `Start status`, `Merged status`, optional `QA statuses` | start-ticket, pm, run-ticket, manual-qa |
 | `## tools` | optional table `Role \| Kind \| Server` over the roles in `config/tool-kinds.json` (tracker, chat, docs, calendar, email). A role left out, or `default` in a cell, keeps the default kind and server; a Server outside `config/mcp-servers.json` is refused; Kind `none` grants that role nothing. The tracker's kind comes from `## tracker`, so a tracker row only picks the server. Skills and roles name `role:<role>.<op>`, never a vendor tool | run-ticket, run-day, install-agents |
 | `## ticket conventions` | optional; the project's written ticket-writing rules copied from their canon: `Source:`, browse URL, components, project routing, priority scheme, issue types, personas, labels, the internal vocabulary a ticket must not carry. Read as prose, not rendered; `none`, or the section left out, means the tracker's own required fields are the only convention | write-ticket |
 | `## board` | optional; which tickets pm acts on, which tracker writes it may make (closed list), the verified status, a known-done canary ticket, the WIP limit, where its log and snapshot live, and the deadline sources. Absent or `none`: pm audits and writes nothing | pm |
 | `## repos` | table: repo → local path, role, main branch, what merging to main means | every skill |
-| `## branching` | branch name convention, worktree procedure (or `none`), how main is integrated | start-ticket, tdd |
+| `## branching` | branch name convention, worktree procedure (or `none`), how main is integrated | start-ticket, create-pull-request, resolve-conflicts |
 | `## conventions` | paths to the repo docs that define test levels, mocking rules, code style | code-review, tdd, confidence-check |
 | `## decision ledger` | path template for the branch ledger | decision-ledger, reviews |
 | `## merge authority` | who may click merge, per path glob | gate evaluator, pull-request |
-| `## environments` | staging/prod hosts, which deploy publishes which surface, how to read the deployed SHA, how to log in as a test user; for QA with a browser, the instrument, its evidence directory and the origins it is scoped to | qa, manual-qa, diagnose-bug |
+| `## environments` | staging/prod hosts, which deploy publishes which surface, how to read the deployed SHA, how to log in as a test user; for QA with a browser, the instrument, its evidence directory and the origins it is scoped to | manual-qa |
 | `## test toolchain` | per repo: the runner, the command (one code span or `n/a`; verify-claim runs it under `sh -c`, `--check` refuses prose), what a lane must prove before it judges | tdd, qa, verify-claim |
 | `## worktree` | optional; `- Create:` followed by one code span, the repo's own command for a new ticket worktree, naming `<branch>` and optionally `<base>` (no other placeholder). The runner runs it under `sh -c` from the primary repo's checkout and finds the worktree by its branch in `git worktree list`, so the command decides where it lives. `none`, or the section left out, means plain `lib/git/worktree.mjs` | runner |
 | `## worktree setup` | optional; per repo: a one-word Check name and its Command (same rule as `## static checks`). The runner runs each once, right after the worktree is created, before anything else reads it — a fresh `git worktree` starts with no `node_modules`. One that cannot run (e.g. `npm ci` with no network) is `blocked`, kind `toolchain`, and does not stop the run early; `none`, or the section left out, for a project whose worktree needs no setup | runner, gate evaluator |
@@ -54,13 +55,13 @@ may be followed on the same line by a dash and the reason.
 | `## security` | optional; `- Audit command:` followed by one code span, the project's dependency or vulnerability audit (e.g. `npm audit --audit-level=high`). `lib/security/scan-diff.mjs` reads it from `profilePath` (not rendered; referred to as `security.auditCommand`) and runs it under `sh -c` in the worktree at every confidence pass; a non-zero exit is a high finding, and prose, `TODO` or a command that cannot run is a high finding held for the gate. `none`, or the section left out, runs no audit; credential shapes and dependency-file changes are scanned either way | confidence-check, runner |
 | `## generated files` | optional; table `Repo \| Glob \| Command`: files derived by a tool, and the one code span that regenerates them from the repo root (`n/a` for a derived file the agent may never regenerate, which makes its conflict a question). Globs are backticked; `--check` refuses prose commands, glob cells with no backticked glob and `TODO`. Not rendered. `none`, or the section left out, declares no generated files: every conflicted file is then hand-written, and one that announces itself as generated is a question, never a guess | resolve-conflicts |
 | `## gates` | table: gate → source → pass predicate | gate evaluator, pull-request |
-| `## run policy` | day ceiling, parallelism, fix-round caps, locked artefacts | run-day, run-ticket |
+| `## run policy` | day ceiling, parallelism, fix-round caps, locked artefacts | run-day, run-ticket (through profile-facts), owner-proxy, resolve-conflicts, retro |
 | `## inviolables` | the resolver's hard stops, each with its source; `none` if there are none | resolver |
 | `## owner proxy` | who decides in the owner's place, and the closed mandate; `none` for no proxy | run-day, resolver |
 | `## escalation` | where parked decisions are written and which human answers them | every phase that parks |
 | `## model routing` | `Lane \| Tier` overrides of the harness default; `none` for defaults | run-ticket |
-| `## release` | what happens after merge to main, and how far | pm, qa |
-| `## known issues` | path to the file that stops a known bug being refiled | qa, diagnose-bug |
+| `## release` | what happens after merge to main, and how far | pm, manual-qa |
+| `## known issues` | path to the file that stops a known bug being refiled | manual-qa |
 | `## verification register` | optional; `- Path:` with one backticked path — the cross-ticket register of criteria nobody has verified. One file, never per ticket. `none`, or the section left out, for a project that keeps none | manual-qa |
 | `## wayfinding` | where this project's maps live and how to scope them; `none` if the project does not chart | wayfinder |
 | `## commits` | optional; the commit message format, how a ticket key is found in the branch name, and the format for a commit with no ticket. `none`, or the section left out, means plain Conventional Commits. Also carries the optional `Text language` for commit, PR and ticket text (default `en`) | create-commit, create-pull-request |

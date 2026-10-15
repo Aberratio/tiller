@@ -190,7 +190,7 @@ Optional. `none`, or leave the section out, for a project that keeps no cross-ti
 
 Maps repo: `<owner>/<maps-repo>` — or `none` if this project does not chart.
 Project label: `project:<profile-name>` (every map and child issue carries it).
-Tracker section: `docs/agents/issue-tracker.md` in this project must carry the
+Tracker section: the project repo's own `docs/agents/issue-tracker.md` (not part of this repository) must carry the
 `## Wayfinding operations` block from `wayfinding/issue-tracker-section.md`. Absent -> `/wayfinder`
 improvises all six operations; say so instead of letting it.
 
@@ -203,3 +203,13 @@ Placeholders: `<ticket>`, `<type>`, `<scope>`, `<subject>`.
 - Ticket from branch: `[A-Z]+-[0-9]+` (regex that finds the ticket key in the branch name)
 - Without ticket: `[NO-TICKET] <type>(<scope>): <subject>`
 - Text language: `en` (optional; language of commit, PR and ticket text; default `en`)
+
+<!--
+Optional sections that are not part of the default profile. To enable one, add its heading
+(`## worktree`, `## worktree setup` or `## security`) on a line of its own with the body below;
+docs/profile-schema.md describes each.
+
+  worktree        - Create: `<the repo's own command for a ticket worktree, naming <branch> and optionally <base>>`
+  worktree setup  - table `Repo | Check | Command`, one command per check, run once after the worktree exists
+  security        - Audit command: `<the project's dependency or vulnerability audit>`
+-->

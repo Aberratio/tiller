@@ -1,6 +1,6 @@
 ---
 name: flow-confidence-check
-description: Confidence verdict for the current branch, run once all implementation work is done - before or after opening the PR. Use when the user says "confidence check", "preflight this", "review my branch", "pre-PR review", "is this ready for a PR", "check this against the ticket/spec", or finishes a ticket and wants a reviewer-ready summary. Judges the diff against the spec/acceptance criteria and outputs high-confidence or needs-review.
+description: Confidence verdict for a finished branch, before or after the PR - judges the diff against the spec and acceptance criteria and outputs high-confidence or needs-review. Use for "confidence check", "preflight this", "is this ready for a PR", "pre-PR verdict", "check this against the ticket/spec". Not for a diff review without a verdict (flow-code-review).
 user-invocable: true
 ---
 

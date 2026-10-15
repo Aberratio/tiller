@@ -1,6 +1,6 @@
 ---
 name: flow-run-day
-description: Launcher for an unattended day of ticket runs - build the day's args from an approved queue, render the supervisor environment from the profile, and hand the waves to the Node day driver. Use when the user asks to run the day's plan unattended, to run a queue of tickets in waves, or to resume an interrupted day.
+description: Launcher for an unattended day of ticket runs - build the day's args from an approved queue, render the supervisor environment from the profile, hand the waves to the Node day driver. Use for "run the day's plan unattended", "run this queue in waves", "resume the interrupted day".
 user-invocable: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: flow-diagnose-bug
-description: Find and prove the cause of a bug, a performance regression, or a "did this ever get fixed?" question - loop-first, with the loop's required strength set by what you owe at the end (a patch, a plan, a verdict, or a trade-off decision). Use when the user says "diagnose this", "debug this", "why is this failing/slow", reports something broken on staging or in production, asks whether an old reported bug is still alive, or asks what is behind a ticket before it can be planned. Covers bugs that live outside code too.
+description: Find and prove the cause of a bug or performance regression, loop-first, at the strength the deliverable needs (patch, plan, verdict or trade-off). Use for "diagnose this", "debug this", "why is this failing/slow", "is this old bug still alive", something broken on staging or in production. Covers bugs outside code too. Not for planning a known cause (flow-plan-ticket).
 ---
 
 # Diagnose a bug

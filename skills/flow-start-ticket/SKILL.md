@@ -1,6 +1,6 @@
 ---
 name: flow-start-ticket
-description: Open the work on a ticket - fetch and sanity-check the ticket, create the correctly named branch from a fresh main, move the ticket to the profile's start status and assign it, and agree a short plan before any code is written. Use when the user says "start ABC-1234", "pick up the next ticket", "begin work on <ticket>", or names a ticket they want to implement.
+description: Open the work on a ticket - fetch and sanity-check it, create the correctly named branch from a fresh main, move it to the profile's start status, assign it, and agree a few lines of intent before any code. Use for "start ABC-1234", "pick up the next ticket", "begin work on <ticket>". For a full implementation plan use flow-plan-ticket.
 user-invocable: true
 ---
 

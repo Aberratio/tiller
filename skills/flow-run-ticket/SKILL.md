@@ -1,6 +1,6 @@
 ---
 name: flow-run-ticket
-description: Launcher for an unattended end-to-end run of one ticket - resolve the project profile, render its facts, run the pre-flight probes, and hand the run to the Node driver. Use when the user asks to run a whole ticket unattended, to run a ticket end-to-end, or to resume an interrupted run.
+description: Launcher for an unattended end-to-end run of one ticket - resolve the profile, render its facts, run the pre-flight probes, hand the run to the Node driver. Use for "run this ticket unattended", "run ABC-123 end to end", "resume the interrupted run".
 user-invocable: true
 ---
 

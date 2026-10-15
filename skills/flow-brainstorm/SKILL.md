@@ -1,6 +1,6 @@
 ---
 name: flow-brainstorm
-description: Explore what to build when there is a goal but no ticket and no agreed shape yet - at least three materially different options, each with its strongest case against, what reversing it would cost and which profile section or inviolable it touches, converged to one recommendation over a named runner-up and recorded where the harness keeps decisions. Use when the user says "brainstorm", "what should we build", "what are our options", "how could we approach X", "which way should we go", or names a problem without a solution. Not for a ticket that is already specified (flow-plan-ticket) or for agreeing a whole new project's spec (flow-discovery).
+description: Explore what to build when there is a goal but no ticket and no agreed shape - three or more options, each with its strongest case against and reversal cost, converged to one recommendation over a named runner-up. Use for "brainstorm", "what are our options", "how could we approach X", "which way should we go". Not for a specified ticket (flow-plan-ticket) or a new project spec (flow-discovery).
 user-invocable: true
 ---
 

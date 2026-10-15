@@ -1,6 +1,6 @@
 ---
 name: flow-code-review
-description: Two-axis review of a change - Standards (this repo's documented conventions plus a Fowler smell baseline) and Spec (the ticket plus every agreement since) - reported side by side, never merged. Use when the user wants to review uncommitted work before committing, "review this diff", "review since main", "review my changes", "check this before I commit", a teammate's pushed branch, or a PR. Defaults to the uncommitted working tree.
+description: Two-axis review of a change - Standards (documented conventions plus a smell baseline) and Spec (the ticket plus every agreement since) - side by side, never merged, no verdict. Use for "review this diff", "review my changes", "review since main", "check this before I commit", a teammate's branch or a PR; defaults to the uncommitted tree. For a ready-or-not verdict use flow-confidence-check.
 user-invocable: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: flow-pm
-description: Board role - use when the tracker may no longer match the code (a merged PR still in a To Do column, an In Progress nobody touched in days, a blocker that closed weeks ago), when a day plan or an end-of-day note needs the board's real state, or when someone asks whether the board is accurate or what is coming due. Acts only on the tickets the profile's board mandate names; reads everyone else's.
+description: Board role - use when the tracker may no longer match the code (a merged PR still in a To Do column, an In Progress nobody touched in days, a blocker that closed weeks ago), for "is the board accurate", "what is coming due", "reconcile the board", or when a day plan or end-of-day note needs the board's real state. Acts only on tickets the profile's board mandate names.
 user-invocable: true
 ---
 

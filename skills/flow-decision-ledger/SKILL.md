@@ -1,6 +1,6 @@
 ---
 name: flow-decision-ledger
-description: The branch's decision ledger - one file where a deliberate deviation or a post-ticket agreement is recorded as it is taken, and which every review reads instead of being told by hand. Use when a decision goes against a repo convention or past the ticket ("we point at live data on purpose", "the owner agreed X after the ticket was written"), and BEFORE dispatching flow-code-review or flow-confidence-check so their sub-agents get the declarations instead of rediscovering them.
+description: The branch's decision ledger - one file recording a deliberate deviation or a post-ticket agreement as it is taken, read by every review. Use when a decision goes against a convention or past the ticket ("we point at live data on purpose", "the owner agreed X after the ticket was written"), and BEFORE dispatching flow-code-review or flow-confidence-check.
 user-invocable: true
 ---
 

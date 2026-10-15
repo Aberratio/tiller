@@ -1,6 +1,6 @@
 ---
 name: flow-plan-ticket
-description: Turn one already-specified ticket into an implementation plan - verify the ticket's premise against the repo, branch on ticket kind, name the seams flow-tdd inherits, and surface the steps nobody on the ticket has permission to take. Use when the user says "analyse and plan ABC-1234", "plan the implementation", "what's the plan for this ticket", or asks for a plan rather than code, and when a ticket is already spec-shaped so there is nothing left to specify.
+description: Turn one already-specified ticket into an implementation plan - verify its premise against the repo, branch on ticket kind, name the seams flow-tdd inherits, surface steps nobody has permission to take. Use for "analyse and plan ABC-1234", "plan the implementation", "what's the plan for this ticket". Not for opening work (flow-start-ticket) or finding a cause (flow-diagnose-bug).
 user-invocable: true
 ---
 

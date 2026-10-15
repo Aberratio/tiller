@@ -1,6 +1,6 @@
 ---
 name: flow-onboard-project
-description: Onboard a project into the harness - detect every fact a script can read from its repos, put the remaining decisions to a human, render profiles/<name>/profile.md and prove it with profile-facts --check. Also reports where an existing profile drifted from its repos. Use when the user says "onboard <project>", "add a project to tiller", "create a profile for <repo>", or asks whether a profile is still true.
+description: Onboard a project into the harness - detect every fact a script can read from its repos, put the remaining decisions to a human, render profiles/<name>/profile.md and prove it with profile-facts --check; also reports profile drift. Use for "onboard <project>", "add a project to tiller", "create a profile for <repo>", "is this profile still true".
 user-invocable: true
 ---
 
