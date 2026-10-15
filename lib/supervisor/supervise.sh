@@ -23,6 +23,7 @@
 #   SUPERVISE_SLEEP_CMD        command used to sleep, default `sleep` (tests inject a recorder)
 #   SUPERVISE_CLASSIFY         failure classifier, default lib/resilience/classify-failure.mjs
 #   SUPERVISE_DRY=1            print the child command instead of running it, then exit 0
+#   TILLER_NO_INHIBIT=1        do not keep the machine awake (see inhibit.sh)
 #   SUPERVISE_LOG_MAX_BYTES    supervisor.log is moved to supervisor.log.1 once over this size,
 #                              default 10485760 (10 MB); one old log is kept
 #
@@ -181,6 +182,11 @@ usage_wait_seconds() {
 
 if [[ "$DRY" != "1" ]] && ! command -v claude >/dev/null 2>&1; then
   finish 1 '{"status":"error","kind":"script-error","reason":"claude not found on PATH"}'
+fi
+if [[ "$DRY" != "1" ]]; then
+  # shellcheck source=inhibit.sh
+  source "$HERE/inhibit.sh"
+  tiller_inhibit "$$"
 fi
 
 SPAWNS=0
