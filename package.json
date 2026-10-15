@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "node lib/testing/run-all.mjs",
+    "lint:skills": "node lib/testing/lint-skills.mjs",
     "lint:shell": "if command -v shellcheck >/dev/null 2>&1; then git ls-files '*.sh' | xargs shellcheck; else echo 'lint:shell skipped: shellcheck not installed'; fi"
   }
 }
