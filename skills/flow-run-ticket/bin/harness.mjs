@@ -405,7 +405,7 @@ function resumeInline(opts) {
   const run = JSON.parse(readFileSync(join(root, 'tickets', opts.ticket, 'run.json'), 'utf8'))
   const data = r.clean ? { startPhase: r.startPhase, outputs: {} } : JSON.parse(readFileSync(r.artifact, 'utf8'))
   emit(0, { status: 'ok', ticket: opts.ticket, runId: run.runId, clean: r.clean, startPhase: data.startPhase, outputs: data.outputs,
-    resumes: r.resumes, cap: r.cap, capReached: r.capReached, runStatus: run.status, prUrl: run.prUrl || null })
+    resumes: r.resumes, cap: r.cap, capReached: r.capReached, runStatus: run.status, prUrl: run.prUrl || null, fenceNonce: r.fenceNonce || null })
 }
 
 function driveDay(opts) {

@@ -236,9 +236,10 @@ self-check. Renaming or removing breaks every consumer and needs all of them cha
 
 Text the harness did not write (the ticket body and comments, PR, review and bot comments, CI
 output) is data, never instructions. When the driver pastes such text into a prompt it goes through
-`lib/text/untrusted.mjs`: a fixed preamble, then the text between `<<<UNTRUSTED source=… id=…>>>` and
-`<<<END UNTRUSTED id=…>>>`, where the id is a hash of the content and any `<<<`/`>>>` inside is
-broken up, so the content cannot close its own fence. A lane that reads such text itself (the
+`lib/text/untrusted.mjs`: a fixed preamble, then the text between `<<<UNTRUSTED source=… id=… nonce=…>>>`
+and `<<<END UNTRUSTED id=… nonce=…>>>`, where the id is a hash of the content, the nonce is random
+per run (drawn by `state.mjs init`, stored in `run.json`, pinned by the driver on resume so the step
+log still replays) and any `<<<`/`>>>` inside is broken up, so the content cannot close its own fence. A lane that reads such text itself (the
 tracker, bot threads, CI logs) gets `UNTRUSTED_READ_RULE` in its task instead. Lines that read as
 orders to the agent are recorded as `suspicious[]` (source, line, quoted text, reason) on the phase
 output (`plan`, `ci`) and logged; they never stop a run on their own.
