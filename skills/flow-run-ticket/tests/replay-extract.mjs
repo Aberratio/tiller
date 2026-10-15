@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Turns a recorded Workflow run (its journal json plus the subagent transcripts next to it) into a
+// Turns a recorded run in the legacy Workflow-runner format (its journal json plus the subagent transcripts next to it) into a
 // replay fixture: every lane result in call order, keyed by label and occurrence, and every exec
 // result keyed by script name and occurrence, with prose clipped and local paths neutralised.
 //

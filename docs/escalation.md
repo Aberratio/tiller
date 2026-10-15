@@ -37,7 +37,7 @@ human role — never a person.
 ## The routine
 
 `lib/escalation/route.mjs` moves one decision one hop per call. It is dependency-free above its CLI
-section, so a Workflow script inlines it; `runChain(input, callLane)` drives it to a terminal route.
+section, so the driver imports it as a plain module; `runChain(input, callLane)` drives it to a terminal route.
 
 ```bash
 node lib/escalation/route.mjs input.json     # one script-result line; exit 0 whenever routing ran

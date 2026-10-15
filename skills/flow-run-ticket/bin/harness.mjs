@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-// The runners' one bridge to the deterministic layer. A Workflow script has no filesystem, shell
-// or clock, so every command it sends through the exec lane is an invocation of this file.
+// The driver's one bridge to the deterministic layer: the args it runs on, the subcommands it
+// calls mid-run, and the launch of the driver itself all go through this file.
 //
 //   harness.mjs run --root <STATE_ROOT> -- <absolute-script> [args...]
 //       run a lib script with STATE_ROOT set, under with-backoff; stdout and exit passed through
 //   harness.mjs classify --text <error text> [--exit-code N]
 //       classify-failure over text that arrived as an argument rather than a file
 //   harness.mjs sleep --seconds N           a bounded wait (capped at caps.waitCiSeconds)
-//   harness.mjs write --file <path> --text <text>    a file the Workflow cannot write itself (PR body)
+//   harness.mjs write --file <path> --text <text>    write a file from an argument, verified by size (PR body)
 //   harness.mjs push --cwd <worktree> --branch <name>   push the ticket branch to origin
 //   harness.mjs base-head --cwd <repo> --base <branch> --root <STATE_ROOT>
 //       fetched head of the base branch and the SHA the last day sweep covered (<root>/sweep-sha)
@@ -20,7 +20,7 @@
 //   harness.mjs drive --args <artifact>
 //       run the ticket on the Node driver (lib/driver/drive.mjs); one script-result line
 //   harness.mjs resume --root <STATE_ROOT> --ticket <KEY>
-//       state.mjs resume with the checkpoint outputs inline, so a Workflow can read them
+//       state.mjs resume with the checkpoint outputs inline, one line to read
 //   harness.mjs day-args --profile <file> --date <ISO> --queue <waves.json> [--root <dir>] [--run <id>]
 //       build the day args for the day driver; refused when the profile allows no unattended day run
 //   harness.mjs drive-day --args <args-day.json>

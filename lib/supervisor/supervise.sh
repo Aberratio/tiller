@@ -4,7 +4,7 @@
 # Spawns bounded `claude -p` children one at a time until the run's state.md says
 # `supervisor: done`. A shell loop on purpose: no context to grow, no cost per tick, and the only
 # decision it takes is reading the state. Waves, gates and signatures belong to the child and the
-# Workflow scripts it runs. A child that dies leaves its checkpoints behind; the next child resumes
+# driver it runs. A child that dies leaves its checkpoints behind; the next child resumes
 # from them through `state.mjs resume`, so a killed run never restarts a whole wave.
 #
 # Usage: supervise.sh <brief-file>

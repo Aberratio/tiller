@@ -26,7 +26,7 @@ profiles/<name>/           local, git-ignored: profile.md, cases.json, secrets.e
 personal/_templates/       tracked: templates for one person's generated skills
 personal/<user>/           local, git-ignored: one person's skills and leak-terms.txt
 lib/resolve-profile.sh     cwd -> profile, or a hard failure
-lib/profile-facts.sh       profile -> the facts a Workflow script branches on, or a hard failure
+lib/profile-facts.sh       profile -> the facts the driver branches on, or a hard failure
 lib/new-profile.sh         create profiles/<name>/ from the template
 lib/discovery/             discovery brains: new, check, status (flow-discovery)
 lib/leak-guard.sh          refuse tracked content that names a project, a person or a credential
@@ -96,9 +96,9 @@ lib/leak-guard.sh
 Resolution order: `TILLER_PROFILE` env var → a `.tiller-profile` file at the repo root (one line,
 the profile name) → `repo_globs` in a profile's frontmatter → fail.
 
-An unattended run needs the facts as values rather than as a file, because the Workflow script it
-drives cannot read files. `lib/profile-facts.sh` renders them and refuses when a required section is
-unfilled, including one that still reads `TODO`:
+An unattended run needs the facts as values rather than as a file: the driver reads no profile, so
+every fact it branches on is rendered once, before anything spawns. `lib/profile-facts.sh` renders
+them and refuses when a required section is unfilled, including one that still reads `TODO`:
 
 ```bash
 "$TILLER_HOME/lib/profile-facts.sh" --check ~/src/acme-web
@@ -226,45 +226,40 @@ flowchart TD
 
 ### 3. The layers of an unattended run
 
-A Workflow script has no filesystem, shell or clock, so it reaches the world only through a small
-exec agent that runs one script.
+The driver (`lib/driver/`) holds the phases, the counters and the gate arithmetic. It runs the
+deterministic scripts itself, one process per call, and reaches a model only through judgment lanes.
 
 ```mermaid
 flowchart TB
-    subgraph W["Workflow script, pure JS"]
-        W1["phases, counters,<br/>gate arithmetic"]
+    subgraph W["Node driver, lib/driver/"]
+        W1["phases, counters,<br/>gate arithmetic, journal"]
     end
     subgraph A["Agents: judgment only"]
         A1["plan / implement / fix"]
         A2["review axes, confidence,<br/>QA judge"]
         A3["resolver, owner proxy"]
     end
-    subgraph X["Exec lane (T1): one command, verbatim stdout"]
-        X1["run exactly this command, once"]
-    end
     subgraph D["Deterministic scripts in lib/, tested"]
         D1["git/ forge/ gates/ state/"]
     end
     W1 -->|prompt + output schema| A
     A -->|"JSON that must validate"| W1
-    W1 -->|"one script by absolute path"| X1
-    X1 --> D1
-    D1 -->|"one JSON line on stdout"| X1
-    X1 -->|"stdout untouched"| W1
+    W1 -->|"one script by absolute path"| D1
+    D1 -->|"one JSON line on stdout"| W1
     A2 -. "a claim that feeds a gate<br/>is re-derived by a script" .-> D1
 ```
 
-Lane tiers come from `config/routing.json`: T1 haiku (exec), T2 sonnet (prose, logs, premise), T3
-opus (every lane that can open a gate). A gate lane is never routed below the session's tier.
+Lane tiers come from `config/routing.json`: T1 haiku, T2 sonnet (prose, logs, premise), T3 opus
+(every lane that can open a gate). A gate lane is never routed below the session's tier.
 
 ### 4. One ticket, unattended (`flow-run-ticket`)
 
-The fourteen phases of `run-ticket.workflow.js`. Each writes a checkpoint, so a dead run resumes at
-the phase it died in.
+The fourteen phases of the ticket driver (`lib/driver/phases.mjs`). Each writes a checkpoint, so a
+dead run resumes at the phase it died in.
 
 ```mermaid
 flowchart TD
-    L["Launcher: resolve profile, probes,<br/>args, Workflow tool or node driver"] --> start
+    L["Launcher: resolve profile, probes,<br/>args, node driver"] --> start
     start["start<br/>duplicate guard, worktree"] --> premise
     premise{"premise<br/>does the ticket's claim<br/>hold in the repo?"} -->|falsified| PARK1["decision: rewrite<br/>or close the ticket"]
     premise -->|holds| plan["plan"]
@@ -354,7 +349,7 @@ flowchart TD
     end
 
     S1 --> DAY
-    subgraph DAY["run-day.workflow.js, inside the child"]
+    subgraph DAY["lib/driver/day.mjs, inside the child"]
         D1{"open decisions<br/>under the ceiling?"} -->|yes| D2["start up to maxParallel<br/>run-ticket children"]
         D1 -->|"at ceiling"| D3["ask owner proxy once:<br/>lift-cap-once"]
         D3 -->|refused| CEIL(["day stops: ceiling"])

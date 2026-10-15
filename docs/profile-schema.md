@@ -183,11 +183,11 @@ Absent or `none`: plain Conventional Commits, `<type>(<scope>): <subject>`, no p
 
 ## The facts object
 
-A Workflow script has no `fs`, no `require`, no `process.env` and no shell; its only effect is
-spawning agents with prompt strings. Facts its own predicates branch on — a merge rule compared
-against a file list, a gate compared against a check result — therefore arrive as values.
-`lib/profile-facts.sh` renders them, once, in bash, before anything spawns; the launcher passes the
-result in `ARGS`. Sections that exist to be read rather than computed are not rendered: they travel
+The driver reads no profile; it branches on the args it was launched with. Facts its own predicates
+branch on — a merge rule compared against a file list, a gate compared against a check result —
+therefore arrive as values. `lib/profile-facts.sh` renders them, once, in bash, before anything
+spawns; the launcher passes the result in the args. Sections that exist to be read rather than
+computed are not rendered: they travel
 as `profilePath`, and the agent that needs one opens it.
 
 | Key | Source section | Shape |
@@ -245,8 +245,8 @@ records which profile and which facts it used.
 ## The gate evaluator
 
 `lib/gates/evaluate.mjs` turns facts, the PR head, its changed files and the observed gate states
-into a `gate-result` (`lib/contract/schemas`). Its functions are dependency-free so a Workflow
-script can inline them; the CLI reads one JSON input and prints a `script-result` line.
+into a `gate-result` (`lib/contract/schemas`). Its functions are dependency-free so the driver
+imports them as a plain module; the CLI reads one JSON input and prints a `script-result` line.
 
 - **Authority per file.** The row whose matching glob has the most literal characters governs;
   on a tie the stricter row wins. A file no row matches takes the strictest authority in the table,

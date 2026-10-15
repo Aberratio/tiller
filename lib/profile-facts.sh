@@ -6,9 +6,9 @@
 #
 # `--profile` skips resolution and reads that file directly.
 #
-# The Workflow script that consumes this has no fs, no require and no shell: facts its own
-# predicates branch on have to arrive as values. Sections that exist to be read rather than
-# computed stay in the profile and travel as `profilePath`.
+# The driver that consumes this reads no profile: facts its own predicates branch on have to
+# arrive as values. Sections that exist to be read rather than computed stay in the profile and
+# travel as `profilePath`.
 #
 # Contract (which sections are decisional, under which key, in what shape): docs/profile-schema.md,
 # "The facts object". A key required there and unresolved here is a launch refusal, never a default.

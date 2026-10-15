@@ -1,9 +1,9 @@
 # Harness contract
 
 The unattended runner is three layers: deterministic scripts (bash or node, tested, no model),
-Workflow scripts (pure JS: phases, counters, gate arithmetic), and agents (judgment only). A
-Workflow script has no filesystem, no shell and no clock, so it reaches a script only through the
-exec lane, and every value it gets back has a schema here.
+the Node driver (`lib/driver/`: phases, counters, gate arithmetic, journal), and agents (judgment
+only). The driver runs a script in its own process and reads one JSON line back; every value it
+gets has a schema here.
 
 | File | Holds |
 |---|---|
@@ -154,11 +154,10 @@ facts keys belong to `lib/profile-facts.sh`.
 
 ## Runners
 
-`skills/flow-run-ticket/run-ticket.workflow.js` runs one ticket; `skills/flow-run-day/run-day.workflow.js`
-runs waves of them as child workflows on one `STATE_ROOT`. The Node drivers do the same without an exec
-lane: `lib/driver/drive.mjs` runs one ticket, `lib/driver/day.mjs` runs the waves with each ticket in
-its own `drive.mjs` process. `driver` in the args picks one; `node` is the default. None reads a
-profile: all take the args object `skills/flow-run-ticket/bin/harness.mjs` builds.
+`lib/driver/drive.mjs` runs one ticket; `lib/driver/day.mjs` runs waves of them on one `STATE_ROOT`,
+each ticket in its own `drive.mjs` process. Neither reads a profile: both take the args object
+`skills/flow-run-ticket/bin/harness.mjs` builds (`args`, `day-args`) and are launched through it
+(`drive`, `drive-day`). An args file that still names the retired Workflow runner is refused.
 
 | Command | Produces |
 |---|---|
