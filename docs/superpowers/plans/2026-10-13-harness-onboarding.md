@@ -317,7 +317,7 @@ assert the pointer and that no file changed. **This is the one intended change t
   kept. Copilot facts re-verified against docs.github.com.
 - **Step 4 — `onboard --personal`, `status`, `uninstall`:** detailed below.
 - **Step 5 — Windows:** detailed below.
-- **Step 6 — `apply --adopt <agent>`**, then moving an existing setup into a personal layer.
+- **Step 6 — `apply --adopt <agent>`**, then moving an existing setup into a personal layer: detailed below.
 
 ## Step 4 — links, rendered agents, `status`, `uninstall`, `onboard`
 
@@ -575,6 +575,178 @@ Owner answers 2026-10-14: Tasks 5.1–5.6, 5.8, 5.7 approved, executed in that o
    Code and Copilot; treated as working until checked.
 7. **(approved 2026-10-14)** Forward-slash Windows paths inside hook commands (Git Bash and
    PowerShell accept both; it avoids backslash escaping).
+
+## Step 6 — `apply --adopt <agent>`
+
+Spec (line 59): read the agent's current native files and propose a personal layer that reproduces
+them; write only into `personal/<user>/`. Delivery order 6: `apply --adopt`, then moving an existing
+setup into a personal layer. The drift resolution `adopt` (step 2) already writes one item into the
+layer; this step reads the whole native setup and reuses that writer.
+
+Copilot facts for this step: none beyond steps 3–5 (cli-config-dir-reference lists `settings.json`,
+`copilot-instructions.md`, `agents/`, `skills/`, `hooks/` in the config dir; add-skills names
+`~/.copilot/skills` and `~/.agents/skills`; hooks-reference names user hooks in `<dir>/hooks/*.json`).
+
+What adopt reads per agent, and where it goes:
+
+| Native | Claude Code | Copilot CLI | Lands in |
+|---|---|---|---|
+| settings leaves | `settings.json` minus `env`, `hooks` | `settings.json` (JSONC) | `native.<agent>` |
+| env | `settings.json` `env.*` | none (no global env) | `env` |
+| hooks | user entries in `hooks.*` | `hooks/*.json` other than `tiller.json` | left in place, reported |
+| instructions | block body in `CLAUDE.md` | block body in `copilot-instructions.md` | `instructions.md` |
+| skills | `<dir>/skills/*` | `~/.agents/skills/*`, `<dir>/skills/*` | `skills/<name>/` (copy) |
+| agents | `<dir>/agents/*.md` | `<dir>/agents/*.agent.md` | left in place, reported |
+
+A value equal to what the resolved layers already produce for that id is not proposed (counted as
+already reproduced). A value differing from the layer's is a `~` change; a new one is `+`. Strings are
+stored portably: the machine's tiller path and home become `${TILLER_HOME}` and `${HOME}` again.
+Adopt never writes a native file, the manifest, `machine.json` or a backup; it writes the personal
+directory, creating it when absent. An unparseable native file refuses the whole adopt.
+
+### Task 6.1: `lib/apply/adopt.mjs` — adoptable items and the layer writer
+
+**Files:** Create `lib/apply/adopt.mjs`, `lib/apply/tests/adopt.test.mjs`; modify `lib/apply/apply.mjs`
+(`adoptInto` moves out and is imported back as `writeLayer`).
+
+**Interfaces — Produces:**
+```js
+portable(value, vars /* { TILLER_HOME, HOME } */) => value   // strings only, longest path first; on win32 also the forward-slash form
+writeLayer(personalDir, adopted /* [{ agent, id, value }] */, { vars }) => [writtenPath]
+//   id 'block' → instructions.md (header stripped); claude '/env/X' → env.X; any other pointer → native.<agent>;
+//   mkdir -p personalDir; unrelated keys of an existing harness.json kept; values made portable
+adoptable(agent, targets, currents /* Map path → text|null */) => { items: [{ path, id, value, op: 'set' }], same: number, left: [{ path, what }] }
+//   json/jsonc target: every leaf of the current document (JSONC parsed with comments);
+//   claude: '/env/*' and '/hooks/*' — env adopted as env, hooks never (user entries counted in `left`,
+//   entries with the TILLER_HOOK= prefix ignored); copilot hooks/tiller.json: skipped whole (tiller's);
+//   block target: body under BLOCK_HEADER when markers exist, else left "no managed block" (text outside
+//   the markers is not read); a leaf whose hash equals the rendered target item of the same id → `same`
+```
+Drift adopt keeps its behaviour and gains the portable form (its value runs through `portable` too).
+
+- [ ] **Step 1: failing tests:** claude `model` and `permissions.allow` → native pointers, `env.FOO` →
+  env item, `/env/TILLER_HOME` equal to the rendered value → `same`; a user hook entry and tiller's
+  entry in `hooks.PreToolUse` → one `left` line naming one user entry, no item; `CLAUDE.md` block
+  with a body → `block` item without the header, no block → `left`; copilot `settings.json` with
+  comments and a trailing-comma-free object → `native.copilot` leaves, `hooks/tiller.json` ignored;
+  invalid JSON → `InvalidNativeFile`; `portable` turns `<tillerHome>/x` into `${TILLER_HOME}/x` and
+  a home path into `${HOME}/…`, longer match first, win32 forward slashes; `writeLayer` creates the
+  directory, merges into an existing `harness.json` keeping `$comment` and other keys, writes
+  `instructions.md`, stores values portably; existing CLI drift-adopt tests stay green.
+- [ ] **Step 2–4:** red, implement, green; the five suites.
+- [ ] **Step 5:** commit `feat(apply): read adoptable native settings and write the personal layer portably`.
+
+### Task 6.2: foreign skills and agent files
+
+**Files:** Modify `lib/apply/adopt.mjs`, `lib/apply/tests/adopt.test.mjs`, `lib/adapters/skills.mjs`
+(`skillRoots(agent, { configDir, home })`: claude `[<dir>/skills]`, copilot `[~/.agents/skills, <dir>/skills]`).
+
+**Interfaces — Produces:**
+```js
+adoptableSkills(agent, { configDir, home, tillerHome, personalDir }) => { copy: [{ name, from, to }], left: [{ path, what }] }
+//   an entry holding SKILL.md (directory, or symlink resolving to one): target under tillerHome → tiller's, silent;
+//   name of a tracked skill → left "would shadow tiller's skill"; already in personal skills → left "already
+//   in the personal layer"; dangling symlink → left; otherwise copy (dereferenced, recursive)
+foreignAgents(agent, { configDir, desiredAgents }) => [{ path, what }]   // not a desired role, or no generated marker
+copySkills(copy)   // fs.cpSync, never over an existing destination
+```
+
+- [ ] **Step 1: failing tests:** a real directory with `SKILL.md` → copy; a symlink into `tillerHome/skills`
+  → nothing; a symlink into another tree → copy of the target; a directory with no `SKILL.md` →
+  ignored; a name matching a tracked skill → left; a name already in `personal/<user>/skills` → left,
+  not overwritten; a dangling symlink → left; copilot reads both roots; `foreignAgents` lists a hand
+  written `flow-x.md` and a renamed role file, not a rendered role; `copySkills` copies nested files and
+  refuses an existing destination.
+- [ ] **Step 2–4:** red, implement, green; the five suites; `git status --short` clean.
+- [ ] **Step 5:** commit `feat(apply): copy foreign skills into the personal layer and report foreign agents`.
+
+### Task 6.3: `tiller apply --adopt <agent> [--yes] [--dry-run] [--user <name>]`
+
+**Files:** Modify `bin/tiller.mjs` (`parseApply` gains `adopt`; usage and header), `lib/apply/adopt.mjs`
+(`runAdopt`), `lib/tests/tiller-cli.test.mjs`.
+
+**Interfaces — Produces:**
+```js
+runAdopt({ tillerHome, home, env, platform, stateHome, personalDir, agent, yes, dryRun, isTTY, prompt, out, probeMachine })
+  => { status: 'written'|'unchanged'|'dry-run'|'refused', reason?, files: [path] }
+```
+Order: probe → agent must be `claude` or `copilot` (else refused, exit 3); config dir absent →
+`unchanged` with `nothing to adopt` → resolve layers with the existing personal dir → render targets
+→ `adoptable` + `adoptableSkills` + `foreignAgents` → print the proposal per native file (`+ id = value`,
+`~ id = value`, `N already reproduced`, `left: …`, `+ skill <name> -> <to>`) → `--dry-run` returns →
+nothing to write → `unchanged` → consent: `--yes`, or in a terminal `Write the personal layer at
+<dir>? [y/N]`; otherwise refused (exit 3) → `writeLayer` + `copySkills` → `written: <files>, <n> skills`
+→ when `<dir>/.git` is absent, one line: `personal layer is not a git repo yet; see README`.
+CLI: `--adopt <agent>` takes `--yes`, `--dry-run`, `--user`; `--agents` with `--adopt` → usage (2);
+no user (`--user` or `machine.json.user`) → `tiller apply --adopt: needs --user <name>` (2). Adopt
+stores nothing in `machine.json`.
+
+- [ ] **Step 1: failing tests** (spawned CLI, synthetic HOME + state + personal root; real-home
+  guard on every spawn): claude `settings.json` with `model`, a user hook and `env.FOO` → `--yes`
+  writes `harness.json` `{ env: { FOO }, native: { claude: { model } } }`, prints the hook as left,
+  native file bytes and state dir unchanged; `--dry-run` creates not even the personal dir; no TTY and
+  no `--yes` → exit 3, nothing written; interactive `n` → refused; a layer that already reproduces the
+  file → `unchanged`; after adopt, `apply --yes --user` exits 0 with the keys taken over (`=`) and a
+  second apply is `unchanged`; a path value equal to `<tillerHome>/x` lands as `${TILLER_HOME}/x`;
+  copilot JSONC with comments → `native.copilot`; unparseable file → exit 3; missing user → exit 2;
+  `--agents` with `--adopt` → exit 2; a foreign skill is copied, the original stays, the next apply
+  reports it `skipped: … is not tiller's`; the git hint appears without `.git` and not with it.
+- [ ] **Step 2–4:** red, implement, green; the five suites; `git status --short` clean.
+- [ ] **Step 5:** commit `feat(tiller): adopt an agent's native setup into the personal layer`.
+
+### Task 6.4: moving an existing setup into a personal layer (docs)
+
+**Files:** Modify `README.md` (a short section after the install block), `personal/_templates/README.md`
+(one line in the `harness.json` row). No test; leak-guard and the manual name check.
+
+Procedure, impersonal: run `bin/tiller apply --adopt <agent>` and read the proposal; review
+`personal/<user>/`, `git init` it and add a private remote; move by hand what adopt leaves: text
+outside the managed block into `instructions.md`, user hooks stay native, delete the original of each
+copied skill; `bin/tiller apply` then takes ownership and links the skills; on another machine
+`bin/tiller onboard --personal <url> --user <name>`.
+
+- [ ] **Step 1:** write, leak-guard, commit `docs: describe moving an existing setup into a personal layer`.
+
+### Step-6 interpretations (for approval)
+
+Owner answers 2026-10-15: Tasks 6.1–6.4 and interpretations 1–9 approved as written (2: block only; 4: portable
+values in drift adopt too; 6: foreign skills copied).
+
+Each line: the reading taken, the alternative, what reversal costs.
+
+1. **Hooks are never adopted.** The neutral hook form (`id`, `event`, `kinds`, `command`) cannot carry
+   a user's matcher or a non-PreToolUse event, and `native.<agent>.hooks` would own the array tiller's
+   own entry lives in. Alternative: translate PreToolUse command hooks whose matcher maps onto the kinds
+   table. Reversal: additive later, nothing to undo.
+2. **Instructions: only the managed block is read** (spec: text outside the markers is never read or
+   written). A fresh adopter's `CLAUDE.md` without markers is reported, not imported; the README
+   procedure says to move it by hand. Alternative: an opt-in `--adopt-instructions` that copies the
+   whole file body into `instructions.md` (reads outside the markers; a spec change). Reversal: additive.
+3. **One agent per run**, as the spec's `<agent>` says; the second run proposes against the layer the
+   first produced, so a differing block body shows as `~ instructions.md`. Alternative: `--adopt
+   claude,copilot` with a conflict rule. Reversal: additive.
+4. **Portable values**: `<tillerHome>` and `<home>` prefixes become `${TILLER_HOME}` and `${HOME}` in
+   the layer, in drift adopt too (step 2 wrote the literal path). The personal repo targets other
+   machines, and the layer re-expands them. Alternative: literal paths. Reversal: cheap, one function;
+   layers already written keep working either way.
+5. **Missing personal dir**: created by adopt, no `git init`, a one-line hint instead. `--user` is
+   required (exit 2) and not stored, since adopt writes only into `personal/<user>/`; `onboard --user`
+   stores it. Alternative: adopt runs `git init`. Reversal: cheap.
+6. **Foreign skills are copied** into `personal/<user>/skills/`, originals left in place (adopt never
+   touches native paths), so the next apply reports them `skipped: … is not tiller's` until the original
+   is removed. A name that clashes with a tracked skill or an existing personal skill is left and
+   reported. Foreign agent files are reported only: the personal layout has no agents slot.
+   Alternative: report skills only, no copy. Reversal: delete the copies.
+7. **Consent and output as apply**: `--yes`, or a terminal question; no terminal and no `--yes` refuses
+   with exit 3; `--dry-run` prints and creates nothing; nothing to adopt → `unchanged`. No backup of
+   `harness.json` and `instructions.md` (git is the personal layer's history) and no manifest, state or
+   `machine.json` write. Already-reproduced ids are counted, not listed.
+8. **Unparseable native file** refuses the whole adopt (exit 3) rather than skipping that file, so a
+   half-read setup is never written as a layer. Alternative: the apply-style `[s]kip / [q]uit`.
+   Reversal: cheap.
+9. **"Moving an existing setup into a personal layer"** is the documented procedure of Task 6.4, not a
+   command: the parts adopt cannot take (text outside the block, user hooks, the originals of copied
+   skills) need a human decision each.
 
 ## Spec interpretations made in this plan (for approval)
 
