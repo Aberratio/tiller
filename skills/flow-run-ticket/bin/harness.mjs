@@ -15,15 +15,14 @@
 //       a `command:` gate source; exit 0 = green, anything else = red
 //   harness.mjs args --profile <file> --date <ISO> (--ticket <KEY> | --spec <path>)
 //                    [--root <dir>] [--run <id>] [--note <text>]... [--hold-merge <reason>]
-//                    [--branch <name> | --summary <ticket summary>] [--test-match <text>] [--driver node|workflow]
-//       build the run-ticket args; written to <root>/args-<ticket>.json (artifact). --driver picks
-//       the runner that takes them: the Node driver (default) or the Workflow script
+//                    [--branch <name> | --summary <ticket summary>] [--test-match <text>]
+//       build the run-ticket args for the driver; written to <root>/args-<ticket>.json (artifact)
 //   harness.mjs drive --args <artifact>
 //       run the ticket on the Node driver (lib/driver/drive.mjs); one script-result line
 //   harness.mjs resume --root <STATE_ROOT> --ticket <KEY>
 //       state.mjs resume with the checkpoint outputs inline, so a Workflow can read them
-//   harness.mjs day-args --profile <file> --date <ISO> --queue <waves.json> [--root <dir>] [--run <id>] [--driver node|workflow]
-//       build the day args (Node day driver by default); refused when the profile allows no unattended day run
+//   harness.mjs day-args --profile <file> --date <ISO> --queue <waves.json> [--root <dir>] [--run <id>]
+//       build the day args for the day driver; refused when the profile allows no unattended day run
 //   harness.mjs drive-day --args <args-day.json>
 //       run the day on the Node day driver (lib/driver/day.mjs); one script-result line
 //   harness.mjs supervise-env --profile <file> [--disallow <tool>]...
@@ -371,9 +370,10 @@ function ticketEntry(base, root, item) {
   }
 }
 
-const DRIVERS = ['workflow', 'node']
+// The Node driver is the only runner; args that name another one are refused rather than ignored.
+const noDriverFlag = opts => { if (opts.driver !== undefined) refuse('--driver is gone: the Node driver is the only runner') }
 
-// Only the node driver builds role agents inline; a proxy outside config/agents.json keeps a plain lane.
+// A proxy outside config/agents.json keeps a plain lane.
 function roleAgents(f) {
   const roles = JSON.parse(readFileSync(join(CORE, 'config', 'agents.json'), 'utf8'))
   const proxy = f.ownerProxy && f.ownerProxy.role
@@ -382,10 +382,9 @@ function roleAgents(f) {
 
 function ticketArgs(opts) {
   if (!opts.ticket === !opts.spec) refuse('exactly one of --ticket or --spec')
-  const driver = opts.driver ?? 'node'
-  if (!DRIVERS.includes(driver)) refuse(`--driver must be one of ${DRIVERS.join(', ')}`)
+  noDriverFlag(opts)
   const { root, base } = common(opts)
-  const out = { ...base, ...ticketEntry(base, root, opts), driver, ...(driver === 'node' ? { agents: roleAgents(base.facts) } : {}) }
+  const out = { ...base, ...ticketEntry(base, root, opts), agents: roleAgents(base.facts) }
   const file = join(root, `args-${out.ticket}.json`)
   writeFileSync(file, JSON.stringify(out))
   emit(0, { status: 'ok', ticket: out.ticket, stateRoot: root, artifact: file })
@@ -416,8 +415,7 @@ function driveDay(opts) {
 
 function dayArgs(opts) {
   if (!opts.queue) refuse('--queue <waves.json> is required')
-  const driver = opts.driver ?? 'node'
-  if (!DRIVERS.includes(driver)) refuse(`--driver must be one of ${DRIVERS.join(', ')}`)
+  noDriverFlag(opts)
   const { root, base } = common({ ...opts, run: opts.run || `day-${opts.date}` })
   if (!base.facts.dayRunAllowed || !base.facts.ownerProxy) refuse('the profile has no ## owner proxy: an unattended day run is refused')
   const rp = base.facts.runPolicy || {}
@@ -431,8 +429,7 @@ function dayArgs(opts) {
     if (seen.has(t.ticket)) refuse(`${t.ticket} is queued twice`)
     seen.add(t.ticket)
   }
-  const out = { ...base, waves, driver, ...(driver === 'node' ? { agents: roleAgents(base.facts) } : {}),
-    runTicketScript: join(CORE, 'skills', 'flow-run-ticket', 'run-ticket.workflow.js') }
+  const out = { ...base, waves, agents: roleAgents(base.facts) }
   const file = join(root, 'args-day.json')
   writeFileSync(file, JSON.stringify(out))
   emit(0, { status: 'ok', stateRoot: root, waves: waves.length, tickets: seen.size, artifact: file })

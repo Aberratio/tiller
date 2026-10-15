@@ -19,29 +19,36 @@ function specIn(dir) {
   return spec
 }
 
-test('args defaults the driver to the Node driver', () => {
+test('args carries no driver field, builds the role agents, and refuses --driver whatever its value', () => {
   const root = tmpRoot('drv-default')
   const r = argsWith(root)
   assert.equal(r.exitCode, 0, r.stdout)
-  assert.equal(r.args.driver, 'node')
-})
-
-test('args --driver workflow is stored in the args', () => {
-  const root = tmpRoot('drv-workflow')
-  const r = argsWith(root, '--driver', 'workflow')
-  assert.equal(r.exitCode, 0, r.stdout)
-  assert.equal(r.args.driver, 'workflow')
-})
-
-test('args refuses a driver other than node or workflow, and a bare --driver', () => {
-  for (const extra of [['--driver', 'bogus'], ['--driver']]) {
-    const root = tmpRoot('drv-bogus')
+  assert.equal(r.args.driver, undefined)
+  assert.equal(r.args.agents.resolver, 'flow-resolver')
+  for (const extra of [['--driver', 'workflow'], ['--driver', 'node'], ['--driver']]) {
+    const root = tmpRoot('drv-flag')
     const r = argsWith(root, ...extra)
     assert.equal(r.exitCode, 4, r.stdout)
     assert.equal(r.result.status, 'refused')
-    assert.match(r.result.reason, /--driver/)
-    assert.ok(!existsSync(join(root, 'args-ADD-FLAG.json')), 'no artifact for a refused driver')
+    assert.match(r.result.reason, /--driver is gone/)
+    assert.ok(!existsSync(join(root, 'args-ADD-FLAG.json')), 'no artifact for a refused flag')
   }
+})
+
+// Args files written for the retired Workflow runner still exist under old state roots; they are refused, never migrated.
+test('drive refuses an args file that names the retired Workflow runner, before touching any state', () => {
+  const root = tmpRoot('drv-legacy')
+  const built = argsWith(root)
+  assert.equal(built.exitCode, 0, built.stdout)
+  const legacy = join(root, 'args-legacy.json')
+  writeFileSync(legacy, JSON.stringify({ ...built.args, driver: 'workflow' }))
+  const r = harness(root, 'drive', '--args', legacy)
+  assert.equal(r.exitCode, 4, r.stdout)
+  assert.equal(r.result.status, 'refused')
+  assert.equal(r.result.kind, 'policy')
+  assert.match(r.result.reason, /retired Workflow runner/)
+  assert.match(r.result.reason, /harness\.mjs args/)
+  for (const f of ['driver-journal.jsonl', 'driver-result.json']) assert.ok(!existsSync(join(root, 'tickets', 'ADD-FLAG', f)), `${f} was not written`)
 })
 
 // A lane call is answered by prompt: the premise lane falsifies the ticket, the log lane writes prose.
@@ -84,7 +91,7 @@ function fixture(tag) {
   chmodSync(join(dir, 'bin', 'gh'), 0o755)
   const root = join(dir, 'state')
   const env = { ...process.env, PATH: `${join(dir, 'bin')}${delimiter}${process.env.PATH}`, FAKE_CLAUDE_LOG: join(dir, 'claude.jsonl'), STATE_ROOT: '' }
-  const built = spawnSync(process.execPath, [HARNESS, 'args', '--profile', profile, '--date', '2026-09-30', '--root', root, '--spec', specIn(dir), '--driver', 'node'], { encoding: 'utf8', env })
+  const built = spawnSync(process.execPath, [HARNESS, 'args', '--profile', profile, '--date', '2026-09-30', '--root', root, '--spec', specIn(dir)], { encoding: 'utf8', env })
   assert.equal(built.status, 0, built.stdout)
   const drive = (...argv) => {
     const p = spawnSync(process.execPath, [HARNESS, 'drive', ...argv], { encoding: 'utf8', env })

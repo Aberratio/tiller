@@ -17,21 +17,35 @@ function dayArgsWith(root, ...extra) {
   return { exitCode: p.status, result, args: result.status === 'ok' ? JSON.parse(readFileSync(result.artifact, 'utf8')) : null }
 }
 
-test('day-args defaults the day driver to node; workflow stays selectable; anything else is refused', () => {
+test('day-args carries no driver field or ticket script, builds the role agents, and refuses --driver', () => {
   const def = dayArgsWith(tmpRoot('dd-default'))
   assert.equal(def.exitCode, 0, JSON.stringify(def.result))
-  assert.equal(def.args.driver, 'node')
+  assert.equal(def.args.driver, undefined)
+  assert.equal(def.args.runTicketScript, undefined)
   assert.equal(def.args.agents.resolver, 'flow-resolver')
-  const wf = dayArgsWith(tmpRoot('dd-workflow'), '--driver', 'workflow')
-  assert.equal(wf.args.driver, 'workflow')
-  assert.equal(wf.args.agents, undefined)
-  for (const extra of [['--driver', 'bogus'], ['--driver']]) {
-    const root = tmpRoot('dd-bogus')
+  for (const extra of [['--driver', 'workflow'], ['--driver', 'node'], ['--driver']]) {
+    const root = tmpRoot('dd-flag')
     const r = dayArgsWith(root, ...extra)
     assert.equal(r.exitCode, 4)
-    assert.match(r.result.reason, /--driver/)
+    assert.match(r.result.reason, /--driver is gone/)
     assert.ok(!existsSync(join(root, 'args-day.json')))
   }
+})
+
+test('drive-day refuses an args file that names the retired Workflow runner, before taking the day lock', () => {
+  const root = tmpRoot('dd-legacy')
+  const built = dayArgsWith(root)
+  assert.equal(built.exitCode, 0, JSON.stringify(built.result))
+  const legacy = join(root, 'args-day-legacy.json')
+  writeFileSync(legacy, JSON.stringify({ ...built.args, driver: 'workflow' }))
+  const p = spawnSync(process.execPath, [HARNESS, 'drive-day', '--args', legacy], { encoding: 'utf8' })
+  const r = lastLine(p.stdout)
+  assert.equal(p.status, 4, p.stdout)
+  assert.equal(r.status, 'refused')
+  assert.equal(r.kind, 'policy')
+  assert.match(r.reason, /retired Workflow runner/)
+  assert.ok(!existsSync(join(root, 'day-result.json')), 'no completion record for a refused day')
+  assert.ok(!existsSync(join(root, 'locks', 'day.lock')), 'the day lock was never taken')
 })
 
 test('the completion record says running with the pid while the day runs, and the outcome when it ends', async () => {
@@ -55,7 +69,7 @@ test('the completion record says running with the pid while the day runs, and th
   assert.ok(existsSync(join(root, 'tickets', 'day-2026-09-28', 'driver-journal.jsonl')), 'day lanes are journaled')
 })
 
-// 2026-10-06: the Workflow day run died and left no completion record; the summary was written by hand.
+// 2026-10-06: a day run died and left no completion record; the summary was written by hand.
 test('a crash inside the day driver still writes the completion record and a handoff, and frees the lock', async () => {
   const root = tmpRoot('dd-crash')
   const args = buildDayArgs(root, { queue: [['ABC-1'], ['ABC-2']] })
@@ -177,7 +191,7 @@ test('drive-day runs the day for real: each ticket through its own drive.mjs pro
   assert.equal(line.record, join(f.root, 'day-result.json'))
   assert.equal(record(f.root).status, 'done')
   assert.equal(JSON.parse(readFileSync(join(f.root, 'tickets', 'ADD-FLAG', 'driver-result.json'), 'utf8')).status, 'parked', 'the child wrote its own result')
-  assert.equal(JSON.parse(readFileSync(join(f.root, 'args-ADD-FLAG.json'), 'utf8')).driver, 'node')
+  assert.equal(JSON.parse(readFileSync(join(f.root, 'args-ADD-FLAG.json'), 'utf8')).ticket, 'ADD-FLAG', 'the child args were written for it')
   const kinds = f.calls().map(c => c.kind)
   assert.deepEqual(kinds, ['premise', 'run-prose', 'sweep', 'day-prose'], 'no exec lane, nothing else called')
   const tier = kind => { const c = f.calls().find(x => x.kind === kind); return c.argv[c.argv.indexOf('--model') + 1] }
