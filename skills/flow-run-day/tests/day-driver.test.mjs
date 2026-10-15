@@ -175,6 +175,11 @@ function fixture(tag, env = {}) {
   const fullEnv = { ...process.env, PATH: `${join(dir, 'bin')}${delimiter}${process.env.PATH}`, FAKE_CLAUDE_LOG: join(dir, 'claude.jsonl'), STATE_ROOT: '', ...env }
   const built = spawnSync(process.execPath, [HARNESS, 'day-args', '--profile', profile, '--date', '2026-09-30', '--root', root, '--queue', qf], { encoding: 'utf8', env: fullEnv })
   assert.equal(built.status, 0, built.stdout)
+  // The fixture profile's stop hour would make these real-clock runs depend on the time of day.
+  const artifact = lastLine(built.stdout).artifact
+  const a = JSON.parse(readFileSync(artifact, 'utf8'))
+  a.facts.runPolicy.stopHour = null
+  writeFileSync(artifact, JSON.stringify(a))
   const calls = () => existsSync(fullEnv.FAKE_CLAUDE_LOG) ? readFileSync(fullEnv.FAKE_CLAUDE_LOG, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : []
   return { dir, root, artifact: lastLine(built.stdout).artifact, env: fullEnv, calls }
 }

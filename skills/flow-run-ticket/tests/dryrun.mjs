@@ -245,7 +245,8 @@ export async function runDayDriver(sim, runtime = {}) {
     sim.children.push(entry.ticket)
     return (await drive(childArgs, sim.runtime)).result
   }
-  const run = driveDay(sim.args, { ...sim.runtime, pid: DEAD_PID, launch, ...runtime })
+  // A fixed mid-morning clock: the fixture profiles set a stop hour, and a test must not depend on when it runs.
+  const run = driveDay(sim.args, { ...sim.runtime, pid: DEAD_PID, launch, now: () => new Date(2026, 8, 28, 10, 0), ...runtime })
     .then(({ result, fatal }) => fatal ? { ...result, fatal } : result)
   return Promise.race([run, sim.hangPromise.then(where => ({ killed: where }))])
 }
