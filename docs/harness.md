@@ -114,7 +114,8 @@ most `caps.waitCiRecalls` times, then `ci-timeout`.
   `recent` mean tokens per model and lane (input plus cache writes in, output out, replayed lines
   left out) and `cooldown` for every model rate-limited within `caps.cooldownMinutes` (15). A rate
   limit during the run cools that model for the same window; a cooldown every candidate shares is
-  lifted rather than parking the lane. Each lane journal line carries `at`.
+  lifted rather than parking the lane. Each lane journal line carries `at`, the `model` that
+  answered and `promptHash`, the sha256 of the prompt as sent.
 
 ## State records
 
