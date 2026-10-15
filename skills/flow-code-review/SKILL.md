@@ -6,7 +6,7 @@ user-invocable: true
 
 # flow-code-review
 
-**Step −1 — resolve the profile.** Follow `skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
+**Step −1 — resolve the profile.** Follow `$TILLER_HOME/skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
 
 Two axes, deliberately kept apart:
 

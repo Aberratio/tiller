@@ -6,7 +6,7 @@ user-invocable: true
 
 # flow-plan-ticket
 
-**Step −1 — resolve the profile.** Follow `skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
+**Step −1 — resolve the profile.** Follow `$TILLER_HOME/skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
 
 The step between "this ticket is mine" and the first test, for work that arrives already written as a spec: objective, success criteria, constraints, non-goals. Nothing is left to specify — what is left is to find out whether the ticket is still true, what it touches, and which parts of it nobody involved is allowed to do.
 
