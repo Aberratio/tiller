@@ -3,6 +3,7 @@
 //
 //   tiller doctor [--json]
 //   tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>]
+//   tiller apply --adopt <agent> [--yes] [--dry-run] [--user <name>]
 //   tiller status [--json]
 //   tiller onboard [--personal <git-url>] [--user <name>] [--yes] [--dry-run] [--agents claude,...]
 //   tiller uninstall [--yes] [--dry-run] [--agents claude,...]
@@ -15,13 +16,14 @@ import { fileURLToPath } from 'node:url'
 import { homeOf, probe } from '../lib/machine/probe.mjs'
 import { capabilities } from '../lib/machine/capabilities.mjs'
 import { runApply } from '../lib/apply/apply.mjs'
+import { runAdopt } from '../lib/apply/adopt.mjs'
 import { writeAtomic } from '../lib/apply/merge.mjs'
 import { printStatus, runStatus } from '../lib/apply/status.mjs'
 import { runUninstall } from '../lib/apply/uninstall.mjs'
 
 export { homeOf }
 
-const USAGE = 'usage: tiller doctor [--json] | tiller onboard [--personal <git-url>] [--user <name>] [--yes] [--dry-run] [--agents claude,...] | tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>] | tiller status [--json] | tiller uninstall [--yes] [--dry-run] [--agents claude,...]'
+const USAGE = 'usage: tiller doctor [--json] | tiller onboard [--personal <git-url>] [--user <name>] [--yes] [--dry-run] [--agents claude,...] | tiller apply [--yes] [--dry-run] [--agents claude,...] [--user <name>] | tiller apply --adopt <agent> [--yes] [--dry-run] [--user <name>] | tiller status [--json] | tiller uninstall [--yes] [--dry-run] [--agents claude,...]'
 const TILLER_HOME = dirname(dirname(fileURLToPath(import.meta.url)))
 
 // Synchronous so the whole apply stays one synchronous pass; returns null at end of input.
@@ -71,7 +73,7 @@ function doctor(argv, ctx) {
 }
 
 function parseApply(argv) {
-  const opts = { yes: false, dryRun: false, agents: null, user: null, personal: null }
+  const opts = { yes: false, dryRun: false, agents: null, user: null, personal: null, adopt: null }
   for (let i = 0; i < argv.length; i++) {
     const [flag, inline] = argv[i].split(/=(.*)/s)
     const value = () => inline ?? argv[++i]
@@ -80,9 +82,10 @@ function parseApply(argv) {
     else if (flag === '--agents') opts.agents = (value() ?? '').split(',').filter(Boolean)
     else if (flag === '--user') opts.user = value()
     else if (flag === '--personal') opts.personal = value()
+    else if (flag === '--adopt') opts.adopt = value()
     else return null
   }
-  if ((opts.agents && !opts.agents.length) || opts.user === undefined || opts.personal === undefined) return null
+  if ((opts.agents && !opts.agents.length) || [opts.user, opts.personal, opts.adopt].some(v => v === undefined || v?.startsWith('--'))) return null
   return opts
 }
 
@@ -96,11 +99,43 @@ function machineUser(stateHome) {
 
 function apply(argv, ctx) {
   const opts = parseApply(argv)
-  if (!opts || opts.personal) {
+  if (!opts || opts.personal || (opts.adopt && opts.agents)) {
     ctx.stderr(USAGE + '\n')
     return 2
   }
-  return applyWith(opts, ctx)
+  return opts.adopt ? adoptWith(opts, ctx) : applyWith(opts, ctx)
+}
+
+// Adopt reads the agent's native files into personal/<user>/ and nothing else: no state, no user.
+function adoptWith(opts, ctx) {
+  const stateHome = stateHomeOf(ctx)
+  const user = opts.user ?? machineUser(stateHome)
+  if (!user) {
+    ctx.stderr('tiller apply --adopt: needs --user <name>\n')
+    return 2
+  }
+  try {
+    const r = runAdopt({
+      tillerHome: ctx.tillerHome, home: ctx.home, env: ctx.env, platform: ctx.platform, stateHome,
+      personalDir: join(personalRootOf(ctx), user), agent: opts.adopt,
+      yes: opts.yes, dryRun: opts.dryRun, isTTY: ctx.isTTY, prompt: ctx.prompt, out: ctx.stdout,
+    })
+    if (r.status === 'refused') {
+      ctx.stderr(`tiller apply --adopt: refused: ${r.reason}\n`)
+      return 3
+    }
+    if (r.status === 'written') {
+      const skills = r.skills ? [`${r.skills} skill${r.skills === 1 ? '' : 's'}`] : []
+      ctx.stdout(`written: ${[...r.files, ...skills].join(', ')}\n`)
+      if (r.gitHint) ctx.stdout('personal layer is not a git repo yet; see README\n')
+    } else {
+      ctx.stdout(`${r.status}${r.reason ? `: ${r.reason}` : ''}\n`)
+    }
+    return 0
+  } catch (e) {
+    ctx.stderr(`tiller apply --adopt: ${e.message}\n`)
+    return 4
+  }
 }
 
 function applyWith(opts, ctx) {
@@ -143,7 +178,7 @@ function status(argv, ctx) {
 
 function uninstall(argv, ctx) {
   const opts = parseApply(argv)
-  if (!opts || opts.user || opts.personal) {
+  if (!opts || opts.user || opts.personal || opts.adopt) {
     ctx.stderr(USAGE + '\n')
     return 2
   }
@@ -185,7 +220,7 @@ function syncPersonal(url, dir, ctx) {
 
 function onboard(argv, ctx) {
   const opts = parseApply(argv)
-  if (!opts) {
+  if (!opts || opts.adopt) {
     ctx.stderr(USAGE + '\n')
     return 2
   }
