@@ -2,12 +2,12 @@
 
 Find and prove the cause of a bug — and stop at the deliverable that was actually asked for.
 
-The loop-first discipline is inherited wholesale from Matt Pocock's `diagnosing-bugs` and it holds:
-a tight, deterministic, unattended command that goes red on *this* bug is worth more than any
-amount of reading. What four battle-testing sessions changed is the gate around it. The upstream
-skill lets nothing past Phase 1 until a loop asserts the user's exact symptom — written for the
-case where you are about to write a patch. Three of those four sessions were not that case, waived
-the gate, and improvised something ad hoc in its place.
+Adapted from the public `diagnosing-bugs` skill in <https://github.com/mattpocock/skills>. The
+loop-first discipline holds: a tight, deterministic, unattended command that goes red on *this* bug
+is worth more than any amount of reading. What changed is the gate around it. The upstream skill
+lets nothing past Phase 1 until a loop asserts the user's exact symptom — written for the case where
+you are about to write a patch. Most diagnoses are not that case, so the gate was waived in
+practice and something ad hoc took its place.
 
 ## Where it sits
 
@@ -28,7 +28,7 @@ Naming the deliverable first is the whole point, because it sets how strong the 
 - **A plan** — a *locating* loop is enough: it may assert one layer below the symptom (ranking
   numbers rather than a missing checkbox) as long as it names the cause with numbers. Exit before
   implementing; the regression test is named and handed on unwritten.
-- **A verdict** — "is this April crash still alive?" No loop; an evidence trail, answered with its
+- **A verdict** — "is the crash from last spring still alive?" No loop; an evidence trail, answered with its
   confidence basis: test-proven, telemetry-proven, or merely claimed. See
   `references/verdict-mode.md`.
 - **A decision** — the cause is a knob someone moved deliberately. Both measurements, the
@@ -36,8 +36,8 @@ Naming the deliverable first is the whole point, because it sets how strong the 
 
 ## What it handles that the upstream skill does not
 
-- **Bugs that do not live in code.** A WASM bundle that never reached S3; a reference JSON retuned
-  through an API and never committed. Neither has two commits to bisect, and for the first the
+- **Bugs that do not live in code.** A build artifact that never reached its bucket; a config value changed
+  through an admin API and never committed. Neither has two commits to bisect, and for the first the
   regression test is a CI assertion on the build artifact — the e2e suite ran green against a
   replay stub the whole time staging was broken.
 - **Orientation reads are legal.** For a deployment bug you cannot name the command to run before
@@ -54,9 +54,8 @@ Naming the deliverable first is the whole point, because it sets how strong the 
 ## Changed from the upstream `diagnosing-bugs`
 
 - **"No red-capable command, no Phase 2" as an absolute gate** → kept as the default, but tiered by
-  deliverable (Step 0) and paired with explicit permission for orientation reads (Step 1). The
-  absolute version was waived in three of four logged sessions; a rule that gets waived that often
-  is mis-stated, not disobeyed.
+  deliverable (Step 0) and paired with explicit permission for orientation reads (Step 1). An
+  absolute version gets waived in practice; a rule waived that often is mis-stated, not disobeyed.
 - **Every loop must assert the user's exact symptom** → split into locating vs regression loop.
 - **Hypotheses as an always-separate phase** → collapses into the loop when the loop is
   differential.
@@ -70,25 +69,19 @@ Naming the deliverable first is the whole point, because it sets how strong the 
 
 ## Where it lives
 
-A **personal skill** in `~/.claude/skills/flow-diagnose-bug/`, not in the shared `agent-skills` repo
-— the team keeps the shared set small, and nothing is committed there while PR #8 is open. Nothing
-to install; a new session picks it up.
-
-It supersedes the upstream `diagnosing-bugs`, which is demoted to slash-only by the router
-(`~/.claude/skills-router/routing.md`) rather than uninstalled, so `/diagnosing-bugs` still runs the
-original. The siblings it hands off to — `flow-plan-ticket`, `flow-write-ticket` — are
-personal or forked and know about this lane through the router, not through edits to the shared
-repo.
+`skills/flow-diagnose-bug/` in this repository; `install.sh` links it like every other skill. It
+supersedes the upstream `diagnosing-bugs` for this harness. The siblings it hands off to —
+`flow-plan-ticket`, `flow-write-ticket` — know about this lane through their own descriptions.
 
 ## Usage
 
 ```
 /flow-diagnose-bug
-"diagnose why the camera errors on staging"
-"why is the setup gate never passing since the retune?"
-"is the April SIGABRT still a thing?"
+"diagnose why the checkout form errors on staging"
+"why is the nightly export never finishing since the config change?"
+"is that crash from April still a thing?"
 ```
 
 ## Provenance
 
-Every rule is traceable to a session where its absence cost time. The provenance notes cite private session records, so they are kept outside this repository; read them before changing a rule.
+Every rule is traceable to a debugging session where its absence cost time.

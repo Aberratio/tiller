@@ -3,9 +3,8 @@
 Resolve a stopped merge or rebase, or bring a conflicting PR up to date, by intent rather than by
 hunk, and prove at the tip that nothing the conflict hid was lost.
 
-Ported from the upstream generic `resolving-merge-conflicts` (five steps: see the state, find the
-primary sources, resolve each hunk, run the checks, finish). Its five steps survive; a dozen field
-sessions added everything around them. The recurring lesson:
+Adapted from the generic five-step recipe (see the state, find the primary sources, resolve each
+hunk, run the checks, finish). The five steps survive; field use added everything around them. The recurring lesson:
 the conflicted hunks are the smallest part of the job — generated files, auto-merged damage, stale
 installs and a check run at the wrong moment cost more than any marker.
 

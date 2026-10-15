@@ -5,10 +5,10 @@ tracker". It does not implement a tracker — it reads six operations out of the
 
 > Map · Child ticket · Blocking · Frontier query · Claim · Resolve
 
-Three tracker templates ship with `setup-matt-pocock-skills`: GitHub, GitLab, local markdown. None
+Typical tracker templates cover GitHub, GitLab and local markdown. None
 of them fits a project that tracks its work elsewhere (Jira, say), and a decision ticket is not a
 deliverable — putting one on the team's board distorts the board and smuggles internal vocabulary
-(`wayfinder:grilling`) into tickets that are supposed to carry none.
+(skill names) into tickets that are supposed to carry none.
 
 So the maps live in **one private GitHub repo**, separate from every project's tracker, named in
 each profile's `## wayfinding` section. Project work stays in the project's tracker; only the
@@ -38,7 +38,7 @@ the same six operations instead of improvising their own.
 ## One measured thing that the shipped GitHub template gets wrong
 
 The GitHub template computes the frontier from `issue_dependencies_summary.blocked_by`. **That field
-is eventually consistent and lags a write by roughly two to four seconds** (measured 2026-09-14):
+is eventually consistent and lags a write by roughly two to four seconds** (measured):
 
 ```
 POST .../dependencies/blocked_by   -> summary.blocked_by = 0   (wrong)

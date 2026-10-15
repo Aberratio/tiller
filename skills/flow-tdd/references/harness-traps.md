@@ -11,7 +11,7 @@ three different things, and a broken instrument produces the third while looking
 This is the same class as a false red, one level further out: not "the failure is not the ticket's failure"
 but "there was no measurement at all".
 
-Three shapes seen on this machine, all in one session:
+Three shapes seen on one machine:
 
 - **A wrapper that does not exist.** `timeout 180 npx vitest …` exits **127** on macOS — there is no
   `timeout` binary. Every such run produced no test output, and the absence was read as "the baseline hangs
@@ -29,8 +29,8 @@ Re-run the same check a second way before writing it down.
 
 When one action produces two observable effects in sequence — a side effect and then a state update —
 waiting on the **earlier** one and asserting the **later** one synchronously is a race by construction.
-Seen for real: `t.stop()` then `setStatus('camera error: …')` inside one `catch`; the test awaited the stop
-and then read the rendered message, and lost that race once on CI, taking `main` red and skipping a deploy.
+Seen for real: `connection.close()` then `setStatus('upload failed: …')` inside one `catch`; the test awaited the close
+and then read the rendered message, and lost that race once on CI, turning the main branch red.
 
 **The obvious repair is not to move the assertion into the retried callback.** Where the callback also
 *triggers* the action (`dispatchEvent` inside `waitFor`), each poll re-enters the path and schedules another

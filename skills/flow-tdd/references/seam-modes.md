@@ -14,7 +14,7 @@ The correctness criterion is parity, so the usual rules bend in three defined pl
 
 ## A build or deploy artifact — the seam is the thing produced
 
-When the bug lives in build/deploy plumbing, no code-level test can catch the regression (`npm run build` shipping without the wasm assets; the e2e suite substitutes a double and never loads them).
+When the bug lives in build/deploy plumbing, no code-level test can catch the regression (`npm run build` shipping without its static assets; the e2e suite substitutes a double and never loads them).
 
 - **Seam**: the produced artifact — "`npm run build` must produce `dist/<assets>/**`".
 - **Honest red**: run the assertion from a state that **reproduces CI's clean state** — locally generated inputs wiped first (`rm -rf public/<generated>`), because local dev state masks the bug. Watch it fail, then add the minimal prebuild step.

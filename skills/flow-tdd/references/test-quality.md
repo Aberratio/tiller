@@ -38,7 +38,7 @@ The cure is rarely a better-justified constant:
 
 In rough order of preference:
 
-- a **hand-worked example** computed from the spec or an ADR before any code was touched (17 frames at −27° → norm 1.8, 3 at +120° → norm 8, median 1.8, excess 0.9, whole-rep mean −4.95 — and the first red printed exactly −4.95, which is what proved the test reproduced *the reported bug*);
+- a **hand-worked example** computed from the spec or an ADR before any code was touched (17 readings of 2 and 3 readings of 8 → median 2, mean 2.9 — and the first red printed exactly 2.9, which is what proved the test reproduced *the reported bug*);
 - the **format's or field's documented meaning** (`belly_curvature` IS the leading coefficient of the recorded contour, so `0.42` pins the contract, not the code path);
 - the **other side's contract**, copied into the test with a comment (a client-side filename asserted against the server's `/\A[A-Za-z0-9_.-]+\.json\z/`, which is what makes the test able to catch a future slug format the server would 400 on);
 - **recorded output of the pre-change code**, for extraction/parity work only (see `seam-modes.md`).
@@ -46,18 +46,17 @@ In rough order of preference:
 **And one source that looks independent and is not: a hand copy of a table the repo already exports.**
 Where the rule under test is defined by a lookup table in the codebase, re-deriving the expectation
 from your own restatement of that table is not independence — it is a second chance to make the same
-mistake, and it fails silently outside whatever range the fixtures happen to exercise. Measured on
-ABC-226: a test asserting that a mirrored reference demands the *paired* landmark of
-each one it demanded before computed the pairing as "odd is left, from index 11 up". The repo's own
-`SIDE_LANDMARK_PAIRS` also pairs the face and ears — `[1,4] [2,5] [3,6] [7,8] [9,10]` — which are
-not adjacent odd/even, so the helper was wrong for ten of the thirty-three indices. It passed anyway,
-because no reference in today's corpus demands any of them; found by the profile's review-bot gate, not by the mutation
-pass, since every mutation ran through the same wrong helper. Import the exported accessor
-(`mirrorLandmarkIndex`) instead. The tell is worth learning: an expected value derived from *your*
-copy of a domain table is as coupled as one recomputed the way the code computes it, but it reads
+mistake, and it fails silently outside whatever range the fixtures happen to exercise. Seen in practice: a test asserting that a mirrored shape swaps each
+left field for its right counterpart computed the pairing as "odd index is left, from index 11 up".
+The repo's own exported `FIELD_PAIRS` also pairs fields that are not adjacent odd/even, so the helper
+was wrong for ten of the thirty-three indices. It passed anyway, because no fixture exercised any of
+them; found by the profile's review-bot gate, not by the mutation pass, since every mutation ran
+through the same wrong helper. Import the exported accessor (`pairedFieldIndex`) instead. The tell is
+worth learning: an expected value derived from *your* copy of a domain table is as coupled as one
+recomputed the way the code computes it, but it reads
 like a hand-worked example, so review does not challenge it.
 
-Two assertions that disagree with each other are worth more than one: assert the whole-rep mean is still negative *alongside* the surfaced direction being positive, and the test pins the divergence itself rather than passing whenever both aggregations happen to agree.
+Two assertions that disagree with each other are worth more than one: assert the overall mean is still negative *alongside* the reported trend being positive, and the test pins the divergence itself rather than passing whenever both aggregations happen to agree.
 
 ## Mocking
 
@@ -74,7 +73,7 @@ Stubbing it converts the test into a restatement of the fixture — you assert t
 - **Pin the condition, not an instance that happens to satisfy it.** A real reference that reproduces the bug today may reproduce it for an incidental reason (two mask channels occupying the top slots). Put branch coverage on a synthetic input that pins the *shape* the bug needs, and let the real-data test assert only the durable claim.
 - **Check in-flight work on the same data.** A sibling ticket that changes the ranking, the corpus, or the schema can dissolve your fixture's condition and turn the regression test green for an unrelated reason. Ask what is in flight against this data before choosing the fixture.
 - **Freeze the fixture when you are guarding an algorithm; point at the live data when you are guarding the data.** A trimmed `__fixtures__` copy is right for parity tests; a test whose guarded failure mode is "the corpus changes" must import the live corpus, and say so in a header comment.
-- **Real-data fixtures are legitimate** when believable inputs cannot be hand-authored (33-landmark human motion, a recorded session). Trim the recording to just past the last relevant event, import it statically, and treat that as module loading rather than the disk I/O a unit-test rule bans.
+- **Real-data fixtures are legitimate** when believable inputs cannot be hand-authored (a recorded sensor stream, a captured user session). Trim the recording to just past the last relevant event, import it statically, and treat that as module loading rather than the disk I/O a unit-test rule bans.
 - **Derive a new-format fixture by transforming a real one** (`{...frame, mk: {…}}`) rather than hand-authoring a document — the surrounding data stays real, so the pipeline is still exercised end to end.
 - **Prove the fixture reaches the branch the test's name promises — by mutation, not by reading.** A test called "falls back to the full seen set when nothing is judged" was asserting the *other* branch: its `seen` list contained landmark 24, which the judged channel also reads, so the narrowing branch was non-empty and ran instead. It passed, its expected value happened to be identical, and it sat there through two review rounds until an external review bot read the fixture. The check costs seconds: **flip the branch condition to a constant (`if (narrowed.size)` → `if (true)`) and watch the test go red.** If it stays green, the fixture never reached that arm, whatever the name says. Do this for every branch-coverage test whose input is a hand-built list of indices, ids or flags — that is where the accidental overlap hides. When a fixture turns out to cover a *different* arm than promised, keep it under a name that matches what it really covers, and add the intended one.
 

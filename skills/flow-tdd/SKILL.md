@@ -55,7 +55,7 @@ Two more things belong in this step:
 Every review that follows reads the branch's ledger, at the path the profile's `## decision ledger` section names (ticket key from the branch name; no key → the branch slug). Append the line as the decision is taken, not at the end when the reason has gone fuzzy:
 
 ```
-- 2026-07-28 · standards · the corpus test imports the live validation set instead of a frozen `__fixtures__` copy — catching a corpus retune that breaks setup is the point of the test · self
+- 2026-07-28 · standards · the dataset test imports the live validation set instead of a frozen `__fixtures__` copy — catching a dataset change that breaks setup is the point of the test · self
 ```
 
 Grammar: `- <YYYY-MM-DD> · <spec|standards|both> · <decision> — <why> · <agreed with <who>, <where> | self>`. Field 2 routes the line: `standards` reaches the reviewer reading conventions, `spec` the one reading the ticket, `both` reaches both. No file yet → create it with a `# <TICKET> — decision ledger` header. It is committed with the change.

@@ -22,7 +22,7 @@ Won't Do — following them would have "proven" the bug unfixed.
 ## 2. Follow the artifact trail forward from the report date
 
 - Slack threads after the report — including the ones that never got a ticket
-- The ticket chain, forwards and sideways (ABC-301 → ABC-302 → ABC-303): duplicates, blockers,
+- The ticket chain, forwards and sideways (KEY-1 → KEY-2 → KEY-3): duplicates, blockers,
   "Won't Do" siblings
 - PRs and release notes touching the named component, and dependency removals — a library dropped
   in a major release fixes every bug it owned, silently
