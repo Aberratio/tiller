@@ -7,6 +7,8 @@ set -uo pipefail
 LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=../profile-name.sh
 . "$LIB/profile-name.sh"
+. "$LIB/require-cmd.sh"
+require_cmd jq 0
 export TILLER_HOME="${TILLER_HOME:-$(dirname "$LIB")}"
 
 input="$(cat)"

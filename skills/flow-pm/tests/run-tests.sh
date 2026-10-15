@@ -3,6 +3,8 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$(cd "$HERE/../../../lib" && pwd -P)/require-cmd.sh"
+require_cmd jq
 BF="$HERE/../scripts/blocker-facts.sh"
 FX="$HERE/fixtures"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/flow-pm-tests.XXXXXX")"; trap 'rm -rf "$TMP"' EXIT

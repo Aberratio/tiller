@@ -12,6 +12,8 @@
 set -uo pipefail
 
 LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$LIB/require-cmd.sh"
+require_cmd jq
 # shellcheck source=profile-name.sh
 . "$LIB/profile-name.sh"
 

@@ -9,12 +9,20 @@ set -uo pipefail
 LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=../profile-name.sh
 . "$LIB/profile-name.sh"
+. "$LIB/require-cmd.sh"
+# Without jq the input cannot be parsed, so main() takes its malformed-input path: deny by raw text.
+have_cmd jq || echo "private-access.sh: 'jq' not found on PATH; judging by raw text only (bin/doctor lists every requirement)" >&2
 export TILLER_HOME="${TILLER_HOME:-$(dirname "$LIB")}"
 input="$(cat)"
 
 deny() {
-  jq -cn --arg r "private-access: $1" \
-    '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $r}}'
+  if have_cmd jq; then
+    jq -cn --arg r "private-access: $1" \
+      '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $r}}'
+  else
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"private-access: %s"}}\n' \
+      "$(printf '%s' "$1" | tr -d '"\\')"
+  fi
   exit 0
 }
 

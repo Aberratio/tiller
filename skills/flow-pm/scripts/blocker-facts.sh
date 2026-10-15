@@ -20,6 +20,10 @@
 
 set -uo pipefail
 
+# Missing jq is a failed instrument (exit 2), never a verdict.
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../lib" && pwd -P)/require-cmd.sh"
+require_cmd jq 2
+
 # A blocker in one of these statuses will never be satisfied: closed as not-going-to-happen
 # rather than as delivered. Jira files them under statusCategory "done" exactly like a real
 # Done, so status.name is the only thing that separates them. Extend deliberately.

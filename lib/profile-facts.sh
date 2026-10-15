@@ -16,6 +16,8 @@
 set -uo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+. "$REPO_DIR/lib/require-cmd.sh"
+require_cmd jq
 KINDS="$REPO_DIR/lib/contract/kinds.json"
 ROUTING="$REPO_DIR/config/routing.json"
 
