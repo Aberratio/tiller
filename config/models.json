@@ -6,10 +6,6 @@
       "modelId": "claude-haiku-4-5",
       "status": "active",
       "contextWindow": 200000,
-      "priceUsdPerMtok": {
-        "in": 1,
-        "out": 5
-      },
       "features": {
         "structuredOutput": "schema",
         "toolUse": true
@@ -25,10 +21,6 @@
       "modelId": "claude-opus-5-5",
       "status": "active",
       "contextWindow": 1000000,
-      "priceUsdPerMtok": {
-        "in": 4,
-        "out": 20
-      },
       "features": {
         "structuredOutput": "schema",
         "toolUse": true
@@ -58,10 +50,6 @@
       "modelId": "claude-sonnet-5-5",
       "status": "active",
       "contextWindow": 1000000,
-      "priceUsdPerMtok": {
-        "in": 2,
-        "out": 10
-      },
       "features": {
         "structuredOutput": "schema",
         "toolUse": true

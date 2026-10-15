@@ -19,7 +19,7 @@ honour before it spawns anything.
 | `openai-compat` | the conversation, then a repair turn with `response_format` json_schema, else plain repair (`fallback.mjs`) | `config/prices.json`; self-hosted is priced at 0 and capped by tokens, turns and wall clock | its own tool refusals | local fake HTTP server |
 | `codex` | `--output-schema` file, `-o` file validated again | `config/prices.json`, process group killed on breach | none | fake `codex` binary only |
 
-A model with no entry in `config/prices.json` cannot run on `openai-compat` or `codex`. A lane's caps can
+`config/prices.json` is the only price table; routing and these caps both read it. A model with no entry in it cannot run on `openai-compat` or `codex`. A lane's caps can
 only tighten `limits`.
 
 ## openai-compat

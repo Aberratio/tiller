@@ -232,9 +232,9 @@ directory: Node 24 loads a directory argument as a module and fails.
 | File | Purpose |
 |---|---|
 | `config/routing.json` | tiers (`T1`-`T3` one model each; `T4` an optional model list, empty until a profile needs it; `T0` appears only in spend records, for exec and script lanes that never run a model, and is never routed) and each lane's tier and gate flag |
-| `config/models.json` | each model: runtime, model id, status, context window, price, features, data policy |
+| `config/models.json` | each model: runtime, model id, status, context window, features, data policy; no price |
 | `config/lanes.json` | each lane's needs and caps (capability floor, context, cost per call, ladder steps) and the escalation rules |
-| `config/prices.json` | USD per million tokens per `<runtime>/<model>`; a model with no entry cannot run under a USD budget; `limits.maxTurns` and `limits.wallClockMs` bound every Node-driver lane call |
+| `config/prices.json` | the only price table: USD per million tokens per `<runtime>/<model>`; an active model with no entry is refused at launch, an `"unverified": true` entry only warns, and a model with no entry is never routed or run under a USD budget; `limits.maxTurns` and `limits.wallClockMs` bound every Node-driver lane call |
 | `config/mcp-servers.json` | the connector name each runtime uses for a logical MCP server; a lane request's `mcpServers` overrides it |
 | `config/hitl-words.json` | stopwords per language (L19) and state words (L15) for the hitl linter; lint options extend both |
 | `config/measured.json` | `{ "<model>": { "<lane>": { score, n, evalRun } } }`, written by `calibrate` (`lib/journal/calibrate.mjs`): `score` is one minus the overturn rate over `n` verdicts, at least `--min-n` (10); machine-local and git-ignored; `TILLER_MEASURED` names another file |

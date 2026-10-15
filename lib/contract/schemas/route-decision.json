@@ -86,7 +86,8 @@
               "unmeasured",
               "below-min",
               "cost",
-              "budget"
+              "budget",
+              "no-price"
             ]
           }
         },

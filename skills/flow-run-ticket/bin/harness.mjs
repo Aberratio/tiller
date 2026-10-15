@@ -39,6 +39,7 @@ import { homedir, tmpdir } from 'node:os'
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { awaitingRules } from '../../../lib/contract/awaiting.mjs'
+import { withPrices } from '../../../lib/driver/adapters/budget.mjs'
 import { claudeToolName } from '../../../lib/driver/adapters/claude.mjs'
 import { outwardRoleOps, resolveTools } from '../../../lib/driver/adapters/tools.mjs'
 import { runtimeAvailability } from '../../../lib/driver/adapters/index.mjs'
@@ -176,7 +177,7 @@ function routing(factsObj, root) {
 // and the models rate-limited within the last caps.cooldownMinutes.
 function router(resolved, journalsRoot, c) {
   const read = f => JSON.parse(readFileSync(join(CORE, 'config', f), 'utf8'))
-  const catalogue = read('models.json')
+  const catalogue = withPrices(read('models.json'))
   for (const [lane, r] of Object.entries(resolved)) {
     const m = r.model && catalogue.models[r.model]
     if (m && !(m.pinnedLanes || []).includes(lane)) m.pinnedLanes = [...(m.pinnedLanes || []), lane]
