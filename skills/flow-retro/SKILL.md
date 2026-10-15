@@ -16,9 +16,7 @@ proposal names one target and the run facts it rests on; the script refuses any 
 
 ## Step −1 — Resolve the project profile
 
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow it; no profile resolves → stop.
 
 No profile → stop. A retro over another project's runs proposes edits to the wrong profile.
 

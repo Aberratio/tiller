@@ -35,7 +35,9 @@ otherwise ask one numbered question in plain text and wait for the reply. Someon
 the session is interactive and the user is present. Otherwise (an unattended run, a sub-agent, or the
 user said to go ahead) do not ask: write the gap as an assumption with `settle`, and carry on.
 
-## Step −1 — Where the outcome will go
+## Step −1 — Resolve the project profile (may be absent)
+
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow its pre-profile variant. This skill also resolves where the outcome will go:
 
 ```bash
 "$TILLER_HOME/lib/resolve-profile.sh" .     # the profile file; non-zero = no profile

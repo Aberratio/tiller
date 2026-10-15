@@ -8,9 +8,7 @@ user-invocable: true
 
 ## Step −1 — Resolve the project profile
 
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow it; no profile resolves → stop.
 
 Read from it: `## branching` (rebase or merge, workspace git restrictions), `## run policy`
 (`Force-push after rebase`), `## generated files`, `## worktree setup`, `## static checks`,

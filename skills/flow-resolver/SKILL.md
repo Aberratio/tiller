@@ -20,9 +20,7 @@ decisions file and the branch ledger through `lib/state/state.mjs`, and
 
 ## Step −1 — Resolve the project profile
 
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow it; no profile resolves → stop.
 
 The brief carries `profilePath`; when it does not, resolve it. Read `## inviolables`, `## merge
 authority`, `## conventions`, `## decision ledger`, `## tracker` and `## escalation` from it. **No

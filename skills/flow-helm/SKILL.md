@@ -12,6 +12,12 @@ clone; it never starts a run, a session or a skill.
 Each command is written out in full, because shell state does not persist between Bash calls:
 `node "$TILLER_HOME/lib/helm/helm.mjs" <command>`.
 
+## Step −1 — Resolve the project profile (may be absent)
+
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow its pre-profile variant. Outside a
+project no profile resolves and the full view applies; inside one, only the project-scoped
+recording below.
+
 ## Where it runs
 
 - **Outside any project** (no profile resolves): everything below.

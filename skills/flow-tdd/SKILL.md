@@ -6,7 +6,9 @@ user-invocable: true
 
 # flow-tdd
 
-**Step −1 — resolve the profile.** Follow `$TILLER_HOME/skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
+## Step −1 — Resolve the project profile
+
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow it; no profile resolves → stop.
 
 The red → green loop as it actually runs on real tickets: on tickets whose acceptance criteria carry numbers, in repos where a linter is a merge gate, against seams that are sometimes a build artifact instead of a function, and on changes whose second criterion is "nothing else moved".
 

@@ -6,13 +6,11 @@ user-invocable: true
 
 # Manual QA
 
-## Step −1 — Resolve the project profile (before anything else)
+## Step −1 — Resolve the project profile
 
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow it; no profile resolves → stop.
 
-Read the profile it names. This skill takes from it, and from nowhere else:
+This skill takes from the profile, and from nowhere else:
 
 | Needed for | Profile section |
 |---|---|
@@ -25,7 +23,6 @@ Read the profile it names. This skill takes from it, and from nowhere else:
 | who answers what this skill may not decide | `## escalation` |
 | the automated QA lanes a project has, if any | `## test toolchain` |
 
-**No profile resolves → stop and say so.** Do not borrow another project's hosts or register.
 A field this skill needs that is absent or `TODO` is named in the report as the reason the step
 could not run; it is never filled in by guessing.
 

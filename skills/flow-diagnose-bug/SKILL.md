@@ -5,7 +5,9 @@ description: Find and prove the cause of a bug, a performance regression, or a "
 
 # Diagnose a bug
 
-**Step −1 — resolve the profile.** Follow `$TILLER_HOME/skills/_shared/resolve-profile.md` exactly; a skill that resolves no profile stops here.
+## Step −1 — Resolve the project profile
+
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow it; no profile resolves → stop.
 
 The loop is still the skill: a command you can run unattended that tells you, in seconds and
 without argument, whether the bug is present. Everything else — bisection, hypotheses,

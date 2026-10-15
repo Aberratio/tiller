@@ -6,8 +6,11 @@ user-invocable: true
 
 # flow-discovery
 
-There is no profile-resolution step: the project has no profile yet. Discovery ends where
-`flow-onboard-project` begins.
+## Step −1 — Resolve the project profile (may be absent)
+
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow its pre-profile variant. A new project has no profile yet, so
+failing to resolve one is the normal case and discovery runs on the brain alone, never on another
+project's profile. Discovery ends where `flow-onboard-project` begins.
 
 The brain lives at `$TILLER_HOME/brains/<name>` (`TILLER_BRAINS_DIR` overrides the root); every
 brain path below (`meetings/`, `recaps/`, `spec/`, `decisions.md`) is relative to it. Shell state

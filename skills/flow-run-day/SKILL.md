@@ -10,6 +10,10 @@ This document is what happens **before** the day and **after** it comes back. Wa
 the owner-proxy calls and the sweep live in the day driver, `lib/driver/day.mjs`, where each ticket
 runs the Node ticket driver in its own process. The children share `STATE_ROOT`.
 
+## Step −1 — Resolve the project profile
+
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow it; no profile resolves → stop.
+
 ## Step 0 — Preconditions
 
 1. **The queue is approved before launch.** The owner approves the waves (which tickets, in which

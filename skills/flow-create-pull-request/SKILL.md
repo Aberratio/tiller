@@ -5,19 +5,11 @@ description: Create a pull request from the current branch to main/master using 
 
 # Create Pull Request
 
-## Step −1 — Resolve the project profile (before anything else)
+## Step −1 — Resolve the project profile
 
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file; non-zero means stop
-```
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow it; no profile resolves → stop.
 
-Read the profile it names. Every project-specific fact this skill needs — commit format, ticket key, main branch,
-branch convention, worktree procedure, ledger path, merge authority, environments, test commands,
-gates — comes from there and from nowhere else.
-
-**No profile resolves → stop and say so.** Do not fall back to the project you saw last. Applying
-one project's merge rule or test command to another is the failure this whole mechanism exists to
-prevent.
+This skill reads the commit format, ticket key, main branch, branch convention, worktree procedure, ledger path, merge authority, environments, test commands and gates from the profile.
 
 Automates opening a GitHub pull request: syncs the branch, validates commit messages against the project's commit format (via the flow-create-commit skill), finds or builds a PR body, and creates the PR via `gh`.
 

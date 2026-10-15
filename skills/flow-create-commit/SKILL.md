@@ -15,11 +15,13 @@ composing any message.
 
 ## Steps
 
-### Step 0 - Resolve the commit format
+### Step −1 — Resolve the project profile (may be absent)
 
-```bash
-"$TILLER_HOME/lib/resolve-profile.sh" .        # prints the profile file
-```
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow its pre-profile variant. With no profile this skill runs in
+its no-profile mode: plain Conventional Commits (Step 0). A commit message is reversible, so it never
+stops here.
+
+### Step 0 - Resolve the commit format
 
 Read the profile's `## commits` section:
 

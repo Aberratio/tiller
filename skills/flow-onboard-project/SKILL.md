@@ -6,8 +6,13 @@ user-invocable: true
 
 # flow-onboard-project
 
-The script does the work; this skill carries questions between the script and a human. There is
-no profile-resolution step: the profile does not exist yet, and creating it is the point.
+The script does the work; this skill carries questions between the script and a human.
+
+## Step −1 — Resolve the project profile (may be absent)
+
+Read `$TILLER_HOME/skills/_shared/resolve-profile.md` and follow its pre-profile variant. The profile does not exist
+yet and creating it is the point, so no profile is the expected case. When one already resolves, this
+skill runs its drift report against it instead of onboarding from scratch.
 
 ```bash
 O="node $TILLER_HOME/lib/onboard/onboard.mjs"
