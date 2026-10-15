@@ -45,8 +45,8 @@ node "$TILLER_HOME/skills/flow-run-ticket/bin/harness.mjs" drive-day --args <roo
 ```
 
 It prints one line `{status, dayStatus, reason, results, record, journal}`. Exit 0 is any terminal
-day status, `ceiling`, `parked` and `paused-usage` included; 1 is a crash, 4 a refusal, 128 + n a
-signal. `<root>/day-result.json` is the completion record: `running` with the driver's pid while the
+day status, `ceiling`, `parked` and `paused-usage` included, except the stop hour (3, `blocked`); 1 is
+a crash, 4 a refusal, 128 + n a signal. `<root>/day-result.json` is the completion record: `running` with the driver's pid while the
 day runs, the outcome on every exit it can catch (a crash and SIGTERM/SIGINT/SIGHUP included). A
 record still `running` whose pid is gone means the driver was killed outright (SIGKILL, power loss).
 A second driver on the same root is refused while the first holds the day lock. Relaunching after a
@@ -54,8 +54,12 @@ crash is the same command: finished tickets are skipped, started ones resume fro
 Every lane call is journaled in `<root>/tickets/day-<date>/driver-journal.jsonl` and each ticket's in
 its own journal; `lib/driver/journal.mjs --report <journal>` gives the numbers.
 
-For a day that must outlive one session, run it under the supervisor with its environment rendered
-from the profile:
+`drive-day` is the day loop: it keeps the machine awake, honours the stop hour, waits out a low
+battery and notifies `TILLER_NOTIFY_CMD`; the variables are in `docs/harness.md` (Runners,
+"Unattended environment").
+
+`lib/supervisor/supervise.sh` is the legacy loop of `claude -p` children, kept as a fallback when the
+Node driver cannot run. Its environment comes from the profile:
 
 ```bash
 node "$TILLER_HOME/skills/flow-run-ticket/bin/harness.mjs" supervise-env --profile "$PROFILE" [--disallow <tool>]...
@@ -72,6 +76,11 @@ names: every write op in `config/tool-kinds.json` that reaches one; an unattende
   to lift it, and without that mandate the day stops with status `ceiling`.
 - Harness blocks and ready-to-sign parks are never counted and never asked to anyone.
 - A wave after the first starts only through the owner proxy.
+- From the profile's stop hour no chunk starts; the day ends `stop-hour` and the same command after
+  that hour carries on.
+- On a low battery off mains no chunk starts until it charges or the stop hour comes.
+- A wall-clock jump over 10 minutes (sleep, a changed time) is journalled and the stop hour and day
+  cap are checked again.
 - A usage limit pauses the day (`supervisor: paused-usage <reset>` in `state.md`); the relaunch
   skips finished children and resumes started ones from their checkpoints.
 - When the base branch moved since the last sweep (by the day's merges or any other), one sweep lane

@@ -153,7 +153,7 @@ each ticket in its own `drive.mjs` process. Neither reads a profile: both take t
 | `args --profile --date (--ticket KEY \| --spec path)` | `<root>/args-<ticket>.json`; `--spec` only when the tracker is `none`; `--summary` makes the branch `<KEY>-<kebab of it>` |
 | `day-args --profile --date --queue waves.json` | `<root>/args-day.json`; refused without an owner proxy, a day ceiling or a valid queue |
 | `drive --args` / `drive-day --args` | a ticket or a day on the Node driver; one script-result line, the result in `driver-result.json` / `day-result.json` |
-| `supervise-env --profile [--disallow tool]...` | `SUPERVISE_STOP_HOUR` and `SUPERVISE_DISALLOWED_TOOLS` for `lib/supervisor/supervise.sh` |
+| `supervise-env --profile [--disallow tool]...` | `SUPERVISE_STOP_HOUR` and `SUPERVISE_DISALLOWED_TOOLS` for the legacy `lib/supervisor/supervise.sh` |
 | `calibrate --profile [--root dir] [--out file] [--min-n N] [--dry-run]` | `config/measured.json` from every `verdicts.jsonl` under the profile's run-state directory; one script-result line naming the pairs measured and the pairs skipped for too few verdicts |
 | `run`, `classify`, `sleep`, `write`, `push`, `command`, `resume`, `base-head` | what the runner invokes during a run; see the file header |
 
@@ -193,10 +193,31 @@ queue's tickets and the day's own lanes recorded to the run cap each chunk ticke
 the chunk does not start and the day parks as `budget-exhausted`. Defaults: `run` 75 (five T3 calls),
 `day` 450 (two chunks of three capped runs).
 
-**Supervisor.** `lib/supervisor/supervise.sh` gives every `claude -p` child `--max-turns`
-(`SUPERVISE_MAX_TURNS`, default 120) and `--max-budget-usd` (`SUPERVISE_MAX_BUDGET_USD`, default
-`budgetsUsd.run`, or 75 when `config/routing.json` has none). With `SUPERVISE_MAX_SPAWNS`, that bounds
-a supervised run at spawns × the per-child budget.
+**Day loop.** `lib/driver/day.mjs` is the day loop. From `runPolicy.stopHour` (local hour) on, no new
+chunk starts, running children finish, and the day ends `stop-hour` (exit 3, `blocked`); the relaunch
+after it skips finished tickets. On battery below the threshold and off mains no chunk starts; the
+day waits, re-reading every 5 minutes, until it charges or the stop hour comes. A wall-clock jump of
+more than 10 minutes against the monotonic clock (sleep, a changed time) is journalled as a
+`clock-jump` event and the stop hour and day cap are evaluated again. The CLI keeps the machine
+awake through `lib/supervisor/inhibit.sh` (`caffeinate` or `systemd-inhibit`; one warning line when
+neither works). A signal to `drive.mjs` or `day.mjs` reaches every lane's process group.
+
+**Supervisor (legacy).** `lib/supervisor/supervise.sh` is the older loop of `claude -p` children and
+the fallback when the Node driver cannot run; it keeps working but is not the day path. It gives every
+child `--max-turns` (`SUPERVISE_MAX_TURNS`, default 120) and `--max-budget-usd`
+(`SUPERVISE_MAX_BUDGET_USD`, default `budgetsUsd.run`, or 75 when `config/routing.json` has none). With
+`SUPERVISE_MAX_SPAWNS`, that bounds a supervised run at spawns × the per-child budget. It exits 1
+when `claude` is not on `PATH`, traps HUP/INT/TERM (exit 128 + n, the child's process group killed),
+and rotates its log to one `.1` file.
+
+**Unattended environment.**
+
+| Variable | Read by | Effect |
+|---|---|---|
+| `TILLER_NOTIFY_CMD` | `drive.mjs`, `day.mjs` | Shell command run with one JSON event on stdin, `{kind, runId \| dayId, ticket, status, reason, at}`, on `park`, `died`, `cap-hit` (run or day), `day-end`, `stop-hour`, `battery-pause`. A failure or a 10 s timeout is logged, never fatal. |
+| `TILLER_NO_INHIBIT` | `day.mjs`, `supervise.sh` | `1` skips keeping the machine awake. |
+| `TILLER_BATTERY_MIN_PERCENT` | `day.mjs` | Battery percent below which, off mains, no chunk starts (default 15). An unreadable battery never pauses. |
+| `SUPERVISE_LOG_MAX_BYTES` | `supervise.sh` | Log size that triggers rotation to `supervisor.log.1` (default 10485760). |
 
 **Retro.** `skills/flow-retro/bin/retro.mjs --profile <file> [--root dir] [--date d] [--dry-run]` reads
 every `driver-result.json`, `day-result.json`, `decisions.jsonl`, driver journal and verdict ledger
