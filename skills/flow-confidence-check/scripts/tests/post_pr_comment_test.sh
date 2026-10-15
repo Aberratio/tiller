@@ -3,7 +3,7 @@ set -eo pipefail
 source "$(dirname "$0")/helpers.sh"
 
 PC="$SCRIPTS_DIR/post-pr-comment.sh"
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/cc-post-pr-comment.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 # Fake gh on PATH: logs every invocation, never talks to GitHub.

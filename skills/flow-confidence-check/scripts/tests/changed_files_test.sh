@@ -3,7 +3,7 @@ set -eo pipefail
 source "$(dirname "$0")/helpers.sh"
 
 CF="$SCRIPTS_DIR/changed-files.sh"
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/cc-changed-files.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 make_fixture_repo "$TMP"
 cd "$TMP"

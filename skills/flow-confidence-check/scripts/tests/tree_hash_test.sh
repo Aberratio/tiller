@@ -3,7 +3,7 @@ set -eo pipefail
 source "$(dirname "$0")/helpers.sh"
 
 TH="$SCRIPTS_DIR/tree-hash.sh"
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/cc-tree-hash.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 REPO="$TMP/repo"

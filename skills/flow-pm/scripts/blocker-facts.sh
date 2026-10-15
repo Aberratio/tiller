@@ -62,7 +62,7 @@ esac
 RESP="${3:-}"
 [[ -n "$RESP" && -r "$RESP" ]] || die "tracker response not readable: ${RESP:-<missing>}"
 
-TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/blocker-facts.XXXXXX")"; trap 'rm -rf "$TMP"' EXIT
 requested_keys > "$TMP/requested"
 
 # --- Instrument check, BEFORE any signal is read ------------------------------

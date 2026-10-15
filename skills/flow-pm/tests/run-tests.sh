@@ -5,7 +5,7 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BF="$HERE/../scripts/blocker-facts.sh"
 FX="$HERE/fixtures"
-TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/flow-pm-tests.XXXXXX")"; trap 'rm -rf "$TMP"' EXIT
 node "$FX/make-responses.mjs" "$TMP"
 BOARD="$FX/board.json"
 
