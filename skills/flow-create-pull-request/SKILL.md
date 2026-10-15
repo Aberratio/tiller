@@ -199,7 +199,7 @@ Start with the template from Step 4.
 - **Never tick a checklist box on the author's behalf.** Template checklists ("I did a self-review", "I deployed it to staging", "screenshots attached", "requested security review") are the author's attestations about what *they* did. Leave every box unchecked, and list them back to the user afterwards as "still to confirm before marking ready for review". A box ticked for a step this session did not perform turns the checklist into decoration and lowers the reviewer's guard exactly where it should be raised.
 - **The body must not contradict itself.** Before moving on, re-read the assembled body as one document. An open item or caveat in the prose ("not yet deployed to staging", "end-to-end not verified", "needs a CORS change first") must not sit next to a ticked box or a confident claim saying the opposite. Resolve the contradiction or surface it to the user — never ship both and let the reviewer pick.
 
-- **Hard budget: the whole body is at most ~15 lines / 2500 characters, in English, whatever language this conversation is in.** Not a target — a limit. What earns a place is only what the reviewer cannot infer from the diff: what really changed, what is deliberately out of scope and who is closing it instead, the traps in the diff that would otherwise read as bugs, and anything that changes what the *merger* does (a required signature, a squash-only constraint). Everything else is cut, not shortened.
+- **Hard budget: the whole body is at most ~15 lines / 2500 characters, in the profile's `commits.textLanguage` (default English), whatever language this conversation is in.** Not a target — a limit. What earns a place is only what the reviewer cannot infer from the diff: what really changed, what is deliberately out of scope and who is closing it instead, the traps in the diff that would otherwise read as bugs, and anything that changes what the *merger* does (a required signature, a squash-only constraint). Everything else is cut, not shortened.
 - **Never write into the body:** rebase or round-by-round narrative ("this round", "second review round"), test counts and badges, gate lists, diff-size sections, acceptance-criteria tables, our own numbering (`AC#1`, finding ids, severity labels), skill names or their output shapes, names of people (a regulatory signature is the one exception), and first person. Those live in the branch's decision ledger and our own artefacts.
 - **The body is a document, not a log.** If a fact is already implied by another sentence in it, the sentence stays and the fact goes.
 
@@ -332,7 +332,7 @@ Then record it in the helm (silent when there is none; a failure is reported and
 short comment, or nowhere. A PR comment explaining the
 diff is read once, by nobody, and rots off the line it was attached to.
 
-Post one only when the user asks for it in this session. When they do: English, one or two
+Post one only when the user asks for it in this session. When they do: in the profile's `commits.textLanguage`, one or two
 sentences, why-not-what, no links unless the user asked for a reference and it has been fetched
 and verified.
 

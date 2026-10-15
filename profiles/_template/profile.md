@@ -202,3 +202,4 @@ Placeholders: `<ticket>`, `<type>`, `<scope>`, `<subject>`.
 - Format: `[<ticket>] <type>(<scope>): <subject>`
 - Ticket from branch: `[A-Z]+-[0-9]+` (regex that finds the ticket key in the branch name)
 - Without ticket: `[NO-TICKET] <type>(<scope>): <subject>`
+- Text language: `en` (optional; language of commit, PR and ticket text; default `en`)

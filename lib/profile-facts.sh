@@ -481,13 +481,15 @@ fi
 # ---- commits --------------------------------------------------------------------------------
 # Optional. Absent or `none`: plain Conventional Commits with no ticket prefix.
 COMMIT_DEFAULT='<type>(<scope>): <subject>'
-commits="$(jq -n --arg f "$COMMIT_DEFAULT" '{format: $f, ticketFromBranch: null, withoutTicket: $f}')"
+commits="$(jq -n --arg f "$COMMIT_DEFAULT" '{format: $f, ticketFromBranch: null, withoutTicket: $f, textLanguage: "en"}')"
 if has_section commits && ! is_none commits; then
   cm_format="$(token_field commits 'Format')"
   cm_branch="$(token_field commits 'Ticket from branch')"
   cm_without="$(token_field commits 'Without ticket')"
+  cm_lang="$(token_field commits 'Text language')"
   cm_err=x
-  case "$cm_format$cm_branch$cm_without" in *TODO*) cm_err=TODO ;; esac
+  [ -z "$cm_lang" ] && cm_lang=en
+  case "$cm_format$cm_branch$cm_without$cm_lang" in *TODO*) cm_err=TODO ;; esac
   if [ "$cm_err" = x ]; then
     if [ -z "$cm_format" ]; then cm_err="!no '- Format:' line"
     else
@@ -496,13 +498,14 @@ if has_section commits && ! is_none commits; then
       else
         case "$cm_format" in *'<type>'*'<subject>'*) ;; *) cm_err="!the format must name <type> and <subject>" ;; esac
         case "$cm_without" in *'<ticket>'*) cm_err="!Without ticket cannot name <ticket>" ;; esac
+        printf '%s' "$cm_lang" | grep -qE '^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$' || cm_err="!Text language must be a language tag such as en or pl"
         case "$cm_format" in *'<ticket>'*) [ -z "$cm_branch" ] && cm_err="!a format naming <ticket> needs a '- Ticket from branch:' regex" ;; esac
       fi
     fi
   fi
   require 'commits — format' "$cm_err"
-  commits="$(jq -n --arg f "$cm_format" --arg b "$cm_branch" --arg w "$cm_without" '
-    {format: $f, ticketFromBranch: (if $b == "" then null else $b end),
+  commits="$(jq -n --arg f "$cm_format" --arg b "$cm_branch" --arg w "$cm_without" --arg l "$cm_lang" '
+    {textLanguage: $l, format: $f, ticketFromBranch: (if $b == "" then null else $b end),
      withoutTicket: (if $w == "" then ($f | gsub("\\[?<ticket>\\]? *"; "")) else $w end)}')"
 fi
 

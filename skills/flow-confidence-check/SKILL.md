@@ -43,7 +43,7 @@ Missing essentials: ask, then offer to document the answer in the repo's CLAUDE.
 Cascade (stop at first hit), each source stamped into the report and machine block as `spec-source`:
 
 1. `file` - explicit argument: spec text or a local spec/plan file path.
-2. `jira` - ticket via discovery's ticket cascade (Jira MCP for `ABC-123` branches, `gh issue view` for `#123` references).
+2. `jira` - ticket via discovery's ticket cascade (the **tracker: jira** branch: the tracker role's `tracker.get` for `ABC-123` branches; `gh issue view` for `#123` references on any tracker). Another tracker kind adds its own source here, with its own `spec_source` value.
 3. `author` - the user explicitly states the acceptance criteria in this conversation (typed ACs count; vague intent does not).
 4. `conversation` - ACs derived from conversation context or docs grep. This source is NEVER used silently: echo the derived `AC1..ACn` back and get explicit confirmation before any review dispatch. Unconfirmed = unresolved.
 5. Nothing found: STOP and ask the user for the change's intent.

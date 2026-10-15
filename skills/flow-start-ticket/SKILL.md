@@ -1,6 +1,6 @@
 ---
 name: flow-start-ticket
-description: Open the work on a ticket - fetch and sanity-check the ticket, create the correctly named branch from a fresh main, move the ticket to In Progress and assign it, and agree a short plan before any code is written. Use when the user says "start ABC-1234", "pick up the next ticket", "begin work on <ticket>", or names a ticket they want to implement.
+description: Open the work on a ticket - fetch and sanity-check the ticket, create the correctly named branch from a fresh main, move the ticket to the profile's start status and assign it, and agree a short plan before any code is written. Use when the user says "start ABC-1234", "pick up the next ticket", "begin work on <ticket>", or names a ticket they want to implement.
 user-invocable: true
 ---
 
@@ -36,10 +36,10 @@ Kind picks the tools, and `references/trackers/<kind>.md` gives each call's shap
 
 Read the ticket the way the implementer will need it:
 
-- **Status**: already In Progress or Done and assigned to someone else → stop and surface it; don't hijack work.
+- **Status**: already at the start status or Done and assigned to someone else → stop and surface it; don't hijack work.
 - **Blockers**: unresolved `is blocked by` links → surface them; starting anyway is the user's explicit call.
-  - **Unattended, there is nobody to make that call, so resolve each link against the repo rather than against its tracker status.** A link is only a blocker if the surface this ticket needs is *missing from `origin/main`* — check for the function, export, route, table or endpoint by name. A ticket left In Progress whose work is already merged blocks nothing; a ticket marked Done whose branch never landed blocks everything. Status is a claim, `origin/main` is the oracle.
-  - **A blocker that is real ends the run at Step 2** — no branch, no worktree, no tracker transition, so there is nothing to undo. Moving it to In Progress "because we are starting" misreports the board for whoever reads it next.
+  - **Unattended, there is nobody to make that call, so resolve each link against the repo rather than against its tracker status.** A link is only a blocker if the surface this ticket needs is *missing from `origin/main`* — check for the function, export, route, table or endpoint by name. A ticket left at the start status whose work is already merged blocks nothing; a ticket marked Done whose branch never landed blocks everything. Status is a claim, `origin/main` is the oracle.
+  - **A blocker that is real ends the run at Step 2** — no branch, no worktree, no tracker transition, so there is nothing to undo. Moving it to the start status "because we are starting" misreports the board for whoever reads it next.
   - **Never start by stacking on the blocker's unmerged branch**, and never work around it by building a second copy of the thing that branch introduces — a competing access layer, a duplicated helper, a parallel route. Review will remove it, correctly, and the rebase after the blocker lands costs more than waiting. If the branch's own decision ledger forbids stacking, that is already settled and not yours to reopen.
 - **Shape**: no recognisable objective or acceptance/success criteria → say what's missing and offer the flow-write-ticket skill (update mode) to fix the ticket *first*. A vague ticket started is a vague PR reviewed.
 - **Off-state**: the work ships behind a flag, allow-list, pilot group, plan tier, or staged rollout — the tells are words like "feature-flagged", "PoC", "staging-only", "selected accounts", "test users". Settle now, before planning: what must a user *outside* the audience see, and in which environments will that be checked? If the ticket only describes the audience that gets the feature, name the gap and agree the off-state criterion with the user. It is the criterion nobody remembers to test, in the environment nobody opens.
@@ -63,7 +63,7 @@ git checkout -b <branch> origin/<main>
 ## Step 4 — Update the tracker
 
 - Assign the ticket to the user (`tracker.me` → account id) unless it's already theirs.
-- Transition to In Progress: `tracker.transitions` → pick the transition whose target status is In Progress → `tracker.transition`. If no such transition exists from the current status, say so and leave the status alone — never force a different transition.
+- Transition to the profile's `## tracker` `Start status`: `tracker.transitions` → pick the transition whose target status is that status → `tracker.transition`. If no such transition exists from the current status, say so and leave the status alone — never force a different transition.
 - Record the start in the helm (silent when there is none; a failure is reported and never stops the skill): `"$TILLER_HOME/lib/helm/record.sh" --kind milestone --summary "<KEY> started: <title>" --link <ticket url> --source flow-start-ticket`.
 
 ## Step 5 — Plan, briefly
@@ -77,7 +77,7 @@ Read the code the ticket touches (entry points, existing tests, the seams the ch
 
 ## Done when
 
-Branch created from fresh main ✓ ticket In Progress and assigned ✓ plan agreed ✓ — then implementation starts, and the closing bookends take over from there.
+Branch created from fresh main ✓ ticket at its start status and assigned ✓ plan agreed ✓ — then implementation starts, and the closing bookends take over from there.
 
 ## What this skill does NOT do
 

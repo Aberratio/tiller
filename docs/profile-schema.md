@@ -63,7 +63,7 @@ may be followed on the same line by a dash and the reason.
 | `## known issues` | path to the file that stops a known bug being refiled | qa, diagnose-bug |
 | `## verification register` | optional; `- Path:` with one backticked path — the cross-ticket register of criteria nobody has verified. One file, never per ticket. `none`, or the section left out, for a project that keeps none | manual-qa |
 | `## wayfinding` | where this project's maps live and how to scope them; `none` if the project does not chart | wayfinder |
-| `## commits` | optional; the commit message format, how a ticket key is found in the branch name, and the format for a commit with no ticket. `none`, or the section left out, means plain Conventional Commits | create-commit, create-pull-request |
+| `## commits` | optional; the commit message format, how a ticket key is found in the branch name, and the format for a commit with no ticket. `none`, or the section left out, means plain Conventional Commits. Also carries the optional `Text language` for commit, PR and ticket text (default `en`) | create-commit, create-pull-request |
 
 ### Tracker
 
@@ -162,7 +162,7 @@ removes channels; words matching none leave every channel a hard stop. No sectio
 
 ### Commits
 
-Three bullets, each value one code span. Placeholders are `<ticket>`, `<type>`, `<scope>` and
+Four bullets, each value one code span; only `Format` is always required. Placeholders are `<ticket>`, `<type>`, `<scope>` and
 `<subject>`; any other refuses the profile.
 
 - `Format:` the message for a commit on a ticket branch. Names `<type>` and `<subject>`.
@@ -170,6 +170,9 @@ Three bullets, each value one code span. Placeholders are `<ticket>`, `<type>`, 
   Required when `Format` names `<ticket>`.
 - `Without ticket:` the message when the branch carries no ticket. May not name `<ticket>`; absent,
   it is `Format` with the ticket prefix removed.
+- `Text language:` optional; a language tag (`en`, `pl`) for the text a skill writes outward — commit
+  subjects, pull request descriptions and comments, ticket text. Default `en`. Rendered as
+  `commits.textLanguage`.
 
 ```markdown
 ## commits
@@ -215,7 +218,7 @@ as `profilePath`, and the agent that needs one opens it.
 | `worktreeSetup` | `## worktree setup` | list of `{check, command}`, same shape as `staticChecks`; `[]` when absent or `none` |
 | `verificationRegister` | `## verification register` | path string, or `null` when absent or `none`; a `TODO` or a Path line with no code span refuses the profile |
 | `worktreeCreate` | `## worktree` | command template string, or `null` when absent or `none` |
-| `commits` | `## commits` | `{format, ticketFromBranch, withoutTicket}`; absent or `none` renders `{format: "<type>(<scope>): <subject>", ticketFromBranch: null, withoutTicket: "<type>(<scope>): <subject>"}` |
+| `commits` | `## commits` | `{format, ticketFromBranch, withoutTicket, textLanguage}`; absent or `none` renders `{format: "<type>(<scope>): <subject>", ticketFromBranch: null, withoutTicket: "<type>(<scope>): <subject>", textLanguage: "en"}` |
 
 `who` is `agent` \| `human` \| `unconfirmed`; `whoRaw` keeps the cell verbatim and `precondition`
 carries the `after …` text or `null`. Model-routing lanes and tiers are checked against

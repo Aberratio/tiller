@@ -57,7 +57,7 @@ and the report names them as not read.
 ## Step 1 — collect the state cheaply
 
 Tracker results are large enough to spill to a file. **Never read that file whole**; extract with
-`jq` (tracker-specific, Jira response shape):
+`jq` (**tracker: jira** — the response shape below is Jira's; another kind needs its own extraction):
 
 ```bash
 jq -r '.issues.nodes[] | [.key, .fields.status.name, (.fields.assignee.displayName//"-"),
@@ -65,7 +65,7 @@ jq -r '.issues.nodes[] | [.key, .fields.status.name, (.fields.assignee.displayNa
   (.fields.summary|.[0:60])] | @tsv' <file> | column -t -s$'\t'
 ```
 
-Three `tracker.search` calls on `Site` (queries below are tracker-specific, Jira JQL), fields `key, summary, status, assignee, duedate, updated, parent, issuetype,
+Three `tracker.search` calls on `Site` (queries below are the **tracker: jira** branch, Jira JQL; another kind supplies its own queries), fields `key, summary, status, assignee, duedate, updated, parent, issuetype,
 priority, issuelinks` (if the call is rejected for carrying `fields`, drop the parameter and keep the
 `jq` discipline):
 
@@ -163,7 +163,7 @@ requested ones — and on `2` issues no verdict; `emit` then writes every relati
 2 is never reported as all clear.** No `Canary` in the profile → the check does not run and every
 relation is `unknown`.
 
-Load-bearing, not to be simplified (tracker-specific, Jira): it reads `status.statusCategory.key`, never `resolutiondate`
+Load-bearing, not to be simplified (**tracker: jira** branch): it reads `status.statusCategory.key`, never `resolutiondate`
 (null for every issue through the search tool); and `never` (closed as not-going-to-happen) is split
 from `stale` by `status.name`, because both share the done category.
 

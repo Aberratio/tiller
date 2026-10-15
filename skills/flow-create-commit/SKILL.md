@@ -30,6 +30,7 @@ Read the profile's `## commits` section:
 | `- Format:` | one code span over `<ticket>`, `<type>`, `<scope>`, `<subject>` - e.g. `[<ticket>] <type>(<scope>): <subject>` |
 | `- Ticket from branch:` | optional; one code span, an ERE whose first match in the branch name is the ticket key |
 | `- Without ticket:` | optional; the format to use when no ticket applies |
+| `- Text language:` | optional; language of the subject, default `en` |
 
 **Section absent, `none`, or no profile resolves** → plain Conventional Commits:
 `<type>(<scope>): <subject>`, scope optional, no ticket prefix. This skill never stops on a
