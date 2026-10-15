@@ -146,10 +146,20 @@ node "$H" day-args --profile acme --date 2026-10-16 --queue waves.json
 node "$H" drive-day --args ~/.claude/run-state/acme/2026-10-16/args-day.json
 ```
 
-The day runner keeps the machine awake (caffeinate / systemd-inhibit), stops at the profile's stop
-hour, pauses on a usage limit or a low battery, and calls `TILLER_NOTIFY_CMD` with a JSON event on
-every park, cap, crash and at the end of the day. Read `skills/flow-run-day/SKILL.md` for the
-queue format; the retro skill turns the day's records into proposals the next morning.
+The day runner keeps the machine awake (caffeinate / systemd-inhibit), starts no new work after the
+profile's stop hour (exit 3; relaunch the same command after that hour), stops with a handoff on a
+usage limit, waits on a low battery until it charges, journals a wall-clock jump (sleep or a changed
+time) and re-checks the stop hour and day cap after one. `TILLER_NOTIFY_CMD` receives one JSON
+event (`{kind, runId|dayId, ticket, status, reason, at}`) on stdin per park, cap, crash, stop hour,
+battery pause and day end:
+
+```sh
+TILLER_NOTIFY_CMD='cat >> ~/tiller-events.jsonl'   # or any command that posts the JSON somewhere
+```
+
+Read `skills/flow-run-day/SKILL.md` for the queue format; the retro skill turns the day's records
+into proposals the next morning. `lib/supervisor/supervise.sh` is the older shell supervisor; it
+still works as a fallback and needs `claude` on `PATH`.
 
 ## Environment variables
 
@@ -162,6 +172,7 @@ queue format; the retro skill turns the day's records into proposals the next mo
 | `TILLER_NOTIFY_CMD` | shell command receiving one JSON event on stdin per park/cap/crash/day end | unset: no notifications |
 | `TILLER_NO_INHIBIT` | `1` disables the keep-awake wrapper | unset |
 | `TILLER_BATTERY_MIN_PERCENT` | below this, on battery, the day runner pauses before the next chunk | `15` |
+| `SUPERVISE_LOG_MAX_BYTES` | legacy supervisor only: rotate its log to one `.1` file above this size | `10485760` |
 | `TILLER_MACHINE`, `TILLER_MACHINE_CAPS` | machine name and capabilities for the cross-project overview | unset |
 
 ## Tests
