@@ -83,6 +83,29 @@ bin/tiller apply                              # brains and other projects' profi
 `$TILLER_HOME/lib/resolve-profile.sh`. Without it every skill resolves no profile and stops, which
 is the correct failure but an opaque one. Restart the session after installing.
 
+## Moving an existing setup into a personal layer
+
+A machine where Claude Code or Copilot CLI was configured by hand can seed its personal layer from
+those files instead of starting from `_templates/harness.json`:
+
+```bash
+bin/tiller apply --adopt claude --user <name>   # proposal, then a question; --yes answers it, --dry-run never writes
+```
+
+Adopt reads the agent's native files and writes only `personal/<name>/`: settings keys go to
+`native.<agent>` in `harness.json`, Claude's `env.*` to `env`, the body of the managed block to
+`instructions.md`, and skills tiller did not link are copied into `skills/`. Paths under the tiller
+checkout and the home directory are stored as `${TILLER_HOME}` and `${HOME}`. No native file, state
+or backup is touched. Hooks and agent files are reported and left in place.
+
+Then, by hand:
+
+1. Review `personal/<name>/`, `git init` it and add a private remote; the directory is git-ignored here.
+2. Move what adopt left: instructions outside the managed block go into `instructions.md`, user hooks
+   stay native, and the original of each copied skill is deleted so the link can take its place.
+3. `bin/tiller apply` takes the adopted keys over without rewriting them and links the skills.
+4. On another machine: `bin/tiller onboard --personal <url> --user <name>`.
+
 ## Profiles
 
 A profile is a folder, `profiles/<name>/`, and stays on the machine that uses it:
