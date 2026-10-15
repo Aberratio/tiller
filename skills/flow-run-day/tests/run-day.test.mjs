@@ -199,3 +199,17 @@ test('hard-stop prose that names no known channel keeps every channel a hard sto
   assert.deepEqual(hardStopChannels({ ownerProxy: { hardStopChannels: 'anything outward, see policy' } }), all)
   assert.deepEqual(hardStopChannels({ ownerProxy: { hardStopChannels: 'calendar writes only' } }), ['calendar-write'])
 })
+
+test('a child that died inside start, before its first checkpoint, is resumed through the resume-run mandate on the rerun', async () => {
+  const { root, args } = fresh('start-death', [['ABC-1']])
+  const first = makeSim(root, args, { exec: (name, argv, ctx) => name === 'worktree.mjs' && ctx.ticket === 'ABC-1' ? { hang: true } : undefined })
+  const r1 = await runDay(first)
+  assert.ok(r1.killed, 'killed inside start')
+  assert.equal(state(root, 'phase-get', 'ABC-1', 'start').found, false, 'no start checkpoint')
+  const second = makeSim(root, args)
+  const r2 = await runDay(second)
+  assert.equal(r2.status, 'done', JSON.stringify(r2.reason))
+  assert.deepEqual(statuses(r2), { 'ABC-1': 'merged' })
+  assert.ok(second.labels.some(l => l.startsWith('waves:owner-proxy:T3:resume-run')), second.labels.join(' '))
+  assert.ok(!second.labels.some(l => l.startsWith('waves:owner-proxy:T3:start-next-ticket')), 'not treated as a fresh ticket')
+})
