@@ -1,0 +1,35 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        node: [22, 24]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Test
+        if: runner.os != 'Windows'
+        run: node --test 'lib/*/tests/*.test.mjs' 'lib/tests/*.test.mjs' 'skills/*/tests/*.test.mjs'
+      # Windows runs what is ported to it. tiller-cli and install.sh stub POSIX tools on a
+      # colon-separated PATH; their Windows behaviour is covered by injected-platform tests.
+      - name: Test (Windows port)
+        if: runner.os == 'Windows'
+        run: >-
+          node --test 'lib/apply/tests/*.test.mjs' 'lib/adapters/tests/*.test.mjs'
+          'lib/machine/tests/*.test.mjs' 'lib/agents/tests/*.test.mjs' 'lib/tests/private-access.test.mjs'
+      - name: Leak guard
+        if: runner.os == 'Linux'
+        run: bash lib/leak-guard.sh
