@@ -22,6 +22,11 @@ honour before it spawns anything.
 `config/prices.json` is the only price table; routing and these caps both read it. A model with no entry in it cannot run on `openai-compat` or `codex`. A lane's caps can
 only tighten `limits`.
 
+`capabilities.denyTools` says whether the runtime enforces a tool deny list (`--disallowedTools` on
+`claude`). Only `claude` sets it; `codex` and `openai-compat` have no per-tool deny mechanism.
+`lib/routing/validate-launch.mjs` refuses an active model, or one pinned to a gate lane, on a runtime
+without it.
+
 ## openai-compat
 
 - Configured through `OPENAI_COMPAT_BASE_URL` (e.g. `http://localhost:8000/v1`) and an optional
