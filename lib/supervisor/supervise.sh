@@ -23,9 +23,12 @@
 #   SUPERVISE_SLEEP_CMD        command used to sleep, default `sleep` (tests inject a recorder)
 #   SUPERVISE_CLASSIFY         failure classifier, default lib/resilience/classify-failure.mjs
 #   SUPERVISE_DRY=1            print the child command instead of running it, then exit 0
+#   SUPERVISE_LOG_MAX_BYTES    supervisor.log is moved to supervisor.log.1 once over this size,
+#                              default 10485760 (10 MB); one old log is kept
 #
-# Stdout: one script-result line. Exit: 0 done, 2 spawn cap, 3 stop hour, 5 no progress,
-# 6 usage pause that cannot be waited out.
+# Stdout: one script-result line. Exit: 0 done, 1 `claude` not on PATH, 2 spawn cap, 3 stop hour,
+# 5 no progress, 6 usage pause that cannot be waited out, 128+n killed by signal n (HUP, INT, TERM;
+# the running child's process group is killed first).
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -57,17 +60,52 @@ SLEEP="${SUPERVISE_SLEEP:-60}"
 SLEEP_CMD="${SUPERVISE_SLEEP_CMD:-sleep}"
 CLASSIFY="${SUPERVISE_CLASSIFY:-$LIB/resilience/classify-failure.mjs}"
 DRY="${SUPERVISE_DRY:-0}"
+LOG_MAX="${SUPERVISE_LOG_MAX_BYTES:-10485760}"
 # A print-mode child must be able to await a whole wave of background children.
 export CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS="${CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS:-21600000}"
 
 mkdir -p "$STATE_ROOT"
 stamp() { date -u +%Y-%m-%dT%H:%M:%SZ; }
-logline() { printf '%s %s\n' "$(stamp)" "$*" | tee -a "$LOG" >&2; }
+rotate_log() {
+  [[ -f "$LOG" ]] || return 0
+  local size
+  size="$(wc -c <"$LOG" | tr -d ' ')"
+  (( size > LOG_MAX )) && mv -f "$LOG" "$LOG.1"
+  return 0
+}
+logline() { rotate_log; printf '%s %s\n' "$(stamp)" "$*" | tee -a "$LOG" >&2; }
 finish() {  # code, json
   logline "exit $1: $2"
   printf '%s\n' "$2"
   exit "$1"
 }
+
+# The child leads its own process group (job control below), so one kill reaches the CLI and every
+# tool subprocess it started.
+CHILD=""
+kill_child() {
+  [[ -n "$CHILD" ]] || return 0
+  local pid="$CHILD"
+  CHILD=""
+  kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null
+  local i
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    kill -0 -- "-$pid" 2>/dev/null || return 0
+    sleep 0.2
+  done
+  kill -KILL -- "-$pid" 2>/dev/null
+  return 0
+}
+on_signal() {  # name, number
+  kill_child
+  finish "$((128 + $2))" "{\"status\":\"error\",\"kind\":\"script-error\",\"reason\":\"killed by SIG$1\",\"spawns\":${SPAWNS:-0}}"
+}
+trap 'on_signal HUP 1' HUP
+trap 'on_signal INT 2' INT
+trap 'on_signal TERM 15' TERM
+trap 'kill_child' EXIT
+# A trap runs only once a foreground command returns; a waited background sleep lets a signal land now.
+nap() { "$SLEEP_CMD" "$1" & wait $!; }
 
 run_done() { [[ -f "$STATE_MD" ]] && grep -qE '^supervisor: done' "$STATE_MD"; }
 state_hash() { node "$STATE" hash | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.parse(s).hash||""))'; }
@@ -103,8 +141,15 @@ spawn_child() {
     return 0
   fi
   logline "spawn #$SPAWNS start"
+  local out="$STATE_ROOT/last-spawn-stdout.log"
   SPAWN_RC=0
-  SPAWN_OUT="$("${cmd[@]}" 2>>"$LOG")" || SPAWN_RC=$?
+  set -m
+  "${cmd[@]}" <"/dev/null" >"$out" 2>>"$LOG" &
+  CHILD=$!
+  set +m
+  wait "$CHILD" || SPAWN_RC=$?
+  CHILD=""
+  SPAWN_OUT="$(cat "$out" 2>/dev/null)"
   printf '%s spawn #%s exit=%s result=%s\n' "$(stamp)" "$SPAWNS" "$SPAWN_RC" "$SPAWN_OUT" >>"$LOG"
   logline "spawn #$SPAWNS exit=$SPAWN_RC"
 }
@@ -133,6 +178,10 @@ usage_wait_seconds() {
     const wake = new Date(r); if (process.env.STOP !== "" && wake.getHours() >= Number(process.env.STOP)) process.exit(0)
     process.stdout.write(String(s + 5 + Math.floor(Math.random() * 25)))'
 }
+
+if [[ "$DRY" != "1" ]] && ! command -v claude >/dev/null 2>&1; then
+  finish 1 '{"status":"error","kind":"script-error","reason":"claude not found on PATH"}'
+fi
 
 SPAWNS=0
 UNCHANGED=0
@@ -164,7 +213,7 @@ while :; do
     USAGE_WAITS=$((USAGE_WAITS + 1))
     UNCHANGED=0
     logline "usage limit until $reset — waiting ${wait_s}s ($USAGE_WAITS/$USAGE_WAITS_MAX)"
-    "$SLEEP_CMD" "$wait_s"
+    nap "$wait_s"
     continue
   fi
 
@@ -175,5 +224,5 @@ while :; do
   else
     UNCHANGED=0
   fi
-  "$SLEEP_CMD" "$SLEEP"
+  nap "$SLEEP"
 done
