@@ -2,11 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { CORE, DAY_SCRIPT, PROFILE, NO_TRACKER, buildDayArgs, decisionsOf, harness, makeSim, runDay as runWorkflow, runDayDriver, state, tmpRoot } from '../../flow-run-ticket/tests/dryrun.mjs'
-
-const NODE = process.env.FLOW_TARGET === 'node'
-const runDay = NODE ? runDayDriver : runWorkflow
-const execLane = NODE ? { skip: 'no exec lane in the day driver' } : {}
+import { PROFILE, NO_TRACKER, buildDayArgs, decisionsOf, harness, makeSim, runDayDriver as runDay, state, tmpRoot } from '../../flow-run-ticket/tests/dryrun.mjs'
 
 const fresh = (tag, queue, opts = {}) => {
   const root = tmpRoot(`day-${tag}`)
@@ -42,18 +38,15 @@ test('happy day: every wave runs, children share the root, the next wave starts 
   assert.equal(state(root, 'open-count').open, 0)
 })
 
-test('a lane dispatched a subagent despite no-dispatch: every day-level lane and exec call denies Agent, Task and Workflow', async () => {
+// The runtime adds the dispatch tools (Agent, Task, Workflow) itself, tested in lib/driver/tests/runtime.test.mjs;
+// what the day must hand every lane is the profile's outward denies.
+test('every day-level lane is handed the profile\'s disallowed tools', async () => {
   const { root, args } = fresh('dispatch-deny', QUEUE)
   const sim = makeSim(root, args)
   await runDay(sim)
-  assert.ok(sim.agentOpts.length > 0)
-  // The driver runtime adds the dispatch tools itself; what the day must hand every lane is the profile's outward denies.
-  if (NODE) {
-    assert.ok(args.disallowedTools.length > 0)
-    for (const o of sim.laneOpts) assert.deepEqual(o.disallowedTools, args.disallowedTools, o.label)
-    return
-  }
-  for (const o of sim.agentOpts) for (const t of ['Agent', 'Task', 'Workflow']) assert.ok((o.disallowedTools || []).includes(t), `${o.label}: ${t}`)
+  assert.ok(sim.laneOpts.length > 0)
+  assert.ok(args.disallowedTools.length > 0)
+  for (const o of sim.laneOpts) assert.deepEqual(o.disallowedTools, args.disallowedTools, o.label)
 })
 
 test('the ceiling is checked before every chunk: a chunk that reaches it stops the next one', async () => {
@@ -90,8 +83,8 @@ test('harness-blocked parks are never counted toward the ceiling', async () => {
   assert.deepEqual(statuses(r), { 'ABC-1': 'parked', 'ABC-2': 'parked', 'ABC-3': 'parked' })
   assert.deepEqual(sim.children, ['ABC-1', 'ABC-2', 'ABC-3'], 'the second wave still started')
   assert.equal(state(root, 'open-count').open, args.facts.runPolicy.dayCeiling - 1)
-  // Only an exec lane can be refused a tool call; the driver runs pr-open itself, so its children park without one.
-  assert.equal(decisionsOf(root).filter(d => d.kind === 'harness-blocked').length, 5 + (NODE ? 0 : 3))
+  // The driver runs pr-open itself, so each child parks on one harness-blocked decision (plus the day's own).
+  assert.equal(decisionsOf(root).filter(d => d.kind === 'harness-blocked').length, 5)
 })
 
 test('a usage limit in a child pauses the day; the rerun finishes without redoing finished work', async () => {
@@ -205,65 +198,4 @@ test('hard-stop prose that names no known channel keeps every channel a hard sto
   const all = hardStopChannels({ ownerProxy: null })
   assert.deepEqual(hardStopChannels({ ownerProxy: { hardStopChannels: 'anything outward, see policy' } }), all)
   assert.deepEqual(hardStopChannels({ ownerProxy: { hardStopChannels: 'calendar writes only' } }), ['calendar-write'])
-})
-
-test('the inlined escalation router and awaiting triage match their libraries', () => {
-  const wf = readFileSync(DAY_SCRIPT, 'utf8')
-  const rt = readFileSync(join(CORE, 'lib/escalation/route.mjs'), 'utf8')
-  const block = rt.slice(rt.indexOf('export const NEVER'), rt.indexOf('// ------------------------------------------------------------------------------------------ CLI')).replace(/^export /gm, '').trim()
-  assert.ok(wf.includes(block), 'route.mjs block drifted')
-  const aw = readFileSync(join(CORE, 'lib/contract/awaiting.mjs'), 'utf8')
-  const awBlock = aw.slice(aw.indexOf('function isQuotedRefusal'), aw.indexOf('// ---------------------------------------------------------------- end inlined block')).trim()
-  assert.ok(wf.includes(awBlock), 'awaiting.mjs block drifted')
-})
-
-// 2026-10-02: the exec lane wrote each file correctly but echoed the write back with its body cut
-// to `...` (journal wf_cbcc0aa0-71d line 172), and the strict echo comparison refused it every time.
-const commandOf = ctx => ctx.prompt.split('nothing else: ')[1].split('\nReturn JSON')[0]
-
-test('the day summary write is accepted on what landed, not on a truncated echo', execLane, async () => {
-  const { root, args } = fresh('write-echo', [['ABC-1']])
-  const sim = makeSim(root, args, {
-    exec: (name, sargs, ctx) => {
-      if (ctx.detail !== 'write-summary') return undefined
-      const real = harness(root, 'write', ...sargs)
-      const file = sargs[sargs.indexOf('--file') + 1]
-      const h = join(CORE, 'skills', 'flow-run-ticket', 'bin', 'harness.mjs').replace(/ /g, '\\ ')
-      return { raw: { command: `${h} write --file ${file} --text ...`, ran: true, exitCode: real.exitCode, stdout: real.stdout } }
-    },
-  })
-  const r = await runDay(sim)
-  assert.equal(r.status, 'done', JSON.stringify(r.reason))
-  assert.equal(sim.execs.filter(e => e.label.endsWith(':write-summary')).length, 1, 'accepted on the first attempt')
-  assert.ok(!r.calls.some(c => c.why), JSON.stringify(r.calls.filter(c => c.why)))
-})
-
-test('a day write whose reported bytes differ from the text is not accepted', execLane, async () => {
-  const { root, args } = fresh('write-short', [['ABC-1']])
-  const sim = makeSim(root, args, {
-    exec: (name, sargs, ctx) => {
-      if (ctx.detail !== 'write-summary') return undefined
-      const real = harness(root, 'write', ...sargs)
-      return { raw: { command: commandOf(ctx), ran: true, exitCode: 0, stdout: JSON.stringify({ ...real.result, bytes: real.result.bytes - 1 }) } }
-    },
-  })
-  const r = await runDay(sim)
-  assert.equal(r.calls.filter(c => /:write-summary$/.test(c.label) && c.why === 'write not verified').length, 3)
-})
-
-test('a day-level echo with backslash-escaped spaces and no quotes is the same command', execLane, async () => {
-  const { root, args } = fresh('escaped-space', [['ABC-1']])
-  assert.match(CORE, / /, 'this test needs a core path with a space in it, like the real one')
-  const sim = makeSim(root, args, {
-    exec: (name, sargs, ctx) => {
-      if (ctx.detail !== 'open-count' || ctx.ticket !== '_') return undefined
-      const real = harness(root, 'run', '--root', root, '--', join(CORE, 'lib', 'state', 'state.mjs'), ...sargs)
-      const echoed = commandOf(ctx).replace(/'([^']*)'/g, (_, w) => w.replace(/ /g, '\\ '))
-      return { raw: { command: echoed, ran: true, exitCode: real.exitCode, stdout: real.stdout } }
-    },
-  })
-  const r = await runDay(sim)
-  assert.equal(r.status, 'done', JSON.stringify(r.reason))
-  assert.ok(!r.calls.some(c => c.why === 'command altered'), JSON.stringify(r.calls.filter(c => c.why)))
-  assert.ok(sim.execs.some(e => e.label.endsWith(':open-count')), 'the override was exercised')
 })

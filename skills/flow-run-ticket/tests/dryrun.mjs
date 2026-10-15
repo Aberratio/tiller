@@ -1,8 +1,7 @@
-// Dry-run plumbing for the runners: the Workflow script runs in-process with stubbed hooks, the Node
-// driver with a stubbed runtime (sim.runtime) over the same stubs.
-// Judgment lanes return canned, schema-checked results; the exec lane really runs the harness
-// for state, resume, classify and write (under a temporary STATE_ROOT) and returns canned
-// results for forge, git and verify-claim. Nothing reaches GitHub, a tracker or `claude`.
+// Dry-run plumbing for the drivers: the Node ticket and day drivers run in-process over a stubbed
+// runtime (sim.runtime). Judgment lanes return canned, schema-checked results; exec really runs
+// the harness for state, resume, classify and write (under a temporary STATE_ROOT) and returns
+// canned results for forge, git and verify-claim. Nothing reaches GitHub, a tracker or `claude`.
 
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
@@ -13,20 +12,12 @@ import { fileURLToPath } from 'node:url'
 const HERE = dirname(fileURLToPath(import.meta.url))
 export const CORE = resolve(HERE, '..', '..', '..')
 export const HARNESS = join(CORE, 'skills', 'flow-run-ticket', 'bin', 'harness.mjs')
-export const TICKET_SCRIPT = join(CORE, 'skills', 'flow-run-ticket', 'run-ticket.workflow.js')
-export const DAY_SCRIPT = join(CORE, 'skills', 'flow-run-day', 'run-day.workflow.js')
 export const PROFILE = join(CORE, 'lib', 'testing', 'fixtures', 'acme', 'profile.md')
 export const NO_TRACKER = join(HERE, 'fixtures', 'no-tracker.md')
 const { check } = await import(join(CORE, 'lib', 'contract', 'validate.mjs'))
 
-const AsyncFunction = (async () => {}).constructor
-export function loadWorkflow(path) {
-  const src = readFileSync(path, 'utf8').replace('export const meta', 'const meta')
-  return new AsyncFunction('agent', 'parallel', 'pipeline', 'log', 'phase', 'args', 'budget', 'workflow', src)
-}
-
 export const tmpRoot = tag => mkdtempSync(join(tmpdir(), `flow-dry-${tag}-`))
-// Where the canned repo worktree command "puts" a worktree: writable, since the node runner writes its ledger there.
+// Where the canned repo worktree command "puts" a worktree: writable, since the driver writes its ledger there.
 export const nativeWorktree = branch => join(tmpdir(), 'flow-dry-native-worktrees', branch)
 
 export function shellSplit(cmd) {
@@ -124,7 +115,7 @@ const canned = (script, argv, ctx) => {
 export function makeSim(root, args, mode = {}) {
   let n = 0
   const sim = {
-    root, args, labels: [], execs: [], logs: [], laneOpts: [], agentOpts: [], files: mode.files || ['server-new/a.ts'],
+    root, args, labels: [], execs: [], logs: [], laneOpts: [], files: mode.files || ['server-new/a.ts'],
     hung: null, heads: {}, children: [], baseHead: mode.baseHead || 'ma1n001',
   }
   // Children of a day run share one simulator, so heads are kept per ticket.
@@ -145,13 +136,11 @@ export function makeSim(root, args, mode = {}) {
     const label = opts.label || ''
     if (!/^[a-z-]+:[a-z-]+:T[0-4](:.+)?$/.test(label)) throw new Error(`bad label "${label}"`)
     sim.labels.push(label)
-    sim.agentOpts.push({ label, disallowedTools: opts.disallowedTools })
     const ctx = ctxOf(label, prompt)
     const route = args.routing[ctx.lane]
     if (!route) throw new Error(`lane ${ctx.lane} has no routing`)
     if (ctx.tier === 'T3' && opts.model !== (args.tiers.T3 ?? undefined)) throw new Error(`T3 lane ${label} got model ${opts.model}, not the pinned ${args.tiers.T3}`)
     if (TIERS_BELOW_GATE(args, ctx)) throw new Error(`gate lane ${label} below T3`)
-    if (ctx.lane === 'exec') return execStub(prompt, ctx, label)
     const o = mode.agent ? mode.agent(ctx.lane, ctx) : undefined
     if (o === null) return null
     if (o && o.hang) return hang(label)
@@ -168,16 +157,10 @@ export function makeSim(root, args, mode = {}) {
     return out
   }
 
-  const execStub = async (prompt, ctx, label) => {
-    const command = prompt.split('nothing else: ')[1].split('\nReturn JSON')[0]
-    const argv = shellSplit(command)
-    if (argv[0] !== HARNESS) throw new Error(`exec outside the harness: ${command}`)
-    return { command, ...(await dispatch(argv, command, ctx, label)) }
-  }
-
   // One harness-shaped argv ([HARNESS, sub, ...]) against the stubs: { ran, exitCode, stdout },
-  // { denial } for a refused call, or a hang. `direct` runs state.mjs itself instead of via `harness run`.
-  const dispatch = async (argv, command, ctx, label, direct = false) => {
+  // { denial } for a refused call, or a hang. state.mjs runs itself; resume, classify and write run
+  // through the harness.
+  const dispatch = async (argv, command, ctx, label) => {
     const sub = argv[1]
     const script = sub === 'run' ? argv[argv.indexOf('--') + 1] : null
     const sargs = sub === 'run' ? argv.slice(argv.indexOf('--') + 2) : argv.slice(2)
@@ -190,10 +173,10 @@ export function makeSim(root, args, mode = {}) {
     let result
     let exitCode = 0
     if (o) result = o
-    else if (name === 'state.mjs' && direct) {
+    else if (name === 'state.mjs') {
       const p = spawnSync(process.execPath, [script, ...sargs], { encoding: 'utf8', env: { ...process.env, STATE_ROOT: root } })
       return { ran: true, exitCode: p.status, stdout: p.stdout }
-    } else if (name === 'state.mjs' || ['resume', 'classify', 'write'].includes(sub)) {
+    } else if (['resume', 'classify', 'write'].includes(sub)) {
       const r = harness(root, ...argv.slice(1))
       return { ran: true, exitCode: r.exitCode, stdout: r.stdout }
     } else if (sub === 'sleep') result = { status: 'ok', slept: 0 }
@@ -226,21 +209,12 @@ export function makeSim(root, args, mode = {}) {
       const ticket = ticketOf(command)
       const ctx = { phase, lane: 'exec', tier: null, detail: rest.join(':'), prompt: command, ticket, head: headOf(ticket), files: sim.files, sim,
         nextSha: () => { n += 1; return (0xc0ffee0 + n).toString(16) }, count: l => sim.labels.filter(x => x.split(':')[1] === l).length }
-      const r = await dispatch(hargv, command, ctx, label, true)
+      const r = await dispatch(hargv, command, ctx, label)
       if (r.ran === false) return { exitCode: 126, stdout: '', stderr: r.denial || 'refused', durationMs: 0 }
       return { exitCode: r.exitCode ?? 1, stdout: r.stdout || '', stderr: '', durationMs: 0 }
     },
     log: m => sim.logs.push(m),
     sleep: async () => {},
-  }
-
-  sim.hooks = {
-    agent: sim.agent,
-    parallel: thunks => Promise.all(thunks.map(t => Promise.resolve().then(t).catch(e => { sim.logs.push(`parallel error: ${e.message}`); return null }))),
-    pipeline: async () => { throw new Error('pipeline not used') },
-    log: m => sim.logs.push(m),
-    phase: () => {},
-    budget: { total: null, spent: () => 0, remaining: () => Infinity },
   }
   return sim
 }
@@ -250,36 +224,17 @@ const TIERS_BELOW_GATE = (args, ctx) => {
   return r && r.tier === 'T3' && ctx.tier !== 'T3'
 }
 
-// The same simulated run through the Node driver.
+// One simulated ticket run through the Node driver.
 export async function runTicketDriver(sim) {
   const { createRun } = await import(join(CORE, 'lib', 'driver', 'drive.mjs'))
   return Promise.race([createRun(sim.args, sim.runtime), sim.hangPromise.then(where => ({ killed: where }))])
-}
-
-export async function runTicket(sim, script = TICKET_SCRIPT) {
-  const fn = loadWorkflow(script)
-  const h = sim.hooks
-  const run = fn(h.agent, h.parallel, h.pipeline, h.log, h.phase, sim.args, h.budget, undefined)
-  return Promise.race([run, sim.hangPromise.then(where => ({ killed: where }))])
-}
-
-// A day run: the day script's workflow() hook runs the ticket script in-process on the same simulator.
-export async function runDay(sim, script = DAY_SCRIPT) {
-  const fn = loadWorkflow(script)
-  const h = sim.hooks
-  const child = async (ref, a) => {
-    sim.children.push(a.ticket)
-    return loadWorkflow(ref.scriptPath)(h.agent, h.parallel, h.pipeline, h.log, h.phase, a, h.budget, () => { throw new Error('nested workflow()') })
-  }
-  const run = fn(h.agent, h.parallel, h.pipeline, h.log, h.phase, sim.args, h.budget, child)
-  return Promise.race([run, sim.hangPromise.then(where => ({ killed: where }))])
 }
 
 // The pid of a process that has already exited: a day lock taken under it is stale for the next run,
 // as it is after a real crash.
 export const DEAD_PID = spawnSync(process.execPath, ['-e', '']).pid
 
-// The same day through the Node day driver; each child runs the Node ticket driver in-process.
+// One simulated day through the Node day driver; each child runs the Node ticket driver in-process.
 export async function runDayDriver(sim, runtime = {}) {
   const { driveDay } = await import(join(CORE, 'lib', 'driver', 'day.mjs'))
   const { drive } = await import(join(CORE, 'lib', 'driver', 'drive.mjs'))

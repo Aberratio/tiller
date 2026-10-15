@@ -3,17 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
-import { CORE, PROFILE, NO_TRACKER, TICKET_SCRIPT, buildArgs, decisionsOf, harness, makeSim, nativeWorktree, runTicket as runWorkflow, runTicketDriver, state, tmpRoot } from './dryrun.mjs'
-
-// FLOW_TARGET=node runs the scenarios through the Node driver.
-const NODE = process.env.FLOW_TARGET === 'node'
-const runTicket = NODE ? runTicketDriver : runWorkflow
-const execLane = NODE ? { skip: 'no exec lane in the driver' } : {}
-
-// The premise lane dispatched a subagent despite the no-dispatch rule. The
-// driver's own runtime.mjs (tested separately) enforces this for the Node driver; here it is the
-// raw agent() call the workflow script itself makes, so only meaningful on the workflow path.
-const workflowOnly = NODE ? { skip: 'disallowedTools is asserted on the raw agent() call, not the driver runtime' } : {}
+import { CORE, PROFILE, NO_TRACKER, buildArgs, decisionsOf, harness, makeSim, nativeWorktree, runTicketDriver as runTicket, state, tmpRoot } from './dryrun.mjs'
 
 const fresh = (tag, opts) => { const root = tmpRoot(tag); return { root, args: buildArgs(root, opts) } }
 const lanesOf = sim => sim.labels.map(l => l.split(':')[1]).filter(l => l !== 'exec')
@@ -348,20 +338,25 @@ test('a worktree setup command that cannot run is blocked, kind toolchain — no
 })
 
 // An exec whose checks fail after the write landed is retried; the retry must not count twice.
-test('a retried counter increment is counted once', execLane, async () => {
+// Every increment is keyed, so a state call retried after a rate limit cannot count twice (lib/state refuses a repeated key).
+test('a counter increment retried after a rate limit is counted once, and every increment carries a <runId>:<phase>:<seq> key', async () => {
   const { root, args } = fresh('keyed-inc')
+  const opsOf = argv => argv[0] === 'batch' ? JSON.parse(argv[1]) : [argv]
+  const isInc = op => op[0] === 'counter' && op[2] === 'confidencePasses' && op.includes('--inc')
   let lost = 0
   const sim = makeSim(root, args, {
     exec: (name, argv) => {
-      if (name !== 'state.mjs' || argv[0] !== 'counter' || argv[2] !== 'confidencePasses' || lost++) return undefined
+      if (name !== 'state.mjs' || !opsOf(argv).some(isInc) || lost++) return undefined
       state(root, ...argv)
-      return { raw: { ran: true, exitCode: 0, stdout: 'not json\n' } }
+      return { raw: { ran: true, exitCode: 0, stdout: JSON.stringify({ status: 'blocked', kind: 'rate-limit' }) } }
     },
   })
-  await runTicket(sim)
+  const r = await runTicket(sim)
+  assert.equal(r.status, 'merged', JSON.stringify(r))
+  assert.equal(lost, 2, 'the increment was answered with a rate limit once and retried once')
   assert.equal(runStatus(root, 'ABC-1').counters.confidencePasses, 1)
-  const keyed = sim.execs.filter(e => e.name === 'state.mjs' && e.argv[0] === 'counter' && e.argv.includes('--inc'))
-  assert.ok(keyed.length && keyed.every(e => /^[^:]+:[a-z-]+:\d+$/.test(e.argv[e.argv.indexOf('--key') + 1])), 'every increment carries <runId>:<phase>:<seq>')
+  const keyed = sim.execs.filter(e => e.name === 'state.mjs').flatMap(e => opsOf(e.argv)).filter(op => op[0] === 'counter' && op.includes('--inc'))
+  assert.ok(keyed.length && keyed.every(op => /^[^:]+:[a-z-]+:\d+$/.test(op[op.indexOf('--key') + 1])), 'every increment carries <runId>:<phase>:<seq>')
 })
 
 // A run parked on the fix-round cap, and run.json still read `running`
@@ -494,14 +489,6 @@ test('a premise that holds moves the ticket in a separate call after the verdict
   assert.ok(prompts[1][1].includes(`"${status}"`))
 })
 
-test('premise lane dispatched a subagent despite no-dispatch: every judgment and exec lane call denies Agent, Task and Workflow', workflowOnly, async () => {
-  const { root, args } = fresh('dispatch-deny')
-  const sim = makeSim(root, args)
-  await runTicket(sim)
-  assert.ok(sim.agentOpts.length > 5)
-  for (const o of sim.agentOpts) for (const t of ['Agent', 'Task', 'Workflow']) assert.ok((o.disallowedTools || []).includes(t), `${o.label}: ${t}`)
-})
-
 test('a falsified premise carries its full evidence into the decision, not clipped below decide()\'s own 1000-char cap', async () => {
   const { root, args } = fresh('premise-falsified')
   const longEvidence = 'src/a.js:1 does X. '.repeat(60) // > 1000 chars, well past the old 400-char default clip
@@ -538,19 +525,14 @@ test('an awaiting item missing reversalCost does not park the run at the checkpo
   const d = decisionsOf(root)
   const dev = d.find(x => x.question === 'dev-image gap')
   assert.ok(dev, 'the awaiting item must still be recorded as a decision')
-  if (NODE) {
-    assert.equal(dev.reversalCost, undefined, 'the Node driver never invents a reversal cost')
-    assert.ok(dev.violations.some(v => v.startsWith('L03')), `the missing reversal cost is listed: ${dev.violations}`)
-  } else assert.ok(dev.reversalCost, 'the recorded decision must carry a reversalCost, never omit it silently')
+  assert.equal(dev.reversalCost, undefined, 'the driver never invents a reversal cost')
+  assert.ok(dev.violations.some(v => v.startsWith('L03')), `the missing reversal cost is listed: ${dev.violations}`)
 })
 
-// A confidence-phase resolver dispatch returned an awaiting item with a
-// completely empty options array. decide()'s existing pad-to-two logic only ever appends ONE
-// filler, so zero options in still meant one option out — one short of decision.json's own
-// "needs at least two options" rule — and the checkpoint's decide-batch call was refused all
-// over again, parking the run at "stdout is not a script-result line" after exhausting the exec
-// lane's retries on a command that could never succeed. Padding must reach two, not just grow by one.
-test('an awaiting item with zero options is padded to two by the Workflow script, listed as violations by the Node driver', async () => {
+// A confidence-phase resolver dispatch once returned an awaiting item with an empty options array;
+// the decide call was refused on decision.json's "at least two options" rule and the run parked at
+// the checkpoint. The driver records the item with the broken rule listed instead of inventing options.
+test('an awaiting item with zero options is recorded with the broken rules listed, never padded', async () => {
   const { root, args } = fresh('awaiting-zero-options')
   const sim = makeSim(root, args, {
     skipLaneCheck: true,
@@ -566,38 +548,8 @@ test('an awaiting item with zero options is padded to two by the Workflow script
   const d = decisionsOf(root)
   const dec = d.find(x => x.question === 'no alternative was offered')
   assert.ok(dec, 'the awaiting item must still be recorded as a decision')
-  if (NODE) {
-    assert.equal(dec.options, undefined, 'the Node driver never pads options')
-    assert.ok(dec.violations.length, 'the broken rules are listed instead')
-  } else assert.ok(Array.isArray(dec.options) && dec.options.length >= 2, `options must be padded to at least two; got ${JSON.stringify(dec.options)}`)
-})
-
-test('harness-blocked: one identical retry, then a decision with no options that is never counted', execLane, async () => {
-  const { root, args } = fresh('blocked')
-  const sim = makeSim(root, args, { exec: name => name === 'pr-open.mjs' ? { denied: 'Permission to use Bash has been denied.' } : undefined })
-  const r = await runTicket(sim)
-  assert.equal(r.status, 'parked')
-  assert.equal(sim.execs.filter(e => e.name === 'pr-open.mjs').length, 2)
-  const d = decisionsOf(root)
-  assert.equal(d.length, 1)
-  assert.equal(d[0].kind, 'harness-blocked')
-  assert.equal(d[0].options, undefined)
-  assert.ok(!sim.labels.some(l => l.includes(':resolver:')), 'never asked to anyone')
-  assert.equal(state(root, 'open-count').open, 0)
-})
-
-test('harness-blocked: the park reason breaks on a word boundary and run.json keeps the full denial as reasonFull', execLane, async () => {
-  const longDenial = 'Permission to use Bash has been denied because the sandboxed filesystem refused the write to a path outside the worktree root, which the harness classifies as a policy violation rather than a transient infrastructure error.'
-  const { root, args } = fresh('blocked-long')
-  const sim = makeSim(root, args, { exec: name => name === 'pr-open.mjs' ? { denied: longDenial } : undefined })
-  const r = await runTicket(sim)
-  assert.equal(r.status, 'parked', JSON.stringify(r))
-  const kept = r.reason.replace(/^harness-blocked: /, '')
-  assert.ok(kept.length <= 201, `reason is short: ${JSON.stringify(r.reason)}`)
-  assert.ok(kept.endsWith('…'), 'the short reason is marked as cut')
-  assert.ok(longDenial.startsWith(kept.replace(/…$/, '')), 'the kept prefix is verbatim and word-aligned')
-  assert.ok(r.reasonFull.includes(longDenial), 'the full denial text is preserved verbatim on the result')
-  assert.equal(runStatus(root, 'ABC-1').reasonFull, r.reasonFull, 'run.json keeps the same full text')
+  assert.equal(dec.options, undefined, 'the driver never pads options')
+  assert.ok(dec.violations.length, 'the broken rules are listed instead')
 })
 
 // A live run: implement finished green with commits but carried environment notes labelled
@@ -682,151 +634,6 @@ test('summary and prose lanes cannot raise decisions: their awaiting[] is kept a
   assert.equal(decisionsOf(root).length, 0, JSON.stringify(decisionsOf(root)))
   assert.equal(lanesOf(sim).filter(l => l === 'log-prose').length, 1, 'no identical retry of a summary lane')
   assert.equal(lanesOf(sim).filter(l => l === 'pr-description').length, 1)
-})
-
-test('a real exec success is not thrown away when the model echoes the command with different quoting', execLane, async () => {
-  const { root, args } = fresh('quote-echo')
-  const sim = makeSim(root, args, {
-    exec: (name, sargs, ctx) => {
-      if (name !== 'resume') return undefined
-      // A real, successful `harness.mjs resume` result, echoed back with the quoting stripped —
-      // exactly what a live model does; it is not a different command, just a different rendering.
-      const unquoted = ctx.prompt.split('nothing else: ')[1].split('\nReturn JSON')[0].replace(/'/g, '')
-      return { raw: { command: unquoted, ran: true, exitCode: 0, stdout: JSON.stringify({
-        status: 'ok', ticket: 'ABC-1', clean: true, startPhase: 'start', outputs: {}, resumes: 0, cap: 2, capReached: false, runStatus: 'running', prUrl: null,
-      }) } }
-    },
-  })
-  const r = await runTicket(sim)
-  assert.equal(r.status, 'merged', JSON.stringify(r))
-  assert.equal(sim.execs.filter(e => e.name === 'resume').length, 1, 'the real success is accepted on the first attempt, not retried three times')
-  assert.equal(decisionsOf(root).length, 0)
-})
-
-// A pr-body write echoed a real, successful command back with its literal
-// newlines rendered as the two-character sequence \n instead of an actual line break — a live
-// model's structured-output rendering of a long multi-line string, not a different command. Only
-// quoting was normalized before this, so the mismatch parked the run ("pr body: exec lane failed
-// its checks three times: pr-body") even though the file was written correctly on the first try.
-test('a real exec success is not thrown away when the model renders the command\'s newlines as literal \\n', execLane, async () => {
-  const { root, args } = fresh('newline-echo')
-  const sim = makeSim(root, args, {
-    agent: (lane, ctx) => (lane === 'pr-description' ? { title: 'Change', body: 'Line one.\n\nLine two, the why.', awaiting: [] } : undefined),
-    exec: (name, sargs, ctx) => {
-      if (ctx.detail !== 'pr-body') return undefined
-      const real = ctx.prompt.split('nothing else: ')[1].split('\nReturn JSON')[0]
-      const rendered = real.replace(/\n/g, '\\n')
-      const wrote = harness(root, 'write', ...sargs)
-      return { raw: { command: rendered, ran: true, exitCode: wrote.exitCode, stdout: wrote.stdout } }
-    },
-  })
-  const r = await runTicket(sim)
-  assert.equal(r.status, 'merged', JSON.stringify(r))
-  assert.equal(sim.execs.filter(e => e.name === 'write').length, 1, 'the real success is accepted on the first attempt, not retried three times')
-  assert.equal(decisionsOf(root).length, 0)
-})
-
-// 2026-10-02 day run: every ticket parked on its pr-body write. The haiku exec lane wrote the file
-// with the right byte count each time, but its ~3 KB echo came back with `Other\ Repos`, with the
-// body cut to `...`, or with '\'' re-rendered as '"'"'. The echoes below are the journal's own.
-const ECHOES = JSON.parse(readFileSync(join(CORE, 'skills', 'flow-run-ticket', 'tests', 'fixtures', 'exec-echo', '2026-10-02-pr-body.json'), 'utf8'))
-const commandOf = ctx => ctx.prompt.split('nothing else: ')[1].split('\nReturn JSON')[0]
-
-for (const [kind, echo] of Object.entries(ECHOES.echoes)) {
-  test(`a pr-body write is accepted on what landed, not on its echo (${kind}, journal line ${echo.journalLine})`, execLane, async () => {
-    const { root, args } = fresh(`write-echo-${kind}`)
-    const sim = makeSim(root, args, {
-      agent: lane => (lane === 'pr-description' ? { body: ECHOES.text, awaiting: [] } : undefined),
-      exec: (name, sargs, ctx) => {
-        if (ctx.detail !== 'pr-body') return undefined
-        const real = harness(root, 'write', ...sargs)
-        return { raw: { command: echo.command, ran: true, exitCode: real.exitCode, stdout: real.stdout } }
-      },
-    })
-    const r = await runTicket(sim)
-    assert.equal(r.status, 'merged', JSON.stringify(r))
-    assert.equal(sim.execs.filter(e => e.label.endsWith(':pr-body')).length, 1, 'accepted on the first attempt')
-    assert.equal(readFileSync(join(root, 'tickets', 'ABC-1', 'pr-body.md'), 'utf8'), ECHOES.text)
-  })
-}
-
-test('a pr-body write whose reported bytes differ from the body is not accepted, whatever the echo', execLane, async () => {
-  const { root, args } = fresh('write-short')
-  const sim = makeSim(root, args, {
-    exec: (name, sargs, ctx) => {
-      if (ctx.detail !== 'pr-body') return undefined
-      const real = harness(root, 'write', ...sargs)
-      // A re-typed body one byte off (journal line 383: 2135 against 2134), echoed back verbatim.
-      return { raw: { command: commandOf(ctx), ran: true, exitCode: 0, stdout: JSON.stringify({ ...real.result, bytes: real.result.bytes + 1 }) } }
-    },
-  })
-  const r = await runTicket(sim)
-  assert.equal(r.status, 'parked')
-  assert.match(r.reason || '', /pr body/)
-  assert.equal(r.calls.filter(c => /:pr-body$/.test(c.label) && c.why === 'write not verified').length, 3)
-})
-
-test('a write to another file is not accepted even with the right byte count', execLane, async () => {
-  const { root, args } = fresh('write-elsewhere')
-  const sim = makeSim(root, args, {
-    exec: (name, sargs, ctx) => {
-      if (ctx.detail !== 'pr-body') return undefined
-      const real = harness(root, 'write', ...sargs)
-      return { raw: { command: commandOf(ctx), ran: true, exitCode: 0, stdout: JSON.stringify({ ...real.result, artifact: `${real.result.artifact}.bak` }) } }
-    },
-  })
-  const r = await runTicket(sim)
-  assert.equal(r.status, 'parked')
-})
-
-test('a non-write echo with backslash-escaped spaces and unquoted words is the same command', execLane, async () => {
-  const { root, args } = fresh('escaped-space')
-  assert.match(CORE, / /, 'this test needs a core path with a space in it, like the real one')
-  const sim = makeSim(root, args, {
-    exec: (name, sargs, ctx) => {
-      if (name !== 'resume') return undefined
-      const echoed = commandOf(ctx).replace(/'([^']*)'/g, (_, w) => w.replace(/ /g, '\\ '))
-      return { raw: { command: echoed, ran: true, exitCode: 0, stdout: JSON.stringify({
-        status: 'ok', ticket: 'ABC-1', clean: true, startPhase: 'start', outputs: {}, resumes: 0, cap: 2, capReached: false, runStatus: 'running', prUrl: null,
-      }) } }
-    },
-  })
-  const r = await runTicket(sim)
-  assert.equal(r.status, 'merged', JSON.stringify(r))
-  assert.equal(sim.execs.filter(e => e.name === 'resume').length, 1)
-})
-
-test('a non-write echo that renders an embedded quote as \'"\'"\' is the same command', execLane, async () => {
-  const { root, args } = fresh('quote-rewrite')
-  const sim = makeSim(root, args, {
-    agent: lane => (lane === 'pr-description' ? { title: "[ABC-1] chore: don't change", awaiting: [] } : undefined),
-    exec: (name, sargs, ctx) => {
-      if (name !== 'pr-open.mjs') return undefined
-      const echoed = commandOf(ctx).replace(/'\\''/g, `'"'"'`)
-      return { raw: { command: echoed, ran: true, exitCode: 0, stdout: JSON.stringify({ status: 'ok', prUrl: 'https://forge.test/pr/7', number: 7, draft: true }) } }
-    },
-  })
-  const r = await runTicket(sim)
-  assert.equal(r.status, 'merged', JSON.stringify(r))
-  assert.equal(sim.execs.filter(e => e.name === 'pr-open.mjs').length, 1)
-})
-
-// A confidence-phase wait-ci call (script timeout 540s) parked the whole run
-// with "subagent completed without calling StructuredOutput (after in-conversation nudge)" — the
-// exec-lane haiku agent, worried a synchronous Bash call would be cut off before a long-running
-// command finished, called Monitor instead of Bash and then sat waiting for a notification that
-// never arrives inside a single exec-lane turn, so it never called StructuredOutput at all. The
-// exec prompt never told it to run Bash synchronously with a long enough timeout, so it improvised.
-test('the exec prompt tells the model to run Bash synchronously with a long timeout, not to use Monitor or background tools', execLane, async () => {
-  const { root, args } = fresh('exec-prompt-sync')
-  const prompts = []
-  const sim = makeSim(root, args, { exec: (name, sargs, ctx) => { prompts.push(ctx.prompt); return undefined } })
-  await runTicket(sim)
-  assert.ok(prompts.length > 0, 'at least one exec-lane call happened')
-  for (const p of prompts) {
-    assert.match(p, /do not use Monitor|run_in_background/i, 'must forbid async/background waiting tools')
-    assert.match(p, /timeout/i, 'must instruct an explicit, long-enough Bash timeout')
-  }
 })
 
 test('usage limit pauses, and the rerun resumes without re-dispatching finished phases', async () => {
@@ -1364,20 +1171,6 @@ test('pr title: a title missing its ticket prefix is rejected the same as raw pr
   assert.equal(r.status, 'merged', JSON.stringify(r))
   const opened = sim.execs.find(e => e.name === 'pr-open.mjs').argv
   assert.equal(opened[opened.indexOf('--title') + 1], '[ABC-1] chore: plan')
-})
-
-test('the inlined gate evaluator, escalation router and awaiting triage match their libraries', execLane, () => {
-  const wf = readFileSync(TICKET_SCRIPT, 'utf8')
-  const strip = s => s.replace(/^export /gm, '')
-  const ev = readFileSync(join(CORE, 'lib/gates/evaluate.mjs'), 'utf8')
-  const evBlock = strip(ev.slice(ev.indexOf('const RANK'), ev.indexOf('// ---------------------------------------------------------------- CLI'))).trim()
-  assert.ok(wf.includes(evBlock), 'evaluate.mjs block drifted')
-  const rt = readFileSync(join(CORE, 'lib/escalation/route.mjs'), 'utf8')
-  const rtBlock = strip(rt.slice(rt.indexOf('export const NEVER'), rt.indexOf('// ------------------------------------------------------------------------------------------ CLI'))).trim()
-  assert.ok(wf.includes(rtBlock), 'route.mjs block drifted')
-  const aw = readFileSync(join(CORE, 'lib/contract/awaiting.mjs'), 'utf8')
-  const awBlock = aw.slice(aw.indexOf('function isQuotedRefusal'), aw.indexOf('// ---------------------------------------------------------------- end inlined block')).trim()
-  assert.ok(wf.includes(awBlock), 'awaiting.mjs block drifted')
 })
 
 test('args carry the awaiting triage rules: the classifier refusal patterns and the prose lanes', () => {

@@ -2,11 +2,9 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { buildArgs, makeSim, runTicket as runWorkflow, runTicketDriver, tmpRoot } from './dryrun.mjs'
+import { buildArgs, makeSim, runTicketDriver as runTicket, tmpRoot } from './dryrun.mjs'
 import { LIVE_IN_REPLAY } from './replay-extract.mjs'
 
-const NODE = process.env.FLOW_TARGET === 'node'
-const runTicket = NODE ? runTicketDriver : runWorkflow
 const FIXTURES = join(import.meta.dirname, 'fixtures', 'replay')
 
 // Answers every lane and exec call from the recording, by (phase, lane or exec detail, occurrence);
