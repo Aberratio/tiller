@@ -1,17 +1,16 @@
 ---
 name: flow-run-ticket
-description: Launcher for an unattended end-to-end run of one ticket - resolve the project profile, render its facts, run the pre-flight probes, and hand the run to the Workflow script. Use when the user asks to run a whole ticket unattended, to run a ticket end-to-end, or to resume an interrupted run.
+description: Launcher for an unattended end-to-end run of one ticket - resolve the project profile, render its facts, run the pre-flight probes, and hand the run to the Node driver. Use when the user asks to run a whole ticket unattended, to run a ticket end-to-end, or to resume an interrupted run.
 user-invocable: true
 ---
 
 # Run one ticket unattended
 
 This document is what happens **before** the run and **after** it comes back. The phases and the
-gate live in the Workflow script; nothing here re-decides them.
+gate live in the driver (`lib/driver/`); nothing here re-decides them.
 
-The script is pure JavaScript with no `fs`, no `require`, no `process.env` and no shell. Every
-project fact it branches on arrives in `ARGS`, rendered once here, in bash, before anything spawns.
-Contract: `docs/profile-schema.md`, "The facts object".
+The driver reads no profile. Every project fact it branches on arrives in the args, rendered once
+here, in bash, before anything spawns. Contract: `docs/profile-schema.md`, "The facts object".
 
 ## Step −1 — Resolve the profile and render its facts
 
@@ -23,8 +22,8 @@ FACTS="$("$TILLER_HOME/lib/profile-facts.sh" .)"
 
 Run all three, in that order, at every start **and at every resume**. The profile is read fresh each
 time, never replayed from a run record: an incomplete profile is unblocked by editing the profile,
-so the snapshot is per attempt. The cache key is `(prompt, opts)`, so exactly those agent calls
-whose prompts carried a changed fact re-run and the rest stay cached.
+so the snapshot is per attempt. A finished step replays from the journal only on the same input,
+so exactly those lane calls whose briefs carried a changed fact re-run and the rest stay replayed.
 
 **`--check` exits 4 → stop and report which sections it named.** Do not start and hope the run gets
 far enough to matter. Do not fill the gap from another project, from the repository, or from what
@@ -37,11 +36,9 @@ phase that needs one stops there instead.
 
 Every probe is a hard stop, not a warning.
 
-1. **`Bash` and a `claude` on `PATH`** for the default Node driver; with `--driver workflow`,
-   **`ToolSearch select:Workflow` and `select:Agent`** instead. Missing → stop immediately, without
-   touching the tracker: Step 3 is the only entry this launcher has. A subagent never gets
-   `Workflow` — if you are reading this as a subagent, hand the launch back rather than starting a
-   pre-flight you cannot finish.
+1. **`Bash` and a `claude` on `PATH`.** Missing → stop immediately, without touching the tracker:
+   Step 3 is the only entry this launcher has. If you are reading this as a subagent, hand the
+   launch back rather than starting a pre-flight you cannot finish.
 2. **Write probe** — two words into the session scratchpad. Refused → stop.
 3. **Tracker auth**, only when `facts.jiraKeys` is non-empty — the tracker tools plus a whoami call.
    Missing → stop; the run opens with a ticket read and a status move, so a run that cannot reach
@@ -61,7 +58,7 @@ profile, or a key on an untracked one, is refused by the args builder.
 ```bash
 node "$TILLER_HOME/skills/flow-run-ticket/bin/harness.mjs" args \
   --profile "$PROFILE" --date "$(date -u +%F)" --ticket KEY-1234 --summary "<ticket summary>" \
-  [--root <STATE_ROOT>] [--note "<ruling>"]... [--hold-merge "<reason>"] [--driver node|workflow]
+  [--root <STATE_ROOT>] [--note "<ruling>"]... [--hold-merge "<reason>"]
 ```
 
 It renders the facts, initialises the run state under `STATE_ROOT` and writes
@@ -78,21 +75,9 @@ remote-tracking branch gets a four-hex suffix. Without it the branch is `<KEY>-r
 
 `--hold-merge` stops at an open pull request even on a green gate.
 
-`--driver` picks the runner that takes the args, stored as `driver` in them: `node` (the default)
-is the Node driver in `lib/driver/`, `workflow` is the Workflow script. Anything else is refused.
-
 ## Step 3 — Launch
 
-`driver` in the args decides the launch.
-
-**`workflow`:**
-
-```
-Workflow({ scriptPath: "<TILLER_HOME>/skills/flow-run-ticket/run-ticket.workflow.js",
-           args: <the contents of args-<ticket>.json, as an object> })
-```
-
-**`node`:** Bash with `run_in_background`:
+Bash with `run_in_background`:
 
 ```bash
 node "$TILLER_HOME/skills/flow-run-ticket/bin/harness.mjs" drive --args <root>/args-<ticket>.json
@@ -107,11 +92,9 @@ and paused-usage included; exit 1 is a crash. The per-call numbers:
 reads the checkpoints and skips every phase that already finished, so a run that died mid-phase
 restarts that phase, not the ticket. Relaunching after a crash is the same command.
 
-The run works in the background. Wait for it; do not predict its results.
-
-When a `workflow` run returns, append each entry of the result's `calls[]` to the run's journal as a result line
-(`{"type":"result","label","outcome","detail","escalatedFrom"}`), so `lib/journal/spend.mjs` can
-join each lane's spend to its outcome.
+The run works in the background. Wait for it; do not predict its results. The driver journals
+every lane call with its outcome, so `lib/journal/spend.mjs` joins each lane's spend to its result
+without any help from here.
 
 A merge the agent may not make parks with the pull request open and lands on the ready-to-sign
 list (`readyToSign` in the result); it is not a failure and not a question.
@@ -156,5 +139,5 @@ question.
 ## Tests
 
 `bash skills/flow-run-ticket/tests/run-tests.sh` runs the contract check and the dry-run suites of
-both runners. They simulate every lane and every script; nothing reaches a forge, a tracker or a
-model.
+the ticket and day drivers. They simulate every lane and every script; nothing reaches a forge, a
+tracker or a model.

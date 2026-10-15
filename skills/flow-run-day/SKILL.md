@@ -1,15 +1,14 @@
 ---
 name: flow-run-day
-description: Launcher for an unattended day of ticket runs - build the day's args from an approved queue, render the supervisor environment from the profile, and hand the waves to the Node day driver (or the day Workflow script). Use when the user asks to run the day's plan unattended, to run a queue of tickets in waves, or to resume an interrupted day.
+description: Launcher for an unattended day of ticket runs - build the day's args from an approved queue, render the supervisor environment from the profile, and hand the waves to the Node day driver. Use when the user asks to run the day's plan unattended, to run a queue of tickets in waves, or to resume an interrupted day.
 user-invocable: true
 ---
 
 # Run a day unattended
 
 This document is what happens **before** the day and **after** it comes back. Waves, the ceiling,
-the owner-proxy calls and the sweep live in the day driver: `lib/driver/day.mjs` by default, where
-each ticket runs the Node ticket driver in its own process, or `run-day.workflow.js`, where each
-ticket runs the `flow-run-ticket` Workflow as a child. Either way the children share `STATE_ROOT`.
+the owner-proxy calls and the sweep live in the day driver, `lib/driver/day.mjs`, where each ticket
+runs the Node ticket driver in its own process. The children share `STATE_ROOT`.
 
 ## Step 0 — Preconditions
 
@@ -33,14 +32,9 @@ node "$TILLER_HOME/skills/flow-run-ticket/bin/harness.mjs" day-args \
 It validates every entry the way the ticket builder does, refuses a ticket queued twice, and writes
 `<root>/args-day.json`.
 
-`--driver` picks the runner, stored as `driver` in the args: `node` (the default) or `workflow`.
-Anything else is refused.
-
 ## Step 2 — Launch
 
-`driver` in the args decides the launch.
-
-**`node`:** Bash with `run_in_background`:
+Bash with `run_in_background`:
 
 ```bash
 node "$TILLER_HOME/skills/flow-run-ticket/bin/harness.mjs" drive-day --args <root>/args-day.json
@@ -55,13 +49,6 @@ A second driver on the same root is refused while the first holds the day lock. 
 crash is the same command: finished tickets are skipped, started ones resume from their checkpoints.
 Every lane call is journaled in `<root>/tickets/day-<date>/driver-journal.jsonl` and each ticket's in
 its own journal; `lib/driver/journal.mjs --report <journal>` gives the numbers.
-
-**`workflow`:** in a session that owns the Workflow tool:
-
-```
-Workflow({ scriptPath: "<TILLER_HOME>/skills/flow-run-day/run-day.workflow.js",
-           args: <the contents of args-day.json, as an object> })
-```
 
 For a day that must outlive one session, run it under the supervisor with its environment rendered
 from the profile:
@@ -88,7 +75,6 @@ names: every write op in `config/tool-kinds.json` that reaches one; an unattende
 
 ## When it comes back
 
-After a `workflow` day, append each entry of the result's `calls[]` to the journal as a result line,
-exactly as for a ticket run; the `node` driver journals its own calls. Read the outcome from
+The driver journals its own calls; nothing is appended by hand. Read the outcome from
 `day-result.json`. Then report, in this order: the ready-to-sign list, open decisions as questions with
 options, the regressions from the sweep. Quote gates from the forge, never from the result.
