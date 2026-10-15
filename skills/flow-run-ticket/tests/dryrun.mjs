@@ -8,8 +8,11 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { installFakeRuntimes } from '../../../lib/testing/fake-runtime.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
+installFakeRuntimes()
+
 export const CORE = resolve(HERE, '..', '..', '..')
 export const HARNESS = join(CORE, 'skills', 'flow-run-ticket', 'bin', 'harness.mjs')
 export const PROFILE = join(CORE, 'lib', 'testing', 'fixtures', 'acme', 'profile.md')
