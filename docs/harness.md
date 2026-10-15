@@ -243,6 +243,12 @@ tracker, bot threads, CI logs) gets `UNTRUSTED_READ_RULE` in its task instead. L
 orders to the agent are recorded as `suspicious[]` (source, line, quoted text, reason) on the phase
 output (`plan`, `ci`) and logged; they never stop a run on their own.
 
+A decision that quotes such text names where it came from: `origin` is `review-bot`, `ci` or
+`tracker` (untrusted), or `lane` / `runner`. For an untrusted origin the record also carries
+`suspiciousLines[]`, and when the decision is escalated the resolver or owner-proxy prompt opens
+with `UNTRUSTED_READ_RULE` and carries the question, options and why fenced, each under its own
+marker pair. Lane-raised questions are not fenced: the lane wrote them.
+
 ## Security scan
 
 `lib/security/scan-diff.mjs --repo --base --head [--profile]` runs at the start of every confidence
