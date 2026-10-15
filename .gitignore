@@ -16,3 +16,8 @@
 
 # Machine-local calibration output (harness.mjs calibrate)
 /config/measured.json
+
+# Release bundles, the repo root's own .claude/ (holds worktrees), installed packages
+*.bundle
+.claude/
+node_modules/
