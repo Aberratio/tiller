@@ -16,3 +16,17 @@ Every harness script exits with one of these, and the `status` field of its one 
 
 `kind` is required for every status except `ok` and `pending`, and must be a kind in `kinds.json`
 whose `exit` equals the code. Kinds with `exit: null` are raised by the runner, never by a script.
+
+## Drivers
+
+The two long-running drivers (`lib/driver/drive.mjs` for one ticket, `lib/driver/day.mjs` for a
+day) use the table for the process, not for the run. Their exit code says whether the driver
+itself ran to the end: `0` for every terminal run status (`merged`, `parked`, `paused-usage`,
+`budget-exhausted` and the rest, named in `runStatus` / `dayStatus` of the stdout line), `1` for a
+crash, `4` for a refusal (`locked`, `policy`), `128 + n` for a signal. The run's outcome is the
+record: `tickets/<ticket>/driver-result.json` and `day-result.json`, which the day driver and the
+launcher read instead of the code. A `parked` or `paused-usage` run is a driver that did its job,
+so mapping those statuses to `3`, `4` or `6` would make a non-zero code mean two things, and no
+caller depends on the code today: the day driver reads a child's result file and treats a missing
+one as `died`. Anyone scripting over the drivers reads `runStatus` from the stdout line or the
+result file.

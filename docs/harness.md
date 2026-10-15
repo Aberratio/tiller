@@ -32,6 +32,10 @@ node lib/contract/validate.mjs script-result out.json --exit 3  # one document, 
   script could not answer.
 - `kind` is required unless `status` is `ok` or `pending`, and its `exit` in `kinds.json` equals the
   exit code. Kinds with `exit: null` are raised by the runner, never by a script.
+- The drivers (`drive.mjs`, `day.mjs`) are the exception the table names under "Drivers": their
+  exit code reports the process (0 for every terminal run status, parked and paused-usage included;
+  1 crash; 4 refused, `locked` among them; 128 + n for a signal) and the run's outcome lives in
+  `runStatus` / `dayStatus` and the result file.
 - Waits block for at most `caps.waitCiSeconds` per call, then exit `pending`.
 - Run state lives under the directory in `STATE_ROOT`; scripts take it from the environment and
   never compute it. When `STATE_ROOT` is unset, the runner resolves it to
