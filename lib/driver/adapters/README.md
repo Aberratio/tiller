@@ -27,6 +27,9 @@ only tighten `limits`.
 `lib/routing/validate-launch.mjs` refuses an active model, or one pinned to a gate lane, on a runtime
 without it.
 
+Each adapter's `available(env, { onPath })` says whether its runtime is reachable at launch (a binary
+on the lanes' PATH, or a configured endpoint); an adapter without one is never routed to.
+
 ## openai-compat
 
 - Configured through `OPENAI_COMPAT_BASE_URL` (e.g. `http://localhost:8000/v1`) and an optional

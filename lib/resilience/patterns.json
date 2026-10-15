@@ -10,7 +10,7 @@
       "not allowed by (tool )?policy",
       "blocked by policy",
       "requires (manual )?approval before it can run",
-      "claude requested permissions to use",
+      "requested permissions to use",
       "refused: compound commands? (are|is) not permitted",
       "operation not permitted by sandbox"
     ],
