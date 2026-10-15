@@ -216,8 +216,15 @@ causes, open decisions, spend, overturn rates, then proposals with evidence line
 a profile section, a cap, a lane schema or the run-ticket skill, never merge authority, inviolables
 or the owner-proxy mandate; nothing is applied.
 
+**Doctor.** `bin/doctor [--json] [--dir <dir>]` prints one verdict line (`ok`, `warn`, `fail`) per
+requirement: Node at or above the floor in `lib/doctor/doctor.mjs`, git, bash, jq (with the scripts
+that call it), `TILLER_HOME` pointing at a checkout; optional and only warned: gh (PR phases), the
+`claude` CLI (without it, dry runs only), codex, `caffeinate` or `systemd-inhibit` (keep-awake), the
+profile resolved for the directory, and the role files under `~/.claude/agents`. Exit 0 when every
+required check passes, 1 otherwise.
+
 Tests: `bash skills/flow-run-ticket/tests/run-tests.sh` (contract check plus both dry-run suites).
-Node 20 or newer is required. Give `node --test` file globs (`'lib/<dir>/tests/*.test.mjs'`), never a
+Node 20.11 or newer is required. Give `node --test` file globs (`'lib/<dir>/tests/*.test.mjs'`), never a
 directory: Node 24 loads a directory argument as a module and fails.
 
 ## Config and run records

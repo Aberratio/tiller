@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Check this machine against the harness requirements: one verdict line per requirement.
+#   bin/doctor [--json] [--dir <working dir>]     exit 0 when every required check passes, 1 otherwise
+src="${BASH_SOURCE[0]}"; case "$src" in */*) HERE="$(cd "${src%/*}" && pwd)" ;; *) HERE="$PWD" ;; esac
+if ! command -v node >/dev/null 2>&1; then
+  # The checks themselves are Node; without it only this verdict can be given.
+  case " $* " in
+    *" --json "*) echo '{"ok":false,"checks":[{"name":"node","status":"fail","required":true,"detail":"not found"}]}' ;;
+    *) echo "fail  node  not found; install Node >= 20.11"; echo "doctor: a required check failed" ;;
+  esac
+  exit 1
+fi
+exec node "$HERE/../lib/doctor/doctor.mjs" "$@"
