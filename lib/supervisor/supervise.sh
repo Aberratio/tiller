@@ -43,7 +43,9 @@ capdef() { node -e "process.stdout.write(String(require('$LIB/contract/kinds.jso
 
 if [[ -z "${STATE_ROOT:-}" ]]; then
   [[ -n "${FLOW_PROFILE:-}" && -n "${FLOW_RUN:-}" ]] || { echo '{"status":"refused","kind":"policy","reason":"STATE_ROOT unset and FLOW_PROFILE/FLOW_RUN not both given"}'; exit 4; }
-  STATE_ROOT="$HOME/.claude/run-state/$FLOW_PROFILE/$FLOW_RUN"
+  # The layout lives in state.mjs; this is the path it would resolve. The module path goes last:
+  # state.mjs runs its CLI when it finds itself in argv[1].
+  STATE_ROOT="$(node -e 'import(require("node:url").pathToFileURL(process.argv[3]).href).then(m => process.stdout.write(m.runStatePath(process.argv[1], process.argv[2])))' "$FLOW_PROFILE" "$FLOW_RUN" "$STATE")"
 fi
 export STATE_ROOT
 RUN_ID="${FLOW_RUN:-$(basename "$STATE_ROOT")}"

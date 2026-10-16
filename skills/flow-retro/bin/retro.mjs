@@ -13,12 +13,12 @@
 // line (docs/harness.md, "Script I/O"); --dry-run prints the note instead of writing it.
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readJournal } from '../../../lib/driver/journal.mjs'
 import { MIN_N, journalsUnder, measuredFrom, spendFrom } from '../../../lib/journal/calibrate.mjs'
 import { calibration } from '../../../lib/journal/verdicts.mjs'
+import { runStatePath } from '../../../lib/state/state.mjs'
 
 const OVERTURN_RATE = 0.15
 const SPEND_SHARE = 0.4
@@ -177,7 +177,7 @@ function main(argv) {
   const profile = opt('--profile')
   if (!profile || !existsSync(profile)) emit(4, { status: 'refused', kind: 'policy', reason: 'usage: retro.mjs --profile <file> [--root <run-state dir>] [--date YYYY-MM-DD] [--out <file>] [--min-n N] [--dry-run]' })
   const name = profileName(readFileSync(profile, 'utf8'))
-  const root = resolve(opt('--root') || process.env.TILLER_RUN_STATE || join(homedir(), '.claude', 'run-state', name || basename(dirname(resolve(profile)))))
+  const root = resolve(opt('--root') || process.env.TILLER_RUN_STATE || runStatePath(name || basename(dirname(resolve(profile)))))
   if (!existsSync(root)) emit(1, { status: 'error', kind: 'script-error', reason: `no run-state directory at ${root}` })
   const date = opt('--date') || new Date().toISOString().slice(0, 10)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) emit(4, { status: 'refused', kind: 'policy', reason: '--date must be YYYY-MM-DD' })

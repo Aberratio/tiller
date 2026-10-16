@@ -35,12 +35,13 @@
 import { spawnSync } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
-import { homedir, tmpdir } from 'node:os'
+import { tmpdir } from 'node:os'
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { awaitingRules } from '../../../lib/contract/awaiting.mjs'
 import { withPrices } from '../../../lib/driver/adapters/budget.mjs'
 import { claudeToolName } from '../../../lib/driver/adapters/claude.mjs'
+import { runStatePath } from '../../../lib/state/state.mjs'
 import { outwardRoleOps, resolveTools } from '../../../lib/driver/adapters/tools.mjs'
 import { runtimeAvailability } from '../../../lib/driver/adapters/index.mjs'
 import { checkMeasured, cooldownFrom, journalsUnder, recentFrom } from '../../../lib/journal/calibrate.mjs'
@@ -267,11 +268,11 @@ function schemas() {
 
 function rootFor(opts, profileName) {
   const run = opts.run || `${opts.ticket || basename(String(opts.spec || 'spec'), '.md')}-${opts.date}`
-  return resolve(opts.root || process.env.STATE_ROOT || join(homedir(), '.claude', 'run-state', profileName, run))
+  return resolve(opts.root || process.env.STATE_ROOT || runStatePath(profileName, run))
 }
 // Where the profile's runs live: the journals routing state and calibration read. An explicit run
 // root reads itself only, so a custom layout never picks up a stranger's journals.
-const runStateFor = (opts, profileName, root) => resolve(process.env.TILLER_RUN_STATE || (opts.root || process.env.STATE_ROOT ? root : join(homedir(), '.claude', 'run-state', profileName)))
+const runStateFor = (opts, profileName, root) => resolve(process.env.TILLER_RUN_STATE || (opts.root || process.env.STATE_ROOT ? root : runStatePath(profileName)))
 
 function common(opts) {
   if (!opts.profile || !opts.date) refuse('--profile and --date are required')
@@ -450,7 +451,7 @@ function superviseEnv(opts) {
 function calibrate(opts) {
   if (!opts.profile) refuse('--profile is required')
   const f = facts(resolve(opts.profile))
-  const dir = resolve(opts.root || process.env.TILLER_RUN_STATE || join(homedir(), '.claude', 'run-state', f.profile))
+  const dir = resolve(opts.root || process.env.TILLER_RUN_STATE || runStatePath(f.profile))
   const argv = [join(LIB, 'journal', 'calibrate.mjs'), '--root', dir, '--out', resolve(opts.out || join(CORE, 'config', 'measured.json'))]
   if (opts['min-n']) argv.push('--min-n', String(opts['min-n']))
   if (opts['dry-run']) argv.push('--dry-run')
