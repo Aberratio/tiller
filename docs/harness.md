@@ -214,7 +214,7 @@ and rotates its log to one `.1` file.
 
 | Variable | Read by | Effect |
 |---|---|---|
-| `TILLER_NOTIFY_CMD` | `drive.mjs`, `day.mjs` | Shell command run with one JSON event on stdin, `{kind, runId \| dayId, ticket, status, reason, at}`, on `park`, `died`, `cap-hit` (run or day), `day-end`, `stop-hour`, `battery-pause`. A failure or a 10 s timeout is logged, never fatal. |
+| `TILLER_NOTIFY_CMD` | `drive.mjs`, `day.mjs` | Shell command run with one JSON event on stdin, `{kind, runId \| dayId, ticket, status, reason, at}`, on `park`, `died`, `cap-hit` (run or day), `day-end` (not after a stop hour), `stop-hour`, `battery-pause`. A failure or a 10 s timeout is logged, never fatal. |
 | `TILLER_NO_INHIBIT` | `day.mjs`, `supervise.sh` | `1` skips keeping the machine awake. |
 | `TILLER_BATTERY_MIN_PERCENT` | `day.mjs` | Battery percent below which, off mains, no chunk starts (default 15). An unreadable battery never pauses. |
 | `SUPERVISE_LOG_MAX_BYTES` | `supervise.sh` | Log size that triggers rotation to `supervisor.log.1` (default 10485760). |
