@@ -21,8 +21,14 @@ for f in "$dest"/*.example; do
 done
 sed -i.bak "s/^profile: <name>$/profile: $name/" "$dest/profile.md" && rm -f "$dest/profile.md.bak"
 chmod 600 "$dest/secrets.env"
-# Seed the guard with the profile's own name so it cannot reach a tracked file from day one.
-printf '%s\n' "\\b$name\\b" >> "$dest/leak-terms.txt"
+# Seed the guard with the profile's own name so it cannot reach a tracked file from day one. The
+# harness's own name is the one exception: seeded, it would turn every tracked file into a hit.
+self="$(sed -n 's/^  "name": "\(.*\)",$/\1/p' "$ROOT/package.json" | head -1)"
+if [ "$name" = "$self" ]; then
+  echo "new-profile: $name is the harness's own name; not seeded into leak-terms.txt" >&2
+else
+  printf '%s\n' "\\b$name\\b" >> "$dest/leak-terms.txt"
+fi
 echo "$dest"
 echo "next: fill $dest/profile.md, add the project's names to $dest/leak-terms.txt, then run" >&2
 echo "      lib/profile-facts.sh --check --profile $dest/profile.md" >&2

@@ -5,7 +5,7 @@ irreversible one once the history is pushed.
 
 ## a. History carries one identity with a company e-mail
 
-Every commit (229 on `main` when this was written) has the same author identity. Publish either a
+Every commit on `main` has the same author identity. Publish either a
 rewritten history or a fresh one.
 
 Option 1, rewrite, keep the commits (work in a fresh clone, never in the working copy):
@@ -29,6 +29,9 @@ git branch -M main
 
 Old commit messages and file versions can still hold facts the leak guard never saw; the second
 option removes that risk, the first keeps blame and review history.
+
+Decided 2026-10-16: the public repository starts with a fresh history (option 2). The private
+`main` keeps the full history for reference; nothing from it is pushed.
 
 ## b. License
 
