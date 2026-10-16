@@ -148,10 +148,11 @@ node "$H" drive-day --args ~/.claude/run-state/acme/2026-10-16/args-day.json
 
 The day runner keeps the machine awake (caffeinate / systemd-inhibit), starts no new work after the
 profile's stop hour (exit 3; relaunch the same command after that hour), stops with a handoff on a
-usage limit, waits on a low battery until it charges, journals a wall-clock jump (sleep or a changed
+usage limit, waits on a low battery until it charges (up to 4 hours, then ends `battery-wait`), journals a wall-clock jump (sleep or a changed
 time) and re-checks the stop hour and day cap after one. `TILLER_NOTIFY_CMD` receives one JSON
 event (`{kind, runId|dayId, ticket, status, reason, at}`) on stdin per park, cap, crash, stop hour,
-battery pause and day end (a day ended by the stop hour sends only the stop-hour event):
+battery pause, battery wait limit and day end (a day ended by the stop hour or the battery wait limit
+sends only that event):
 
 ```sh
 TILLER_NOTIFY_CMD='cat >> ~/tiller-events.jsonl'   # or any command that posts the JSON somewhere
@@ -172,6 +173,7 @@ still works as a fallback and needs `claude` on `PATH`.
 | `TILLER_NOTIFY_CMD` | shell command receiving one JSON event on stdin per park/cap/crash/day end | unset: no notifications |
 | `TILLER_NO_INHIBIT` | `1` disables the keep-awake wrapper | unset |
 | `TILLER_BATTERY_MIN_PERCENT` | below this, on battery, the day runner pauses before the next chunk | `15` |
+| `TILLER_BATTERY_MAX_WAIT_MINUTES` | a battery pause longer than this ends the day as `battery-wait` | `240` |
 | `SUPERVISE_LOG_MAX_BYTES` | legacy supervisor only: rotate its log to one `.1` file above this size | `10485760` |
 | `TILLER_MACHINE`, `TILLER_MACHINE_CAPS` | machine name and capabilities for the cross-project overview | unset |
 
@@ -202,6 +204,7 @@ pseudo-terminal and are skipped where `script(1)` is not permitted (sandboxes, s
 | Another process runs the ticket | launch refused with kind `locked` | wait, or kill the dead process; a dead lock is broken automatically |
 | Review bot or CI text tries to instruct the model | fenced, flagged in the decision record | read the record; no action needed |
 | Stop hour reached | day run exits `blocked` / `stop-hour`; children finish their current phase | relaunch next morning |
+| Battery stayed low for the whole wait | day run exits `blocked` / `battery-wait` with a handoff | plug in, relaunch the same command |
 | Sandbox hides `~/.local/bin` | lanes see no `claude` and report `runtime-down` | put the directory on `PATH` |
 
 ## Advice

@@ -21,6 +21,7 @@
     "context-exhaustion": { "exit": null, "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "split-agent", "max": 1 }, "reserved": true, "note": "nothing emits this kind yet; it is kept so a runtime that reports context exhaustion has a class to map to" },
     "harness-blocked":    { "exit": 3,    "escalate": "never", "ceiling": false, "agentMayEmit": true,  "retry": { "mode": "identical", "max": 1 } },
     "stop-hour":          { "exit": 3,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "battery-wait":       { "exit": 3,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
     "no-progress":        { "exit": 5,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
     "ready-to-sign":      { "exit": 4,    "escalate": "sign",  "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
     "schema":             { "exit": null, "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "escalate-tier", "max": 2 } },

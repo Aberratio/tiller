@@ -30,6 +30,7 @@ here is the one the code and the skills follow.
 | **cap** | A limit in USD (per call, per run, per day), turns or seconds. Reaching one parks or pauses; it never silently truncates. |
 | **usage pause** | The runtime reported a usage limit. The run checkpoints and waits for the reset; status `paused-usage`. |
 | **stop hour** | The hour after which a day run starts no new chunk and exits with kind `stop-hour`. |
+| **battery wait** | A day run's pause on a low battery off mains. Past its limit (default 4 hours) the day exits with kind `battery-wait`. |
 | **chunk / wave** | A group of tickets the day runner drives concurrently; the queue file lists waves in order. |
 | **state root** | The directory holding run state, journals, locks and results for one profile and date (`STATE_ROOT`). |
 | **journal** | Append-only JSONL of spawns, results and spend per lane; the source for retros and day caps. |

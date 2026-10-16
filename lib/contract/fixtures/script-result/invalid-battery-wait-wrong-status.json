@@ -1,0 +1,5 @@
+{
+  "status": "ok",
+  "kind": "battery-wait",
+  "reason": "battery 9% still below 15% after 240 minutes"
+}

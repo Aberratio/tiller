@@ -196,7 +196,9 @@ the chunk does not start and the day parks as `budget-exhausted`. Defaults: `run
 **Day loop.** `lib/driver/day.mjs` is the day loop. From `runPolicy.stopHour` (local hour) on, no new
 chunk starts, running children finish, and the day ends `stop-hour` (exit 3, `blocked`); the relaunch
 after it skips finished tickets. On battery below the threshold and off mains no chunk starts; the
-day waits, re-reading every 5 minutes, until it charges or the stop hour comes. A wall-clock jump of
+day waits, re-reading every 5 minutes, until it charges or the stop hour comes; after
+`TILLER_BATTERY_MAX_WAIT_MINUTES` (default 240) of waiting it ends `battery-wait` (exit 3, `blocked`)
+with a handoff. A wall-clock jump of
 more than 10 minutes against the monotonic clock (sleep, a changed time) is journalled as a
 `clock-jump` event and the stop hour and day cap are evaluated again. The CLI keeps the machine
 awake through `lib/supervisor/inhibit.sh` (`caffeinate` or `systemd-inhibit`; one warning line when
@@ -214,9 +216,10 @@ and rotates its log to one `.1` file.
 
 | Variable | Read by | Effect |
 |---|---|---|
-| `TILLER_NOTIFY_CMD` | `drive.mjs`, `day.mjs` | Shell command run with one JSON event on stdin, `{kind, runId \| dayId, ticket, status, reason, at}`, on `park`, `died`, `cap-hit` (run or day), `day-end` (not after a stop hour), `stop-hour`, `battery-pause`. A failure or a 10 s timeout is logged, never fatal. |
+| `TILLER_NOTIFY_CMD` | `drive.mjs`, `day.mjs` | Shell command run with one JSON event on stdin, `{kind, runId \| dayId, ticket, status, reason, at}`, on `park`, `died`, `cap-hit` (run or day), `day-end` (not after a stop hour or a battery wait), `stop-hour`, `battery-pause`, `battery-wait`. A failure or a 10 s timeout is logged, never fatal. |
 | `TILLER_NO_INHIBIT` | `day.mjs`, `supervise.sh` | `1` skips keeping the machine awake. |
 | `TILLER_BATTERY_MIN_PERCENT` | `day.mjs` | Battery percent below which, off mains, no chunk starts (default 15). An unreadable battery never pauses. |
+| `TILLER_BATTERY_MAX_WAIT_MINUTES` | `day.mjs` | Minutes a battery wait may last before the day ends `battery-wait` (default 240). |
 | `SUPERVISE_LOG_MAX_BYTES` | `supervise.sh` | Log size that triggers rotation to `supervisor.log.1` (default 10485760). |
 
 **Retro.** `skills/flow-retro/bin/retro.mjs --profile <file> [--root dir] [--date d] [--dry-run]` reads

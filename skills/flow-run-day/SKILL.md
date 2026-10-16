@@ -78,7 +78,8 @@ names: every write op in `config/tool-kinds.json` that reaches one; an unattende
 - A wave after the first starts only through the owner proxy.
 - From the profile's stop hour no chunk starts; the day ends `stop-hour` and the same command after
   that hour carries on.
-- On a low battery off mains no chunk starts until it charges or the stop hour comes.
+- On a low battery off mains no chunk starts until it charges or the stop hour comes; a wait past
+  the limit (default 4 hours) ends the day `battery-wait` with a handoff.
 - A wall-clock jump over 10 minutes (sleep, a changed time) is journalled and the stop hour and day
   cap are checked again.
 - A usage limit pauses the day (`supervisor: paused-usage <reset>` in `state.md`); the relaunch

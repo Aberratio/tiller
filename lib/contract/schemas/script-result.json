@@ -23,6 +23,7 @@
         "context-exhaustion",
         "harness-blocked",
         "stop-hour",
+        "battery-wait",
         "no-progress",
         "ready-to-sign",
         "schema",
