@@ -202,7 +202,9 @@ test('hard-stop prose that names no known channel keeps every channel a hard sto
 
 test('a child that died inside start, before its first checkpoint, is resumed through the resume-run mandate on the rerun', async () => {
   const { root, args } = fresh('start-death', [['ABC-1']])
-  const first = makeSim(root, args, { exec: (name, argv, ctx) => name === 'worktree.mjs' && ctx.ticket === 'ABC-1' ? { hang: true } : undefined })
+  // The duplicate guard is the last non-mutating start step; a death inside worktree new is an interrupted step.
+  // Its argv carries the ticket as --key; the sim cannot read the ticket off that command line.
+  const first = makeSim(root, args, { exec: (name, argv) => name === 'duplicate-guard.mjs' && argv[argv.indexOf('--key') + 1] === 'ABC-1' ? { hang: true } : undefined })
   const r1 = await runDay(first)
   assert.ok(r1.killed, 'killed inside start')
   assert.equal(state(root, 'phase-get', 'ABC-1', 'start').found, false, 'no start checkpoint')
