@@ -85,8 +85,9 @@ if [ "${1:-}" = "--helm" ]; then
 fi
 
 if [ "${1:-}" = "--hooks" ]; then
-  echo "Run: bin/tiller apply"
-  echo "It merges the private-access hook and TILLER_HOME into ~/.claude/settings.json as owned keys, shows the diff and asks before writing."
+  # stdout is only the fragment, so it can be piped; the guidance goes to stderr.
+  echo "Run: bin/tiller apply" >&2
+  echo "It merges the private-access hook and TILLER_HOME into ~/.claude/settings.json as owned keys, shows the diff and asks before writing." >&2
   # The helm session hook is not a tiller apply item yet, so its fragment is still merged by hand.
   jq -n \
     --arg session "TILLER_HOME=$(printf '%q' "$ROOT_DIR") $(printf '%q' "$ROOT_DIR/lib/hooks/helm-session.sh")" \
