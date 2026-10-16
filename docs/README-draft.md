@@ -151,7 +151,7 @@ profile's stop hour (exit 3; relaunch the same command after that hour), stops w
 usage limit, waits on a low battery until it charges, journals a wall-clock jump (sleep or a changed
 time) and re-checks the stop hour and day cap after one. `TILLER_NOTIFY_CMD` receives one JSON
 event (`{kind, runId|dayId, ticket, status, reason, at}`) on stdin per park, cap, crash, stop hour,
-battery pause and day end:
+battery pause and day end (a day ended by the stop hour sends only the stop-hour event):
 
 ```sh
 TILLER_NOTIFY_CMD='cat >> ~/tiller-events.jsonl'   # or any command that posts the JSON somewhere
