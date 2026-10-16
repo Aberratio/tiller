@@ -246,11 +246,10 @@ export function hardStopChannels(factsObj) {
 export function outwardTools(factsObj, disallow = []) {
   const extra = [].concat(disallow || []).filter(x => typeof x === 'string')
   const channels = hardStopChannels(factsObj)
-  // Children are claude processes, so role ops resolve to Claude tool names here. The defaults stay
+  // Logical names (`mcp:<server>.<tool>`); each adapter renders its runtime's own. The defaults stay
   // blocked too: a role the profile rebinds or sets to none must not reopen the server it left.
   const pt = factsObj.tools || {}
   const named = [...resolveTools(outwardRoleOps(channels, pt), pt), ...resolveTools(outwardRoleOps(channels))]
-    .map(t => t.startsWith('mcp:') ? claudeToolName(t) : t)
   return { channels, tools: [...new Set([...named, ...extra])] }
 }
 
@@ -444,7 +443,8 @@ function superviseEnv(opts) {
   const f = facts(resolve(opts.profile))
   const hour = /^(\d{1,2})(?::\d{2})?$/.exec(String((f.runPolicy || {}).stopHour ?? ''))
   const { channels, tools } = outwardTools(f, opts.disallow)
-  emit(0, { status: 'ok', channels, env: { SUPERVISE_STOP_HOUR: hour ? String(Number(hour[1])) : '', SUPERVISE_DISALLOWED_TOOLS: tools.join(' ') } })
+  // supervise.sh launches claude itself, so the names are rendered for it here.
+  emit(0, { status: 'ok', channels, env: { SUPERVISE_STOP_HOUR: hour ? String(Number(hour[1])) : '', SUPERVISE_DISALLOWED_TOOLS: tools.map(t => t.startsWith('mcp:') ? claudeToolName(t) : t).join(' ') } })
 }
 
 // Calibration over every run under the profile's run-state directory (lib/journal/calibrate.mjs).

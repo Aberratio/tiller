@@ -5,6 +5,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFile
 import { delimiter, join } from 'node:path'
 import { HARNESS, PROFILE, NO_TRACKER, buildArgs, harness, tmpRoot } from './dryrun.mjs'
 import { outwardTools } from '../bin/harness.mjs'
+import { claudeToolName } from '../../../lib/driver/adapters/claude.mjs'
 
 const lastLine = s => JSON.parse(String(s).trim().split('\n').pop())
 
@@ -158,23 +159,25 @@ test('drive without --args is refused; args that crash the driver exit 1 with an
 test('a supervised child never holds an outward-channel tool: args carries the same disallowedTools as supervise-env for the acme profile', () => {
   const root = tmpRoot('args-disallow')
   const args = buildArgs(root)
-  for (const t of ['mcp__claude_ai_Slack__slack_send_message', 'mcp__claude_ai_Gmail', 'mcp__claude_ai_Google_Calendar__create_event', 'mcp__claude_ai_Google_Calendar__update_event'])
+  for (const t of ['mcp:slack.slack_send_message', 'mcp:gmail', 'mcp:google-calendar.create_event', 'mcp:google-calendar.update_event'])
     assert.ok(args.disallowedTools.includes(t), t)
+  assert.ok(!args.disallowedTools.some(t => t.startsWith('mcp__')), 'args carry logical names, not one runtime\'s')
   const env = harness(root, 'supervise-env', '--profile', PROFILE).result.env
-  assert.deepEqual(args.disallowedTools, env.SUPERVISE_DISALLOWED_TOOLS.split(' '))
+  assert.deepEqual(args.disallowedTools.map(t => t.startsWith('mcp:') ? claudeToolName(t) : t), env.SUPERVISE_DISALLOWED_TOOLS.split(' '))
+  assert.ok(env.SUPERVISE_DISALLOWED_TOOLS.split(' ').includes('mcp__claude_ai_Slack__slack_send_message'))
 })
 
 test('outward tools resolve through the profile, and a rebound or none role never reopens the default server', () => {
   const base = outwardTools({ ownerProxy: {} }).tools
   const moved = outwardTools({ ownerProxy: {}, tools: { chat: { server: 'atlassian' }, email: { kind: 'none' } } }).tools
-  assert.ok(moved.includes('mcp__claude_ai_Atlassian__slack_send_message'))
+  assert.ok(moved.includes('mcp:atlassian.slack_send_message'))
   for (const t of base) assert.ok(moved.includes(t), t)
 })
 
 test('outward tools are derived from write ops: reads and in-run writes stay, a narrowed-out channel reopens', () => {
   const all = outwardTools({ ownerProxy: {} }).tools
-  for (const t of ['mcp__claude_ai_Slack__slack_read_thread', 'mcp__claude_ai_Slack__slack_send_message_draft', 'mcp__claude_ai_Atlassian__transitionJiraIssue'])
+  for (const t of ['mcp:slack.slack_read_thread', 'mcp:slack.slack_send_message_draft', 'mcp:atlassian.transitionJiraIssue'])
     assert.ok(!all.includes(t), t)
   const chatOnly = outwardTools({ ownerProxy: { hardStopChannels: ['chat-send'] } }).tools
-  assert.deepEqual(chatOnly, ['mcp__claude_ai_Slack__slack_send_message'])
+  assert.deepEqual(chatOnly, ['mcp:slack.slack_send_message'])
 })
