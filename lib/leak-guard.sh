@@ -45,6 +45,8 @@ fi
 hits=0
 for f in "${files[@]}"; do
   case "$f" in lib/leak-guard.sh) continue ;; esac
+  # The licence holder and the conduct contact are public on purpose; those two files skip the term list.
+  case "$f" in LICENSE|CODE_OF_CONDUCT.md) scan_terms=0 ;; *) scan_terms=1 ;; esac
   path="$ROOT/$f"
   [ -f "$path" ] || continue
   if [ "$mode" = "--staged" ]; then content() { git -C "$ROOT" show ":$f"; }; else content() { cat "$path"; }; fi
@@ -52,7 +54,7 @@ for f in "${files[@]}"; do
   if [ -s "$terms" ] && printf '%s\n' "$f" | grep -qiEf "$terms"; then
     echo "leak: path $f"; hits=$((hits+1))
   fi
-  out="$( { [ -s "$terms" ] && content | grep -nIiEf "$terms"; content | grep -nIE "$SECRETS"; content | grep -nIE "$PRIVATE"; } 2>/dev/null | head -5)"
+  out="$( { [ -s "$terms" ] && [ "$scan_terms" = 1 ] && content | grep -nIiEf "$terms"; content | grep -nIE "$SECRETS"; content | grep -nIE "$PRIVATE"; } 2>/dev/null | head -5)"
   if [ -n "$out" ]; then
     printf '%s\n' "$out" | sed "s|^|leak: $f:|"; hits=$((hits+1))
   fi
