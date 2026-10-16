@@ -1,6 +1,6 @@
 ---
 name: flow-resolve-conflicts
-description: Use when a git merge or rebase stopped on conflicts, when a PR reports CONFLICTING or DIRTY, when a branch must be brought up to date with its base and may conflict, when asked to "fix my open PRs" after something merged, or when a run parked on the base condition with conflicting files named. Also the procedure a `conflict` lane follows.
+description: Use when a git merge or rebase stopped on conflicts, when a PR reports CONFLICTING or DIRTY, when a branch must be brought up to date with its base and may conflict, when asked to "fix my open PRs" after something merged, or when a run parked on the base condition with conflicting files named.
 user-invocable: true
 ---
 
