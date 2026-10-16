@@ -1,0 +1,5 @@
+{
+  "status": "blocked",
+  "kind": "interrupted-step",
+  "reason": "step pr/exec:pr-open#1 started at 2026-10-16T02:11:04Z and never finished"
+}

@@ -62,6 +62,12 @@ above their `max`); `dayCeiling` and `maxParallel` have no harness default and m
 from the profile. Every cap needs a consumer in a script under `lib/` or `skills/`; the self-check
 fails on a cap only `kinds.json` or a test names.
 
+**`interrupted-step`** — a resume found a mutating step (`pr-open`, `pr-ready`, `pr-merge`,
+`update-from-base`, `cleanup`, `worktree new`) with its started line in `steps.jsonl` and no result:
+the process died while the effect may or may not have happened. The run parks with one decision
+and runs nothing. A human checks the forge or the repository, then either records the result by
+hand or removes the started line from `tickets/<ticket>/steps.jsonl`; a changed input clears it too.
+
 **`ci-infra`** is retried as transport (backoff up to `backoffAttempts`) when a lane failure classifies
 as it. The CI wait reports cancelled and timed-out checks as red, so no CI rerun exists to cap.
 
@@ -177,7 +183,10 @@ journal line `{"type":"result","label","outcome","detail","escalatedFrom"}`: `ou
 `lib/journal/spend.mjs` joins result lines without `agentId` to spawns by label, in order.
 
 **Resume.** Every phase writes a checkpoint; a relaunch with the same args skips finished phases
-and restarts the unfinished one. A day relaunch skips finished children and resumes started ones.
+and restarts the unfinished one. Inside a phase, `tickets/<ticket>/steps.jsonl` records each lane
+call and script run with its input hash and result, so the restarted phase replays what finished and
+runs only what did not. Mutating scripts are recorded in two phases, a started line before the run
+and the result after; a started line without its result parks the resume as `interrupted-step`. A day relaunch skips finished children and resumes started ones.
 A usage limit writes `supervisor: paused-usage <reset>` to `state.md`; a finished day writes
 `supervisor: done`. One process per ticket: the driver holds the `ticket-run-<TICKET>` lock under
 the state root for the whole run, and a relaunch while another live process holds it is refused

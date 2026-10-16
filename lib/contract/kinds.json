@@ -43,7 +43,8 @@
     "duplicate":          { "exit": 4,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
     "locked":             { "exit": 4,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
     "script-error":       { "exit": 1,    "escalate": "chain", "ceiling": true,  "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
-    "budget-exhausted":   { "exit": 4,    "escalate": "chain", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } }
+    "budget-exhausted":   { "exit": 4,    "escalate": "chain", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } },
+    "interrupted-step":   { "exit": 3,    "escalate": "never", "ceiling": false, "agentMayEmit": false, "retry": { "mode": "none", "max": 0 } }
   },
   "caps": {
     "fixRounds":         { "default": 2, "max": 3 },

@@ -201,6 +201,7 @@ pseudo-terminal and are skipped where `script(1)` is not permitted (sandboxes, s
 | Laptop slept through the night | on wake the day runner re-checks the stop hour and the day cap before the next chunk | plug in; set `TILLER_NO_INHIBIT` only if you want sleep |
 | Crash mid-phase | relaunch resumes at the unfinished phase; finished phases are skipped by checkpoint, and a step log records which side effects already happened so the resumed phase can check before it repeats one | relaunch with the same args |
 | Crash loop | the resume cap parks the run | read `driver-result.json`, fix, relaunch |
+| Crash inside a PR open, merge, rebase or cleanup | the resume parks as `interrupted-step`: the step log has the start but no result | check the forge or the repository, then remove the started line from `steps.jsonl` or record the result; relaunch |
 | Another process runs the ticket | launch refused with kind `locked` | wait, or kill the dead process; a dead lock is broken automatically |
 | Review bot or CI text tries to instruct the model | fenced, flagged in the decision record | read the record; no action needed |
 | Stop hour reached | day run exits `blocked` / `stop-hour`; children finish their current phase | relaunch next morning |

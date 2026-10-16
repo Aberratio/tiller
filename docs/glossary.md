@@ -18,6 +18,7 @@ here is the one the code and the skills follow.
 | **runtime** | The CLI or endpoint an adapter drives. `runtime-down` means its binary or endpoint is not reachable from the lanes' `PATH`. |
 | **checkpoint** | The record written after a phase finishes, keyed by run id, phase and input hash. A relaunch skips phases with a matching checkpoint. |
 | **step** | One side effect inside a phase (push, worktree, tracker transition), recorded in the step log so a resume does not repeat it blindly. |
+| **interrupted step** | A mutating step (PR open, merge, rebase, cleanup, worktree) whose started line has no result: the process died mid-effect. The resume parks with kind `interrupted-step` until a human checks. |
 | **resume** | Relaunching a run with the same args. Finished phases are skipped; the unfinished one restarts; a cap on resumes turns a crash loop into a park. |
 | **park** | The run stops with one open decision for a human, recorded in `decisions.jsonl` and `driver-result.json`. Not a failure, not a question in chat. |
 | **decision** | A question the run could not answer; carries kind, why, options and origin. Goes through the escalation chain. |

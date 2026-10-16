@@ -45,7 +45,8 @@
         "duplicate",
         "locked",
         "script-error",
-        "budget-exhausted"
+        "budget-exhausted",
+        "interrupted-step"
       ]
     },
     "reason": {
