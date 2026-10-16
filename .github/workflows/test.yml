@@ -20,9 +20,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      # Suites that route models stub the runtime CLIs themselves; the runners have none installed.
       - name: Test
         if: runner.os != 'Windows'
-        run: node --test 'lib/*/tests/*.test.mjs' 'lib/tests/*.test.mjs' 'skills/*/tests/*.test.mjs'
+        run: npm test
+      - name: Lint skills
+        if: runner.os != 'Windows'
+        run: npm run lint:skills
       # Windows runs what is ported to it. tiller-cli and install.sh stub POSIX tools on a
       # colon-separated PATH; their Windows behaviour is covered by injected-platform tests.
       - name: Test (Windows port)
