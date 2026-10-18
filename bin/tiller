@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# The one entry point: the guided setup and each of its steps as a command of its own.
+#   tiller help     the commands, one line each
+set -euo pipefail
+
+# The checkout this script lives in, also when it is reached through a symlink on PATH.
+src="${BASH_SOURCE[0]}"
+while [ -L "$src" ]; do
+  dir="$(cd -P "$(dirname "$src")" && pwd)"
+  src="$(readlink "$src")"
+  case "$src" in /*) ;; *) src="$dir/$src" ;; esac
+done
+ROOT="$(cd -P "$(dirname "$src")/.." && pwd)"
+
+help() {
+  cat <<'EOF'
+Usage: tiller <command> [arguments]
+
+  tiller setup [--yes] [--answers <file.json>]     the guided setup, every step in order
+  tiller doctor [--json]                           check this machine against the harness requirements
+  tiller install …                                 install.sh with the same arguments
+  tiller login [claude|codex]                      link a provider's skills and sign it in
+  tiller personal new <owner>                      generate personal skills and link them
+  tiller personal clone <git-url> [<owner>]        clone existing personal skills and link them
+  tiller project new <name> <repo-dir>             onboard a project into a new profile
+  tiller project clone <git-url> [<name>]          clone an existing profile repository
+  tiller project ask <name>                        answer a profile's open questions
+  tiller hooks                                     merge the private-access hook into the agent settings
+  tiller help                                      this list
+EOF
+}
+
+# The wizard is Node; on a machine without it the tools step runs here, in bash, first.
+bootstrap_node() {
+  command -v node >/dev/null 2>&1 && return 0
+  local yes="" a d rc=0 default_dirs
+  local -a dirs
+  for a in "$@"; do [ "$a" = --yes ] && yes=--yes; done
+  # 2 is "ran, still missing": the new Node may only be off this shell's PATH. Anything else stops.
+  bash "$ROOT/lib/setup/prereqs.sh" install $yes || rc=$?
+  [ "$rc" -eq 0 ] || [ "$rc" -eq 2 ] || return "$rc"
+  # A fresh install may land outside this shell's PATH (winget on Windows): look once, then give up.
+  hash -r
+  case "$(bash "$ROOT/lib/setup/prereqs.sh" os)" in
+    windows) default_dirs="/c/Program Files/nodejs" ;;
+    *) default_dirs="/opt/homebrew/bin:/usr/local/bin" ;;
+  esac
+  IFS=: read -r -a dirs <<< "${TILLER_NODE_DIRS-$default_dirs}"
+  for d in "${dirs[@]}"; do
+    [ -x "$d/node" ] && { PATH="$d:$PATH"; export PATH; break; }
+  done
+  command -v node >/dev/null 2>&1 && return 0
+  echo "tiller: Node is installed but this terminal cannot see it yet; open a new terminal and run  tiller setup  again" >&2
+  return 1
+}
+
+cmd="${1:-}"
+[ $# -gt 0 ] && shift
+[ "$cmd" = setup ] && { bootstrap_node "$@" || exit $?; }
+case "$cmd" in
+  help|-h|--help) help ;;
+  "") help >&2; exit 2 ;;
+  doctor) exec bash "$ROOT/bin/doctor" "$@" ;;
+  install) exec bash "$ROOT/install.sh" "$@" ;;
+  setup|login|personal|project|hooks) exec node "$ROOT/lib/setup/wizard.mjs" "$cmd" "$@" ;;
+  *) echo "tiller: unknown command '$cmd'; see  tiller help" >&2; exit 2 ;;
+esac
