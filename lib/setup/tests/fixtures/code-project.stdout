@@ -1,0 +1,17 @@
+wrote <root>/home/profiles/widget/profile.md
+  MISSING  tracker — kind (unknown kind 'todo'; jira or none)
+  MISSING  branching — integrating main (reads TODO)
+  MISSING  gates — declared list (reads TODO)
+  MISSING  run policy — day ceiling (reads TODO)
+  MISSING  run policy — max parallel (reads TODO)
+  MISSING  inviolables — list (reads TODO)
+  MISSING  escalation — human (reads TODO)
+A launch against this profile would be refused.
+
+8 decision(s) open: tracker.kind, branching.integrateMain, gates, mergeAuthority, inviolables, escalation.human, runPolicy.dayCeiling, runPolicy.maxParallel
+  answer: onboard.mjs ask widget   (or: onboard.mjs questions widget)
+done     project    profiles: widget
+  still yours: <root>/src/widget/.tiller-profile is yours to commit
+  still yours: back up <root>/home/profiles/widget once gh is signed in: gh repo create <account>/tiller-profiles-widget --private --source <root>/home/profiles/widget --push
+
+Next: cd <root>/src/widget && claude
