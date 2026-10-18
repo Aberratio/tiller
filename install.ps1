@@ -88,7 +88,8 @@ if ($devMode -ne 1) {
 $bash = Find-Bash
 if (-not $bash) { Write-Error 'Git Bash not found after installation; open a new terminal and rerun.' }
 $root = $PSScriptRoot -replace '\\', '/'
-$tillerArgs = if ($InstallArgs.Count -gt 0) { @('install') + $InstallArgs } else { @('setup') + $(if ($Yes) { @('--yes') } else { @() }) }
+# @() keeps a one-word list an array; a bare string would be splatted character by character.
+$tillerArgs = @(if ($InstallArgs.Count -gt 0) { 'install'; $InstallArgs } else { 'setup'; if ($Yes) { '--yes' } })
 Write-Host "install.ps1: $bash $root/bin/tiller $($tillerArgs -join ' ')"
 & $bash "$root/bin/tiller" @tillerArgs
 exit $LASTEXITCODE
