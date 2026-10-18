@@ -113,6 +113,10 @@ git clone <this repo> C:\src\tiller; cd C:\src\tiller
   bash-only. `install.sh --hooks` prints its paths the same way.
 - `ln -s` needs Developer Mode (Settings > System > For developers); `install.ps1` enables it when
   run as administrator. Without it `install.sh` links skills as junctions, which work the same.
+- In Git Bash, run the scripts from the checkout with a path: `./install.sh --helm <url>`,
+  `./bin/tiller hooks`. A bare `install.sh` is not on PATH and fails.
+- `./bin/tiller hooks` merges the `install.sh --hooks` fragment into `~/.claude/settings.json`;
+  no hand edit is needed.
 - The unattended drivers (`flow-run-ticket`, `flow-run-day`) are not supported on Windows; the
   interactive `flow-*` skills are.
 
