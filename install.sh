@@ -39,8 +39,9 @@
 # environment: the "env" object of ~/.claude/settings.json (override: CLAUDE_SETTINGS; also
 # TILLER_MACHINE, kept when already set, and on Windows CLAUDE_CODE_GIT_BASH_PATH), the
 # [shell_environment_policy.set] table of ~/.codex/config.toml for the codex target (override:
-# CODEX_CONFIG), and one marked line in the login shell's rc file (override: TILLER_SHELL_RC) so the
-# scripts work from a terminal too. Values the person set by hand are kept.
+# CODEX_CONFIG), and two marked lines in the login shell's rc file (override: TILLER_SHELL_RC), one for
+# TILLER_HOME and one putting $TILLER_HOME/bin on PATH, so the scripts and `tiller` work from a
+# terminal too. Values the person set by hand are kept.
 #
 # Idempotent: re-running never overwrites; skills already linked to this repo
 # are left untouched.
@@ -189,16 +190,23 @@ write_codex_env() {
 
 write_rc_env() {
   local f="$TILLER_SHELL_RC" line="export TILLER_HOME=\"$ROOT_DIR_NATIVE\"  # tiller"
+  # Literal $TILLER_HOME: the shell expands it at start-up, after the line above set it.
+  # shellcheck disable=SC2016
+  local path_line='export PATH="$TILLER_HOME/bin:$PATH"  # tiller'
   touch "$f"
-  if grep -qxF "$line" "$f"; then
+  if grep -qxF "$line" "$f" && grep -qxF "$path_line" "$f"; then
     echo "ok:      env in $f"
-  elif grep -q '# tiller$' "$f"; then
+    return
+  fi
+  if grep -qxF "$line" "$f"; then
+    :
+  elif grep -q '^export TILLER_HOME=.*# tiller$' "$f"; then
     sed "s|^export TILLER_HOME=.*# tiller$|$line|" "$f" | replace_file "$f"
-    echo "written: env in $f"
   else
     printf '%s\n' "$line" >> "$f"
-    echo "written: env in $f"
   fi
+  grep -qxF "$path_line" "$f" || printf '%s\n' "$path_line" >> "$f"
+  echo "written: env in $f"
 }
 
 write_env() {
