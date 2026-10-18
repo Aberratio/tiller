@@ -39,3 +39,12 @@
 - 2026-10-18 · standards · `wizard.test.mjs` setup tests that reach the verdict start from `finished()`: an empty personal directory and a profile onboarded for real — the personal and project steps now sit before the verdict; the sandbox sets `USER=tester` and `GIT_CONFIG_GLOBAL=/dev/null` · self
 - 2026-10-18 · standards · pin: `project ask` with no name is exit 2 — green before the implementation too, since an unknown command is also exit 2 · self
 - 2026-10-18 · standards · the "clone keeps secrets.env" test runs over a profile that is not launch-safe — over a launch-safe one `project.done` skips the step, so the test passed without reaching the code it named (mutations B9, B21 survived); step 5 sweep 30/30 after the fix · self
+- 2026-10-18 · spec · backup is offered after `personal new` and after `project new` once the profile is launch-safe; `clone` paths are never offered one — they already came from a remote · self
+- 2026-10-18 · spec · a backup that cannot happen (no `.gitignore` line, failed init, commit or create) is a `still yours:` note with the command, exit 0 — the spec's "refuses" refuses the push, not the run · self
+- 2026-10-18 · spec · "Done: the directory has an origin remote" is the sub-step's skip rule, silent; it is not a wizard step of its own · self
+- 2026-10-18 · both · the `.gitignore` check wants a line that is exactly `secrets.env`; a wider pattern (`*.env`) is refused too — the template ships the exact line, and refusing is the cheap side of being wrong · self
+- 2026-10-18 · spec · the account is `gh api user --jq .login`; without gh or signed out the note names `<account>` · self
+- 2026-10-18 · both · answers keys `backup.personal` and `backup.project`, default yes, exit 4 without a terminal like every other question · self
+- 2026-10-18 · standards · the sandbox sets a git identity; `personal.test.mjs` signs gh out and `finished()` answers `backup.project: false`, so those suites stay off the backup path that `backup.test.mjs` owns · self
+- 2026-10-18 · standards · pins: "backup declined" and "an origin already there" are green without the sub-step too — both assert an absence; mutations C5 and C1 are what make them fail · self
+- 2026-10-18 · standards · gh absent and gh signed out share one probe (`gh auth status` fails in both); the `.gitignore` refusal fixture carries `*.env` and `secrets.env.example` so only the exact line passes — step 6 sweep 18/18 · self
