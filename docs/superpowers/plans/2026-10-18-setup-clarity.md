@@ -28,6 +28,9 @@ Each item below is a place where the wizard left its user guessing. Build test-f
     (`tiller-personal-<name>`) has to be found by hand.
 12. A `.cmd` shim spawned with `shell: true` and an args array prints Node's DEP0190 warning in the
    middle of a prompt.
+13. `bin/doctor` reports git, bash and jq as missing on Windows while the tools step found them:
+    `which()` in `lib/doctor/doctor.mjs` tries only the bare name, never `.exe`/`.cmd`. Its verdict
+    is the wizard's last word, so a working machine ends in "a required check failed".
 
 ## Fixes
 
@@ -68,6 +71,10 @@ Each item below is a place where the wizard left its user guessing. Build test-f
     stays out of scope: report the command, do not run a server.
 13. **Personal clone by name.** The prompt accepts a name and looks for `tiller-personal-<name>` on
     the signed-in GitHub account, and the linked directory is `personal/<name>/`.
+
+14. **Doctor on Windows.** `which()` tries the `PATHEXT` extensions (default `.exe;.cmd;.bat;.com`)
+    on win32, with the platform injectable for tests. Do this one first: every later Windows check
+    reads its verdict.
 
 ## Checks
 
