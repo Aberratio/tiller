@@ -51,7 +51,7 @@ bin/doctor --json     # the same, machine-readable
 
 Every other `install.sh` call runs the same check first and refuses when a required tool is
 missing. On Windows, `.\install.ps1` installs Git Bash and the rest through winget, then runs
-`install.sh` inside Git Bash (see Windows below).
+`tiller setup` inside Git Bash (see Windows below).
 
 ## How it works
 
@@ -96,8 +96,21 @@ is `docs/harness.md`.
 ```bash
 git clone <this repo> ~/src/tiller && cd ~/src/tiller
 git config core.hooksPath .githooks            # leak guard on every commit
-npm test                                       # about a minute; proves node, git and bash are fine
+./bin/tiller setup                             # the guided setup, below
+```
 
+`tiller setup` runs, in order: tools, providers (Claude Code and/or Codex: installed, skills
+linked, signed in), the private-access hook, personal skills (new, or cloned from
+`tiller-personal-<owner>`), a project profile (onboarded from a repository, or cloned from
+`tiller-profiles-<name>`, and launch-safe), a private GitHub backup of what it just created, an
+optional helm, then `bin/doctor` and the first command to run. Each step checks the machine
+first and is one `ok` line when done, so it is safe to run again; a failed step prints the
+command that repeats it. `--yes` takes every default, `--answers <file.json>` answers without a
+terminal. Each step is a command of its own (`tiller help`).
+
+The same, by hand:
+
+```bash
 # 1. Shared skills and harness roles; this also writes TILLER_HOME into ~/.claude/settings.json
 #    "env" (and TILLER_MACHINE), into ~/.codex/config.toml for --target codex, and into the shell rc
 ./install.sh all                               # symlinks every flow-* skill into ~/.claude/skills
@@ -118,7 +131,8 @@ bin/doctor
 
 ```powershell
 git clone <this repo> C:\src\tiller; cd C:\src\tiller
-.\install.ps1 all                               # then the same steps as above, through install.ps1 or Git Bash
+.\install.ps1                                   # tools through winget, then tiller setup in Git Bash
+.\install.ps1 --hooks                           # with arguments: tiller install with those arguments
 ```
 
 `install.sh` writes `TILLER_HOME` and `CLAUDE_CODE_GIT_BASH_PATH` into `settings.json` in the

@@ -48,3 +48,7 @@
 - 2026-10-18 · standards · the sandbox sets a git identity; `personal.test.mjs` signs gh out and `finished()` answers `backup.project: false`, so those suites stay off the backup path that `backup.test.mjs` owns · self
 - 2026-10-18 · standards · pins: "backup declined" and "an origin already there" are green without the sub-step too — both assert an absence; mutations C5 and C1 are what make them fail · self
 - 2026-10-18 · standards · gh absent and gh signed out share one probe (`gh auth status` fails in both); the `.gitignore` refusal fixture carries `*.env` and `secrets.env.example` so only the exact line passes — step 6 sweep 18/18 · self
+- 2026-10-18 · spec · `install.ps1` always ends in the wizard, no `-Setup` switch (the spec's default); with arguments it runs `tiller install <arguments>`, so `.\install.ps1 --hooks` and `.\install.ps1 all` keep working · self
+- 2026-10-18 · spec · `install.ps1` is not parsed or run here — no PowerShell on the build machine; the owner's Windows run is its only verification · self
+- 2026-10-18 · spec · the README keeps the `install.sh` lines under "the same steps by hand", shortened — the wizard does not cover `--agents` or a codex-only relink · self
+- 2026-10-18 · spec · the harness.md paragraph sits under Script I/O as the second exception to "no prompts, one JSON line": `tiller` is for a person and no runner calls it · self

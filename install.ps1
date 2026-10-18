@@ -1,13 +1,14 @@
 #requires -Version 5.1
 <#
-Windows bootstrap for tiller: installs what Git Bash needs, then hands over to install.sh inside it.
+Windows bootstrap for tiller: installs what Git Bash needs, then hands over to bin/tiller inside it.
 
-  .\install.ps1 [-Yes] [install.sh arguments...]      e.g.  .\install.ps1 all      .\install.ps1 --hooks
+  .\install.ps1 [-Yes]                         the guided setup (`tiller setup`, -Yes becomes --yes)
+  .\install.ps1 [-Yes] [install.sh arguments]  install.sh through `tiller install`, e.g.  .\install.ps1 --hooks
 
 Installs through winget when missing: Git (with Git Bash), Node LTS, jq, GitHub CLI; Claude Code
 through its own installer. Asks before installing unless -Yes. Enables Developer Mode (native
 symlinks for `ln -s`) when run as administrator, otherwise says how; without it install.sh falls
-back to junctions. Everything after the bootstrap is install.sh, the same script as on macOS and Linux.
+back to junctions. Everything after the bootstrap is bin/tiller, the same script as on macOS and Linux.
 #>
 [CmdletBinding()]
 param(
@@ -83,10 +84,11 @@ if ($devMode -ne 1) {
   }
 }
 
-# --- 3. hand over to install.sh in Git Bash --------------------------------------------------------
+# --- 3. hand over to bin/tiller in Git Bash -------------------------------------------------------
 $bash = Find-Bash
 if (-not $bash) { Write-Error 'Git Bash not found after installation; open a new terminal and rerun.' }
 $root = $PSScriptRoot -replace '\\', '/'
-Write-Host "install.ps1: $bash $root/install.sh $($InstallArgs -join ' ')"
-& $bash "$root/install.sh" @InstallArgs
+$tillerArgs = if ($InstallArgs.Count -gt 0) { @('install') + $InstallArgs } else { @('setup') + $(if ($Yes) { @('--yes') } else { @() }) }
+Write-Host "install.ps1: $bash $root/bin/tiller $($tillerArgs -join ' ')"
+& $bash "$root/bin/tiller" @tillerArgs
 exit $LASTEXITCODE

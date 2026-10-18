@@ -44,4 +44,6 @@ here is the one the code and the skills follow.
 | **retro** | `skills/flow-retro`: reads a day's records and writes proposals; applies nothing. |
 | **dry run** | A run against a fake runtime that produces schema-valid outputs without calling a model. The test suite uses it. |
 | **doctor** | `bin/doctor`: checks prerequisites and prints one verdict per requirement. |
+| **tiller** | `bin/tiller`: the one command a person types. `tiller setup` runs the wizard; `tiller <step>` runs one of its steps; `tiller install` and `tiller doctor` forward to `install.sh` and `bin/doctor`. |
+| **wizard** | `lib/setup/wizard.mjs` behind `tiller setup`: steps that check the machine first, ask only what is missing (terminal, `--answers` file or `--yes`) and print the command that repeats a failed step. Keeps no state file. |
 | **prereqs** | `lib/setup/prereqs.sh`: the pre-Node check and installer behind `install.sh --prereqs`; `install.sh` runs its `check` before anything else. |

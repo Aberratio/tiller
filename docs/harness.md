@@ -36,6 +36,10 @@ node lib/contract/validate.mjs script-result out.json --exit 3  # one document, 
   exit code reports the process (0 for every terminal run status, parked and paused-usage included;
   1 crash; 4 refused, `locked` among them; 128 + n for a signal) and the run's outcome lives in
   `runStatus` / `dayStatus` and the result file.
+- `bin/tiller` and the wizard behind `tiller setup` (`lib/setup/wizard.mjs`) are for a person, not a
+  runner: they prompt on a terminal and print text, not a JSON line. Exit 0 done, 1 a step failed
+  (the command that repeats it is printed), 2 usage, 4 an answer is needed and there is no terminal
+  and no `--answers` entry for it. No runner or lane calls them.
 - Waits block for at most `caps.waitCiSeconds` per call, then exit `pending`.
 - Run state lives under the directory in `STATE_ROOT`; scripts take it from the environment and
   never compute it. When `STATE_ROOT` is unset, the runner resolves it to

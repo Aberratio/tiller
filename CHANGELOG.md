@@ -31,6 +31,12 @@ and the project aims at [Semantic Versioning](https://semver.org/).
   object of `~/.claude/settings.json` (with `TILLER_MACHINE` and, on Windows,
   `CLAUDE_CODE_GIT_BASH_PATH`), `~/.codex/config.toml` for the codex target and the shell rc file;
   values set by hand are kept.
+- `bin/tiller` and its guided setup, `tiller setup`: tools, providers (install, link, sign-in),
+  the private-access hook, personal skills, a launch-safe project profile, a private GitHub backup
+  of what it created, an optional helm and a doctor verdict. Every step is skipped when already done
+  and is also a command of its own (`tiller login`, `tiller hooks`, `tiller personal`,
+  `tiller project`); `--answers <file.json>` runs it without a terminal. `install.ps1` ends in
+  `tiller setup`, and the shell rc line puts `tiller/bin` on `PATH`.
 - `npm test` as the single hermetic test entry point, with stub runtimes for machines without the
   agent CLIs.
 - MIT license, contribution, security and conduct documents.

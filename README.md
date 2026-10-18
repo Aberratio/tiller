@@ -47,41 +47,54 @@ project's merge authority to another project because it guessed.
 
 ## Setup
 
-From a fresh clone to a working session, in order:
+From a fresh clone to a working session:
 
 ```bash
 git clone <this repo> ~/src/tiller && cd ~/src/tiller
 git config core.hooksPath .githooks          # leak guard on every commit
+./bin/tiller setup                            # Windows: .\install.ps1 from PowerShell, see below
+```
 
-# 0. Prerequisites: node >= 20.11, git, bash, jq; gh and claude optional. Every install.sh call
-#    checks them first and refuses when one is missing; this installs them through the platform's
-#    package manager (brew, apt, dnf, apk, pacman, winget) after showing the plan.
-./install.sh --prereqs                        # Windows: .\install.ps1 from PowerShell, see below
+`tiller setup` walks the steps below in order. Each step checks the machine first and is one `ok`
+line when it is already done, so a second run asks nothing; a step that fails prints the command
+that repeats it. `--yes` takes every default, `--answers <file.json>` answers without a terminal
+(no terminal and nothing to answer with is exit 4). Each step is also a command of its own;
+`tiller help` lists them.
 
-# 1. Shared skills and harness roles. Every skill install also records TILLER_HOME where the
-#    agents read their environment: the "env" object of ~/.claude/settings.json (with
-#    TILLER_MACHINE), ~/.codex/config.toml for --target codex, and one line in the shell's rc file.
-./install.sh all                              # symlink every flow-* skill into ~/.claude/skills
+1. **Tools:** node >= 20.11, git, bash, jq, installed through the platform's package manager
+   after showing the plan.
+2. **Providers:** Claude Code and/or Codex: installed, tiller's skills linked, signed in
+   (`tiller login`).
+3. **Hook:** the private-access hook merged into the agent settings (`tiller hooks`).
+4. **Personal skills:** generated (`tiller personal new`) or cloned from `tiller-personal-<owner>`
+   (`tiller personal clone`).
+5. **Project:** a profile onboarded from a repository (`tiller project new`) or cloned from
+   `tiller-profiles-<name>` (`tiller project clone`); it has to pass `profile-facts.sh --check`.
+   `<repo>/.tiller-profile` names the profile and is left for the repository's owner to commit.
+6. **Backup:** a personal or profile directory the wizard just created is offered a private GitHub
+   repository by those names, through `gh repo create --private --push`. A profile whose
+   `.gitignore` does not list `secrets.env` is refused.
+7. **Optional and verdict:** a helm (one private repository shared by every machine), then
+   `bin/doctor`, what is still manual, and the first command to run.
+
+The same steps by hand, for a step the wizard does not cover:
+
+```bash
+./install.sh --prereqs                        # tools
+./install.sh all                              # every flow-* skill into ~/.claude/skills
 ./install.sh --target codex all               # the same for Codex (~/.agents/skills)
-./install.sh --agents [--profile <file>]      # write flow-resolver, flow-owner-proxy, flow-pm to ~/.claude/agents
-
-# 2. One profile per project (see Profiles below)
-lib/new-profile.sh acme                       # also seeds profiles/acme/leak-terms.txt with the name
-echo acme > ~/src/acme-web/.tiller-profile    # or repo_globs in the profile's frontmatter
-
-# 3. Personal skills (asks questions in a terminal; --answers <file.json> without one)
-./install.sh --setup-personal <user>
-
-# 4. Project-only skills and agents, if the profile has any
+./install.sh --agents [--profile <file>]      # flow-resolver, flow-owner-proxy, flow-pm to ~/.claude/agents
+lib/new-profile.sh acme                       # a profile (see Profiles below)
+./install.sh --setup-personal <user>          # personal skills
 ./install.sh --profile acme all               # profiles/acme/skills/* and profiles/acme/agents/*.md
-
-# 5. Private access: merge the printed fragment into ~/.claude/settings.json, then restart
-./install.sh --hooks                          # brains and other projects' profiles, see brains/_template/
-
-# 6. Helm, optional: one private repository shared by every machine
+./install.sh --hooks                          # prints the private-access fragment to merge
 ./install.sh --helm <git-url>                 # or --helm --new <git-url> for a first machine
 # TILLER_MACHINE is the host name unless set; add TILLER_MACHINE_CAPS (e.g. calendar) by hand
 ```
+
+Every skill install records TILLER_HOME where the agents read their environment: the "env" object
+of ~/.claude/settings.json (with TILLER_MACHINE), ~/.codex/config.toml for Codex, and the shell's
+rc file, which also gets `tiller/bin` on `PATH`.
 
 `TILLER_HOME` must be set wherever the skills run; each skill's `Step −1` calls
 `$TILLER_HOME/lib/resolve-profile.sh`. Without it every skill resolves no profile and stops, which
@@ -91,12 +104,12 @@ the session after installing.
 
 ### Windows
 
-The shell entry points run in Git Bash; `install.ps1` bootstraps it:
+The shell entry points run in Git Bash; `install.ps1` bootstraps it, then hands over to `tiller`:
 
 ```powershell
 git clone <this repo> C:\src\tiller; cd C:\src\tiller
-.\install.ps1 all            # installs Git, Node LTS, jq, gh, claude through winget as needed, then runs install.sh all
-.\install.ps1 --hooks        # any install.sh form works the same way
+.\install.ps1               # installs Git, Node LTS, jq, gh, claude through winget as needed, then runs tiller setup
+.\install.ps1 --hooks       # with arguments: tiller install --hooks; any install.sh form works the same way
 ```
 
 - `install.sh` writes `TILLER_HOME` and `CLAUDE_CODE_GIT_BASH_PATH` into `settings.json` in the
