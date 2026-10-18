@@ -21,7 +21,12 @@ Each item below is a place where the wizard left its user guessing. Build test-f
 7. No step attaches an existing notes repository (a brain) to the project; that took
    `git clone … brains/<name>` and `lib/brain-access.sh --set …` by hand.
 8. The optional step's prompt does not say what it clones or how it differs from a brain.
-9. A `.cmd` shim spawned with `shell: true` and an args array prints Node's DEP0190 warning in the
+9. After setup there is no way to ask where things stand and what to do next; the owner did not
+    know how to check status.
+10. Nothing checks that a project's repositories install and start on this machine.
+11. The personal step offers the OS user name; an existing personal repository under another name
+    (`tiller-personal-<name>`) has to be found by hand.
+12. A `.cmd` shim spawned with `shell: true` and an args array prints Node's DEP0190 warning in the
    middle of a prompt.
 
 ## Fixes
@@ -52,6 +57,17 @@ Each item below is a place where the wizard left its user guessing. Build test-f
    argument array; keep the `launch` tests, add one for the string form.
 10. **Closing summary.** After the verdict: what was created, where (profile, repositories,
     brain), and the one command to start working.
+
+11. **`tiller status`.** One screen, no network beyond `gh auth status`: each wizard step done or
+    not, each profile with its repositories (cloned / missing / dependencies installed), open
+    `TODO`s in its profile, attached brains, whether the cross-project notes repository is present,
+    and the single next command. The wizard's closing summary prints the same thing.
+12. **Repository readiness.** Per repository of a profile: lockfile present → dependencies
+    installed? The profile's `## worktree setup` commands as the install step, offered once; a
+    missing toolchain (node version, package manager) named with its install line. Starting the app
+    stays out of scope: report the command, do not run a server.
+13. **Personal clone by name.** The prompt accepts a name and looks for `tiller-personal-<name>` on
+    the signed-in GitHub account, and the linked directory is `personal/<name>/`.
 
 ## Checks
 
