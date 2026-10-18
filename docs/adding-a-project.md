@@ -14,6 +14,32 @@ first, with the client or alone, and recorded in a brain. Onboarding follows onc
 An open question inside a project that already has a profile goes through `flow-brainstorm`
 (`docs/brainstorming.md`): one session, one recorded decision, then a ticket.
 
+## Kind and layout
+
+`tiller project new <name> <dir>` (or `project.kind` and `project.folder` in an answers file;
+without a terminal and without the key it exits 4) settles two things before onboarding:
+
+| Kind | Profile | What is set without asking |
+|---|---|---|
+| `code` (default) | yes | nothing; the scripted path below |
+| `document` | yes, `- Kind: \`document\`` in `## identity` | tracker `none`; `## gates`, `## test toolchain`, `## static checks` `none`. Merge authority is asked (`project.merge`, default `human`) |
+| `notes` | none | a brain at `brains/<name>/` from `brains/_template/`, granted on the `_none` row with `lib/brain-access.sh` (`project.access`, default `read`); flow-* skills stop in the folder |
+
+Only `Kind: document` may write `## gates` as `none`; `profile-facts.sh --check` refuses it for
+any other kind.
+
+Layout: one folder per project, its repositories inside:
+
+```
+<root>/<project>/<repo-a>
+<root>/<project>/<repo-b>      # added later, still resolves
+```
+
+A folder (`project.folder` true) is onboarded with every direct child that is a git repository and
+one glob, `*/<root>/<project>`, which the resolver matches together with everything below it. No
+`.tiller-profile` is written for a folder. A folder with no repository yet stops with the command
+to rerun.
+
 ## Scripted path
 
 ```bash

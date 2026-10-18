@@ -130,6 +130,19 @@ lib/leak-guard.sh
 Resolution order: `TILLER_PROFILE` env var → a `.tiller-profile` file at the repo root (one line,
 the profile name) → `repo_globs` in a profile's frontmatter → fail.
 
+`tiller project new <name> <dir>` asks what the project is first:
+
+- `code` (default): an application; tests, static checks and gates as detected.
+- `document`: prose in git (a manuscript, contracts). `Kind: document` in `## identity`, no tracker,
+  and `## gates`, `## test toolchain` and `## static checks` set to `none`; merge authority is
+  still asked, default `human`.
+- `notes`: no git procedure. No profile is written; a brain from `brains/_template/` is offered and
+  granted through `lib/brain-access.sh`, and flow-* skills stop in that folder by design.
+
+One folder per project with its repositories inside (`<root>/<project>/<repo>`) takes one
+`repo_globs` entry for the folder, which also covers repositories added later. Given a directory
+that is not a repository, `project new` asks whether it is such a folder.
+
 An unattended run needs the facts as values, not as a file: the driver reads no profile, so every
 fact it branches on is rendered once, before anything spawns. `lib/profile-facts.sh` renders them
 and refuses when a required section is unfilled or still reads `TODO`:
