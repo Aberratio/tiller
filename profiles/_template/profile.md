@@ -14,6 +14,7 @@ No secret values here: tokens and access codes go in `secrets.env` next to this 
 ## identity
 
 - Project:
+- Kind: `code` | `document` (prose in git; the only kind that may write `## gates` as `none`)
 - Jira project key:
 - Board:
 

@@ -117,6 +117,12 @@ require 'schema version' "$sv_ok"
 # ---- identity -------------------------------------------------------------------------------
 name="$(awk -F': *' '/^profile:/{print $2; exit}' "$profile")"
 jira="$(ticked identity 'Jira project key' | grep -vix none | to_json_list)"
+# A project that is not an application (prose in git) may run with no gate; absent reads code.
+project_kind="$(token_field identity 'Kind' | awk '{print tolower($1)}' | tr -d '.,')"
+case "${project_kind:=code}" in
+  code|document) ;;
+  *) require 'identity — kind' "!unknown kind '$project_kind'; code or document" ;;
+esac
 
 # ---- tracker --------------------------------------------------------------------------------
 tracker_kind="$(token_field tracker 'Kind' | awk '{print tolower($1)}' | tr -d '.,')"
@@ -238,7 +244,8 @@ gates="$(rows gates | jq -R -s '
            source: ($src | capture("^(?<type>check|command|bot):\\s*(?<ref>.+)$") // null),
            pass: (.[2] // ""), raw: ($src + " " + (.[2] // ""))})')"
 if ! has_section gates; then gates_err=""
-elif is_none gates; then gates_err="!none declared; a project declares at least one gate"
+elif is_none gates && [ "$project_kind" = document ]; then gates_err="x"
+elif is_none gates; then gates_err="!none declared; a project declares at least one gate (or Kind: document in ## identity)"
 else gates_err="$(jq -r '
   if length == 0 then "!no rows"
   elif any(.[]; (.name + .raw) | test("TODO")) then "TODO"
@@ -561,7 +568,7 @@ fi
 
 jq -n \
   --argjson schemaVersion "$schema_version" \
-  --arg profile "$name" --arg profilePath "$profile" \
+  --arg profile "$name" --arg profilePath "$profile" --arg kind "$project_kind" \
   --argjson jiraKeys "$jira" --argjson tracker "$tracker" --argjson tools "$tools" --argjson repos "$repos" \
   --arg branchConvention "$branch_convention" --arg worktree "$worktree" \
   --arg integrateMain "$integrate" --arg ledgerPath "$ledger" \
@@ -572,7 +579,7 @@ jq -n \
   --argjson staticChecks "$static_checks" --argjson worktreeSetup "$worktree_setup" \
   --argjson verificationRegister "$verification_register" \
   --arg worktreeCreate "$worktree_create" --argjson commits "$commits" \
-  '{schemaVersion: $schemaVersion, profile: $profile, profilePath: $profilePath,
+  '{schemaVersion: $schemaVersion, profile: $profile, profilePath: $profilePath, kind: $kind,
     jiraKeys: $jiraKeys, tracker: $tracker, tools: $tools, repos: $repos,
     branchConvention: $branchConvention, worktree: $worktree, integrateMain: $integrateMain,
     ledgerPath: $ledgerPath, mergeAuthority: $mergeAuthority, gates: $gates,

@@ -37,7 +37,7 @@ may be followed on the same line by a dash and the reason.
 
 | Section | What it carries | Consumed by |
 |---|---|---|
-| `## identity` | project name, Jira project key(s), board name | start-ticket, pm, manual-qa |
+| `## identity` | project name, Jira project key(s), board name, optional `Kind` (`code` \| `document`; absent reads `code`) | start-ticket, pm, manual-qa, gate evaluator |
 | `## tracker` | `Kind` (`jira` \| `none`), `Site`, `Start status`, `Merged status`, optional `QA statuses` | start-ticket, pm, run-ticket, manual-qa |
 | `## tools` | optional table `Role \| Kind \| Server` over the roles in `config/tool-kinds.json` (tracker, chat, docs, calendar, email). A role left out, or `default` in a cell, keeps the default kind and server; a Server outside `config/mcp-servers.json` is refused; Kind `none` grants that role nothing. The tracker's kind comes from `## tracker`, so a tracker row only picks the server. Skills and roles name `role:<role>.<op>`, never a vendor tool | run-ticket, run-day, install-agents |
 | `## ticket conventions` | optional; the project's written ticket-writing rules copied from their canon: `Source:`, browse URL, components, project routing, priority scheme, issue types, personas, labels, the internal vocabulary a ticket must not carry. Read as prose, not rendered; `none`, or the section left out, means the tracker's own required fields are the only convention | write-ticket |
@@ -65,6 +65,13 @@ may be followed on the same line by a dash and the reason.
 | `## verification register` | optional; `- Path:` with one backticked path — the cross-ticket register of criteria nobody has verified. One file, never per ticket. `none`, or the section left out, for a project that keeps none | manual-qa |
 | `## charting` | where this project's maps live and how to scope them; `none` if the project does not chart | chart-effort |
 | `## commits` | optional; the commit message format, how a ticket key is found in the branch name, and the format for a commit with no ticket. `none`, or the section left out, means plain Conventional Commits. Also carries the optional `Text language` for commit, PR and ticket text (default `en`) | create-commit, create-pull-request |
+
+### Identity kind
+
+`- Kind:` in `## identity` is `code` (the default when the line is absent) or `document`: prose kept
+in git, such as a manuscript or a set of contracts. A `document` profile is the only one that may
+write `## gates` as `none`; a PR then carries no gate condition and waits on merge authority alone.
+Any other value is refused.
 
 ### Tracker
 
@@ -198,6 +205,7 @@ as `profilePath`, and the agent that needs one opens it.
 |---|---|---|
 | `schemaVersion` | frontmatter | integer |
 | `profile` | frontmatter `profile:` | string |
+| `kind` | `## identity` `Kind` | `"code"` or `"document"`; `"code"` when absent |
 | `profilePath` | — | absolute path to the profile file |
 | `jiraKeys` | `## identity` | list of strings |
 | `tracker` | `## tracker` | `{kind: "jira", site, keys, startStatus, mergedStatus}` or `{kind: "none", spec: true}` |
@@ -208,7 +216,7 @@ as `profilePath`, and the agent that needs one opens it.
 | `integrateMain` | `## branching` | `rebase` \| `merge` |
 | `ledgerPath` | `## decision ledger` | path template |
 | `mergeAuthority` | `## merge authority` | list of `{paths, globs, who, whoRaw, precondition}` |
-| `gates` | `## gates` | list of `{name, source: {type, ref}, pass}` |
+| `gates` | `## gates` | list of `{name, source: {type, ref}, pass}`; `[]` for `none`, which only `Kind: document` may declare |
 | `runPolicy` | `## run policy` | `{dayCeiling, maxParallel, fixRounds, ciFix, ceilingExclusions, stopHour, lockedArtefacts, forcePushAfterRebase}` |
 | `inviolables` | `## inviolables` | list of strings |
 | `ownerProxy` | `## owner proxy` | `{role, mandate, hardStopChannels, hardStopPaths}` or `null` |
