@@ -41,12 +41,17 @@ marked unverified; the launcher refuses to put a gate lane on them.
 | caffeinate (macOS) or systemd-inhibit (Linux) | keeping a laptop awake for a day run | the run proceeds with a warning; set your power settings by hand |
 | codex (optional) | the Codex adapter | adapter reports unavailable; nothing else changes |
 
-Check everything at once:
+Check everything at once, or install what is missing:
 
 ```bash
 bin/doctor            # one line per requirement, exit 1 when a required tool is missing
 bin/doctor --json     # the same, machine-readable
+./install.sh --prereqs   # installs the missing ones through brew, apt, dnf, apk, pacman or winget; asks first
 ```
+
+Every other `install.sh` call runs the same check first and refuses when a required tool is
+missing. On Windows, `.\install.ps1` installs Git Bash and the rest through winget, then runs
+`install.sh` inside Git Bash (see Windows below).
 
 ## How it works
 
@@ -109,6 +114,18 @@ lib/profile-facts.sh --check ~/src/acme-web    # exit 4 = a launch would be refu
 ./install.sh --hooks                           # prints a settings fragment to merge, then restart
 bin/doctor
 ```
+
+### Windows
+
+```powershell
+git clone <this repo> C:\src\tiller; cd C:\src\tiller
+.\install.ps1 all                               # then the same steps as above, through install.ps1 or Git Bash
+```
+
+Paths in `settings.json` take the `C:/src/tiller` form; set `CLAUDE_CODE_GIT_BASH_PATH` to
+`C:/Program Files/Git/bin/bash.exe` next to `TILLER_HOME`. Native symlinks need Developer Mode,
+otherwise skills are linked as junctions. The unattended drivers are not supported on Windows; the
+interactive skills are.
 
 Restart Claude Code after step 2 and after `--hooks`. `TILLER_HOME` must be set in the environment
 of every session that runs a skill; without it each skill resolves no profile and stops, which is

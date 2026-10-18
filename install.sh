@@ -14,6 +14,13 @@
 #   ./install.sh --hooks                                      # print the settings.json fragment for the private-access hook
 #   ./install.sh --helm <git-url>                             # clone the private helm into helm/
 #   ./install.sh --helm --new <git-url>                       # create a helm from lib/helm/template and push it
+#   ./install.sh --prereqs [--yes]                            # install the missing prerequisites for this OS
+#
+# Every other form first checks the prerequisites (node, git, bash, jq; gh and claude optional) with
+# lib/setup/prereqs.sh and refuses when a required one is missing, naming the --prereqs command that
+# installs it through the platform's package manager (brew, apt, dnf, apk, pacman, winget).
+# TILLER_SKIP_PREREQS=1 skips that check. On Windows this script runs in Git Bash; install.ps1
+# bootstraps Git Bash itself and then calls it.
 #
 # --setup-personal asks for the person's details and renders every template in personal/_templates/
 # into personal/<owner>/ (git-ignored), then links the result. Re-running reuses the stored answers
@@ -34,7 +41,14 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The same path as Windows programs see it (C:/...), which is also what Node and settings.json
+# need there; everywhere else it is ROOT_DIR. `pwd -W` exists only in Git Bash.
+ROOT_DIR_NATIVE="$(cd "$ROOT_DIR" && (pwd -W 2>/dev/null || pwd))"
 REPO_DIR="$ROOT_DIR/skills"
+PREREQS="$ROOT_DIR/lib/setup/prereqs.sh"
+OS="$(bash "$PREREQS" os)"
+# Git Bash copies on `ln -s` unless native links are requested; Windows allows them in Developer Mode.
+[ "$OS" = windows ] && export MSYS=winsymlinks:nativestrict
 CLAUDE_SKILLS_DIR="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-$HOME/.agents/skills}"
 
@@ -61,13 +75,32 @@ link_skill() {
   local src="${3:-$REPO_DIR}/$skill"
   local dest="$skills_dir/$skill"
 
-  if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
+  if same_target "$dest" "$src"; then
     echo "ok:      $skill (already installed in $skills_dir)"
   elif [ -e "$dest" ] || [ -L "$dest" ]; then
     echo "skipped: $skill ($dest already exists and is not a link to this repo)" >&2
   else
-    ln -s "$src" "$dest"
+    link "$src" "$dest"
     echo "linked:  $skill -> $dest"
+  fi
+}
+
+# same_target <dest> <src>: <dest> already points at <src>. Compared through realpath because a
+# link made on Windows reads back in a different spelling of the same path.
+same_target() {
+  [ -L "$1" ] || [ -d "$1" ] || return 1
+  [ "$(readlink "$1" 2>/dev/null)" = "$2" ] && return 0
+  [ -L "$1" ] || [ "$OS" = windows ] || return 1
+  [ "$(realpath "$1" 2>/dev/null)" = "$(realpath "$2" 2>/dev/null)" ]
+}
+
+# link <src> <dest>: a symlink; on Windows, when native links are not allowed, a junction for a
+# directory and a hard link for a file, both of which need no privilege.
+link() {
+  ln -s "$1" "$2" 2>/dev/null && return 0
+  [ "$OS" = windows ] || { ln -s "$1" "$2"; return; }
+  if [ -d "$1" ]; then cmd //c mklink /J "$(cygpath -w "$2")" "$(cygpath -w "$1")" >/dev/null
+  else cmd //c mklink /H "$(cygpath -w "$2")" "$(cygpath -w "$1")" >/dev/null
   fi
 }
 
@@ -76,6 +109,22 @@ personal=""
 setup_personal=""
 profile=""
 answers=""
+
+if [ "${1:-}" = "--prereqs" ]; then
+  exec bash "$PREREQS" install "${@:2}"
+fi
+
+# Preflight: refuse before anything is linked when a required tool is missing. Quiet when all is well.
+if [ "${TILLER_SKIP_PREREQS:-0}" != 1 ]; then
+  report="$(bash "$PREREQS" check)" || {
+    echo "$report" >&2
+    echo >&2
+    bash "$PREREQS" plan >&2 || true
+    echo "install.sh: a required tool is missing; run  ./install.sh --prereqs  to install the lines above, then rerun." >&2
+    exit 2
+  }
+  echo "$report" | grep '^warn' >&2 || true
+fi
 
 # Parse a leading --target/-t flag; the rest are the skill selector.
 if [ "${1:-}" = "--agents" ]; then
@@ -90,8 +139,8 @@ fi
 if [ "${1:-}" = "--hooks" ]; then
   # Printed, never written: ~/.claude/settings.json is merged by hand, then the session restarted.
   jq -n \
-    --arg cmd "TILLER_HOME=$(printf '%q' "$ROOT_DIR") $(printf '%q' "$ROOT_DIR/lib/hooks/private-access.sh")" \
-    --arg session "TILLER_HOME=$(printf '%q' "$ROOT_DIR") $(printf '%q' "$ROOT_DIR/lib/hooks/helm-session.sh")" \
+    --arg cmd "TILLER_HOME=$(printf '%q' "$ROOT_DIR_NATIVE") $(printf '%q' "$ROOT_DIR_NATIVE/lib/hooks/private-access.sh")" \
+    --arg session "TILLER_HOME=$(printf '%q' "$ROOT_DIR_NATIVE") $(printf '%q' "$ROOT_DIR_NATIVE/lib/hooks/helm-session.sh")" \
     '{hooks: {
       PreToolUse: [{matcher: "Read|Grep|Glob|Edit|Write|NotebookEdit|Bash", hooks: [{type: "command", command: $cmd}]}],
       SessionStart: [{hooks: [{type: "command", command: $session}]}]

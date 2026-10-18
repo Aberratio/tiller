@@ -245,6 +245,11 @@ that call it), `TILLER_HOME` pointing at a checkout; optional and only warned: g
 profile resolved for the directory, and the role files under `~/.claude/agents`. Exit 0 when every
 required check passes, 1 otherwise.
 
+**Prereqs.** `lib/setup/prereqs.sh os|check|plan|install` is the same check before Node exists,
+in bash alone: `install.sh` runs `check` first and refuses when a required tool is missing;
+`install.sh --prereqs` prints the platform's install plan (brew, apt, dnf, apk, pacman, winget) and
+runs it after confirmation. `TILLER_SKIP_PREREQS=1` bypasses the check.
+
 Tests: `bash skills/flow-run-ticket/tests/run-tests.sh` (contract check plus both dry-run suites).
 Node 20.11 or newer is required. Give `node --test` file globs (`'lib/<dir>/tests/*.test.mjs'`), never a
 directory: Node 24 loads a directory argument as a module and fails.

@@ -53,6 +53,11 @@ From a fresh clone to a working session, in order:
 git clone <this repo> ~/src/tiller && cd ~/src/tiller
 git config core.hooksPath .githooks          # leak guard on every commit
 
+# 0. Prerequisites: node >= 20.11, git, bash, jq; gh and claude optional. Every install.sh call
+#    checks them first and refuses when one is missing; this installs them through the platform's
+#    package manager (brew, apt, dnf, apk, pacman, winget) after showing the plan.
+./install.sh --prereqs                        # Windows: .\install.ps1 from PowerShell, see below
+
 # 1. TILLER_HOME, persistently: add to the "env" object in ~/.claude/settings.json
 #    "TILLER_HOME": "/absolute/path/to/tiller"
 
@@ -81,6 +86,25 @@ echo acme > ~/src/acme-web/.tiller-profile    # or repo_globs in the profile's f
 `TILLER_HOME` must be set wherever the skills run; each skill's `Step −1` calls
 `$TILLER_HOME/lib/resolve-profile.sh`. Without it every skill resolves no profile and stops, which
 is the correct failure but an opaque one. Restart the session after installing.
+
+### Windows
+
+The shell entry points run in Git Bash; `install.ps1` bootstraps it:
+
+```powershell
+git clone <this repo> C:\src\tiller; cd C:\src\tiller
+.\install.ps1 all            # installs Git, Node LTS, jq, gh, claude through winget as needed, then runs install.sh all
+.\install.ps1 --hooks        # any install.sh form works the same way
+```
+
+- Paths in `settings.json` use the `C:/src/tiller` form (forward slashes), which bash and Node both
+  read; `/c/src/tiller` is bash-only. `install.sh --hooks` prints them in that form.
+- Set `CLAUDE_CODE_GIT_BASH_PATH` to `C:/Program Files/Git/bin/bash.exe` in the same `env` object so
+  Claude Code runs the hooks through Git Bash.
+- `ln -s` needs Developer Mode (Settings > System > For developers); `install.ps1` enables it when
+  run as administrator. Without it `install.sh` links skills as junctions, which work the same.
+- The unattended drivers (`flow-run-ticket`, `flow-run-day`) are not supported on Windows; the
+  interactive `flow-*` skills are.
 
 ## Profiles
 

@@ -44,3 +44,4 @@ here is the one the code and the skills follow.
 | **retro** | `skills/flow-retro`: reads a day's records and writes proposals; applies nothing. |
 | **dry run** | A run against a fake runtime that produces schema-valid outputs without calling a model. The test suite uses it. |
 | **doctor** | `bin/doctor`: checks prerequisites and prints one verdict per requirement. |
+| **prereqs** | `lib/setup/prereqs.sh`: the pre-Node check and installer behind `install.sh --prereqs`; `install.sh` runs its `check` before anything else. |

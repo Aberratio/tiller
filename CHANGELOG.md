@@ -23,6 +23,10 @@ and the project aims at [Semantic Versioning](https://semver.org/).
 - Private brains with an access matrix and a private-access hook, and an optional private overview
   repository shared across machines.
 - Project onboarding that detects facts from repos and reports profile drift.
+- Prerequisite preflight in `install.sh`: every call checks node, git, bash and jq first and
+  refuses with the install plan when one is missing; `install.sh --prereqs` installs them through
+  brew, apt, dnf, apk, pacman or winget (`lib/setup/prereqs.sh`); `install.ps1` bootstraps Git
+  Bash on Windows, where skills link as junctions when native symlinks are not allowed.
 - `npm test` as the single hermetic test entry point, with stub runtimes for machines without the
   agent CLIs.
 - MIT license, contribution, security and conduct documents.
