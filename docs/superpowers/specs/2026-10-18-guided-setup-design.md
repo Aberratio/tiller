@@ -156,3 +156,30 @@ Done: the directory has an `origin` remote.
 - Whether `install.ps1` grows a `-Setup` switch or always ends in the wizard (default: always).
 - The order of the two provider operations (install, then link, then login) if a CLI needs login
   before anything else.
+
+## Follow-up: projects without code
+
+Not part of the current build; taken up after step 7, as its own plan.
+
+A project is not always an application. A book, a set of client contracts, a personal brand or a
+training plan can be one, and the flow-* procedure (ticket, branch, PR, merge) fits some of them
+and is too heavy for others.
+
+- **Layout.** One folder per project, its repositories inside (`<root>/<project>/<repo>`). One
+  `repo_globs` entry for the project folder covers every repository in it, including ones added
+  later; the resolver already matches a glob and everything below it. `tiller project new` asks
+  whether the given directory is one repository or a project folder holding several, and writes
+  the glob for the folder in the second case.
+- **Kind question.** `project new` first asks what the project is, default `code`:
+  - `code` — today's path, unchanged.
+  - `document` — prose in git (a manuscript, contracts). Tracker `Kind: none`, `## gates`,
+    `## test toolchain` and `## static checks` set to `none` without asking; merge authority is
+    still asked, default `human`. The profile must still end launch-safe.
+  - `notes` — no git procedure wanted (a training plan, a personal brand). No profile is written;
+    the step offers a brain from `brains/_template/` and a grant through `lib/brain-access.sh`
+    instead, and says that flow-* skills stop in that folder by design.
+- **Answers file.** `project.kind` (`code` | `document` | `notes`) and `project.folder`
+  (`true` for a project folder); without a terminal and without the key, exit 4 as elsewhere.
+
+Left to verify before building: that `profile-facts.sh --check` accepts a profile whose gates and
+test toolchain are all `none`, or what the schema needs instead.
