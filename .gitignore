@@ -21,3 +21,6 @@
 *.bundle
 .claude/
 node_modules/
+
+# This checkout's own profile marker is machine-local.
+/.tiller-profile
