@@ -187,6 +187,7 @@ A hit means the fact belongs in a profile, not that the term list is wrong.
 | `flow-start-ticket` | open work on a ticket: branch, status, plan |
 | `flow-plan-ticket` | turn a specified ticket into a plan |
 | `flow-brainstorm` | explore what to build before a ticket exists; one recorded decision |
+| `flow-chart-effort` | slash-only; chart an effort too big for one session as decision tickets in the `## charting` maps repo |
 | `flow-tdd` | build test-first |
 | `flow-code-review` | two-axis review, no verdict |
 | `flow-confidence-check` | final verdict on a finished branch |
@@ -401,15 +402,3 @@ flowchart TD
 
 Harness blocks and ready-to-sign parks never count toward the ceiling. The report back lists
 ready-to-sign PRs, open decisions and sweep regressions, with every gate re-read from the forge.
-
-## Wayfinding
-
-`/wayfinder` charts a foggy effort as a map of decision tickets on "this repo's issue tracker". Here
-the maps live in one private repo kept apart from every delivery board: a decision ticket is not a
-deliverable, and on a sprint board it distorts the board and leaks internal vocabulary into tickets
-that must carry none.
-
-The skill is **not forked**. `wayfinding/issue-tracker-section.md` is appended to a project's
-`docs/agents/issue-tracker.md`, which is the file the skill already reads, and the profile's
-`## wayfinding` section names the maps repo and the project label. `wayfinding/setup-wayfinding.sh`
-provisions the repo and labels once per machine. Details in `wayfinding/README.md`.

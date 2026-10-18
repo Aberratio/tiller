@@ -102,6 +102,6 @@ none
 
 none
 
-## wayfinding
+## charting
 
 none

@@ -186,13 +186,10 @@ Optional. `none`, or leave the section out, for a project that keeps no cross-ti
 
 - Path: `<one file for every ticket, never per ticket or per session>`
 
-## wayfinding
+## charting
 
 Maps repo: `<owner>/<maps-repo>` — or `none` if this project does not chart.
 Project label: `project:<profile-name>` (every map and child issue carries it).
-Tracker section: the project repo's own `docs/agents/issue-tracker.md` (not part of this repository) must carry the
-`## Wayfinding operations` block from `wayfinding/issue-tracker-section.md`. Absent -> `/wayfinder`
-improvises all six operations; say so instead of letting it.
 
 ## commits
 

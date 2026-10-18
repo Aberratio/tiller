@@ -269,7 +269,7 @@ A question touching one of these parks.
 
 none — harness defaults.
 
-## wayfinding
+## charting
 
 Maps repo: `example-org/maps` (private). Project label: `project:acme`.
 

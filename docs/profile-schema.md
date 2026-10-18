@@ -63,7 +63,7 @@ may be followed on the same line by a dash and the reason.
 | `## release` | what happens after merge to main, and how far | pm, manual-qa |
 | `## known issues` | path to the file that stops a known bug being refiled | manual-qa |
 | `## verification register` | optional; `- Path:` with one backticked path — the cross-ticket register of criteria nobody has verified. One file, never per ticket. `none`, or the section left out, for a project that keeps none | manual-qa |
-| `## wayfinding` | where this project's maps live and how to scope them; `none` if the project does not chart | wayfinder |
+| `## charting` | where this project's maps live and how to scope them; `none` if the project does not chart | chart-effort |
 | `## commits` | optional; the commit message format, how a ticket key is found in the branch name, and the format for a commit with no ticket. `none`, or the section left out, means plain Conventional Commits. Also carries the optional `Text language` for commit, PR and ticket text (default `en`) | create-commit, create-pull-request |
 
 ### Tracker
@@ -277,8 +277,8 @@ A project may keep `profiles/<name>/cases.json` — `{"cases": [{"path", "who"}]
 - **No secrets.** A profile names where a credential lives, never its value. Values go in
   `profiles/<name>/secrets.env` (mode 600, git-ignored); a profile is the file most likely to be
   pasted into a ticket or shared with another team.
-- **Wayfinding is separate from delivery.** `## wayfinding` names the maps repo and the project
+- **Charting is separate from delivery.** `## charting` names the maps repo and the project
   label, never the project's own board. A decision ticket on a delivery board distorts the board and
-  carries internal vocabulary into tickets that must not have it. See `wayfinding/README.md`.
+  carries internal vocabulary into tickets that must not have it. See `skills/flow-chart-effort/README.md`.
 - **Every claim is dated.** A profile is a record of the world; the world moves. `(measured YYYY-MM-DD)`
   on anything that could rot — host names, deployed versions, who owns what.

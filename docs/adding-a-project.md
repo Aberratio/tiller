@@ -68,9 +68,8 @@ whether it can finish.
 10. **`## release`**, **`## known issues`**, **`## decision ledger`**, and the optional **`## verification register`** — what it needs to close work.
 11. **`## commits`** — optional; the commit message format, if it is not plain Conventional
     Commits.
-12. **`## wayfinding`** — only if the project will be charted with `/wayfinder`; otherwise `none`.
-    It is last because it is the only section that also requires a commit in the project's own
-    repo: see `wayfinding/README.md`.
+12. **`## charting`** — only if the project will be charted with `/flow-chart-effort`; otherwise
+    `none`. Setup: `skills/flow-chart-effort/README.md`.
 
 The profile is ready when `--check` ends in `Launch-safe.` Section shapes: `docs/profile-schema.md`.
 
