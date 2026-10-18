@@ -35,6 +35,13 @@
 #   codex    ~/.agents/skills   (override: CODEX_SKILLS_DIR)
 #   all      every supported tool above
 #
+# Every skill install also records TILLER_HOME (this checkout) where the agents read their
+# environment: the "env" object of ~/.claude/settings.json (override: CLAUDE_SETTINGS; also
+# TILLER_MACHINE, kept when already set, and on Windows CLAUDE_CODE_GIT_BASH_PATH), the
+# [shell_environment_policy.set] table of ~/.codex/config.toml for the codex target (override:
+# CODEX_CONFIG), and one marked line in the login shell's rc file (override: TILLER_SHELL_RC) so the
+# scripts work from a terminal too. Values the person set by hand are kept.
+#
 # Idempotent: re-running never overwrites; skills already linked to this repo
 # are left untouched.
 
@@ -51,6 +58,10 @@ OS="$(bash "$PREREQS" os)"
 [ "$OS" = windows ] && export MSYS=winsymlinks:nativestrict
 CLAUDE_SKILLS_DIR="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-$HOME/.agents/skills}"
+CLAUDE_SETTINGS="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
+CODEX_CONFIG="${CODEX_CONFIG:-$HOME/.codex/config.toml}"
+case "$(basename "${SHELL:-bash}")" in zsh) default_rc="$HOME/.zshrc" ;; *) default_rc="$HOME/.bashrc" ;; esac
+TILLER_SHELL_RC="${TILLER_SHELL_RC:-$default_rc}"
 
 usage() {
   echo "Usage: $0 [--target claude|codex|all] [--personal <owner>] all | <skill-name>…"
@@ -127,6 +138,77 @@ if [ "${TILLER_SKIP_PREREQS:-0}" != 1 ]; then
   }
   echo "$report" | grep '^warn' >&2 || true
 fi
+
+# --- the env step: TILLER_HOME wherever an agent or a terminal reads its environment ----------------
+
+# Replaces the whole file through a sibling temp copy so a failure never leaves it half-written.
+replace_file() { local tmp="$1.tiller.$$"; cat > "$tmp" && mv -f "$tmp" "$1"; }
+
+# The Git Bash that Claude Code should run hooks with: <msys root>/bin/bash.exe, in C:/ form.
+git_bash_path() {
+  [ "$OS" = windows ] || return 0
+  local p; p="$(cygpath -m / 2>/dev/null)/bin/bash.exe"
+  [ -f "$p" ] && echo "$p"
+  return 0
+}
+
+write_claude_env() {
+  local f="$CLAUDE_SETTINGS" machine="$1" new
+  mkdir -p "$(dirname "$f")"
+  [ -s "$f" ] || echo '{}' > "$f"
+  new="$(jq --arg home "$ROOT_DIR_NATIVE" --arg machine "$machine" --arg bash "$(git_bash_path)" '
+    .env = ((.env // {}) + { TILLER_HOME: $home })
+    | .env.TILLER_MACHINE //= $machine
+    | if $bash != "" then .env.CLAUDE_CODE_GIT_BASH_PATH //= $bash else . end' "$f" 2>/dev/null)" \
+    || { echo "error: $f is not valid JSON; add \"TILLER_HOME\": \"$ROOT_DIR_NATIVE\" to its \"env\" object by hand" >&2; return 1; }
+  if [ "$(jq -c . "$f")" = "$(printf '%s' "$new" | jq -c .)" ]; then
+    echo "ok:      env in $f (TILLER_HOME=$ROOT_DIR_NATIVE)"
+  else
+    printf '%s\n' "$new" | replace_file "$f"
+    echo "written: env in $f (TILLER_HOME=$ROOT_DIR_NATIVE)"
+  fi
+}
+
+write_codex_env() {
+  local f="$CODEX_CONFIG" line="TILLER_HOME = \"$ROOT_DIR_NATIVE\""
+  mkdir -p "$(dirname "$f")"
+  touch "$f"
+  if grep -qxF "$line" "$f"; then
+    echo "ok:      env in $f (TILLER_HOME=$ROOT_DIR_NATIVE)"
+  elif grep -q '^TILLER_HOME *=' "$f"; then
+    sed "s|^TILLER_HOME *=.*|$line|" "$f" | replace_file "$f"
+    echo "written: env in $f (TILLER_HOME=$ROOT_DIR_NATIVE)"
+  elif grep -q 'shell_environment_policy' "$f"; then
+    # A policy table someone wrote by hand is theirs; a second table header would break the TOML.
+    echo "manual: add  $line  under [shell_environment_policy.set] in $f" >&2
+  else
+    printf '\n[shell_environment_policy.set]\n%s\n' "$line" >> "$f"
+    echo "written: env in $f (TILLER_HOME=$ROOT_DIR_NATIVE)"
+  fi
+}
+
+write_rc_env() {
+  local f="$TILLER_SHELL_RC" line="export TILLER_HOME=\"$ROOT_DIR_NATIVE\"  # tiller"
+  touch "$f"
+  if grep -qxF "$line" "$f"; then
+    echo "ok:      env in $f"
+  elif grep -q '# tiller$' "$f"; then
+    sed "s|^export TILLER_HOME=.*# tiller$|$line|" "$f" | replace_file "$f"
+    echo "written: env in $f"
+  else
+    printf '%s\n' "$line" >> "$f"
+    echo "written: env in $f"
+  fi
+}
+
+write_env() {
+  local machine rc=0
+  machine="$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo unknown)"
+  case "$target" in claude|all) write_claude_env "$machine" || rc=1 ;; esac
+  case "$target" in codex|all) write_codex_env ;; esac
+  write_rc_env
+  return "$rc"
+}
 
 # Parse a leading --target/-t flag; the rest are the skill selector.
 if [ "${1:-}" = "--agents" ]; then
@@ -261,5 +343,9 @@ if [ -n "$profile" ] && [ "$1" = "all" ] && [ -d "$PROFILE_DIR/agents" ]; then
   done
 fi
 
+env_rc=0
+write_env || env_rc=1
+
 echo
 echo "Restart the affected tool (or start a new session) to pick up new skills."
+exit "$env_rc"

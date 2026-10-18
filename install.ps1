@@ -89,9 +89,4 @@ if (-not $bash) { Write-Error 'Git Bash not found after installation; open a new
 $root = $PSScriptRoot -replace '\\', '/'
 Write-Host "install.ps1: $bash $root/install.sh $($InstallArgs -join ' ')"
 & $bash "$root/install.sh" @InstallArgs
-$rc = $LASTEXITCODE
-if ($rc -eq 0) {
-  Write-Host ''
-  Write-Host "Set in ~/.claude/settings.json ""env"": ""TILLER_HOME"": ""$root"" and ""CLAUDE_CODE_GIT_BASH_PATH"": ""$($bash -replace '\\', '/')"""
-}
-exit $rc
+exit $LASTEXITCODE

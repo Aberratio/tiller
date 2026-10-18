@@ -27,6 +27,10 @@ and the project aims at [Semantic Versioning](https://semver.org/).
   refuses with the install plan when one is missing; `install.sh --prereqs` installs them through
   brew, apt, dnf, apk, pacman or winget (`lib/setup/prereqs.sh`); `install.ps1` bootstraps Git
   Bash on Windows, where skills link as junctions when native symlinks are not allowed.
+- Every skill install writes `TILLER_HOME` where the agents read their environment: the `env`
+  object of `~/.claude/settings.json` (with `TILLER_MACHINE` and, on Windows,
+  `CLAUDE_CODE_GIT_BASH_PATH`), `~/.codex/config.toml` for the codex target and the shell rc file;
+  values set by hand are kept.
 - `npm test` as the single hermetic test entry point, with stub runtimes for machines without the
   agent CLIs.
 - MIT license, contribution, security and conduct documents.

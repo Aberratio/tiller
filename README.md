@@ -58,34 +58,36 @@ git config core.hooksPath .githooks          # leak guard on every commit
 #    package manager (brew, apt, dnf, apk, pacman, winget) after showing the plan.
 ./install.sh --prereqs                        # Windows: .\install.ps1 from PowerShell, see below
 
-# 1. TILLER_HOME, persistently: add to the "env" object in ~/.claude/settings.json
-#    "TILLER_HOME": "/absolute/path/to/tiller"
-
-# 2. Shared skills and harness roles
+# 1. Shared skills and harness roles. Every skill install also records TILLER_HOME where the
+#    agents read their environment: the "env" object of ~/.claude/settings.json (with
+#    TILLER_MACHINE), ~/.codex/config.toml for --target codex, and one line in the shell's rc file.
 ./install.sh all                              # symlink every flow-* skill into ~/.claude/skills
+./install.sh --target codex all               # the same for Codex (~/.agents/skills)
 ./install.sh --agents [--profile <file>]      # write flow-resolver, flow-owner-proxy, flow-pm to ~/.claude/agents
 
-# 3. One profile per project (see Profiles below)
+# 2. One profile per project (see Profiles below)
 lib/new-profile.sh acme                       # also seeds profiles/acme/leak-terms.txt with the name
 echo acme > ~/src/acme-web/.tiller-profile    # or repo_globs in the profile's frontmatter
 
-# 4. Personal skills (asks questions in a terminal; --answers <file.json> without one)
+# 3. Personal skills (asks questions in a terminal; --answers <file.json> without one)
 ./install.sh --setup-personal <user>
 
-# 5. Project-only skills and agents, if the profile has any
+# 4. Project-only skills and agents, if the profile has any
 ./install.sh --profile acme all               # profiles/acme/skills/* and profiles/acme/agents/*.md
 
-# 6. Private access: merge the printed fragment into ~/.claude/settings.json, then restart
+# 5. Private access: merge the printed fragment into ~/.claude/settings.json, then restart
 ./install.sh --hooks                          # brains and other projects' profiles, see brains/_template/
 
-# 7. Helm, optional: one private repository shared by every machine
+# 6. Helm, optional: one private repository shared by every machine
 ./install.sh --helm <git-url>                 # or --helm --new <git-url> for a first machine
-# set TILLER_MACHINE (stable name) and TILLER_MACHINE_CAPS (e.g. calendar) in settings.json "env"
+# TILLER_MACHINE is the host name unless set; add TILLER_MACHINE_CAPS (e.g. calendar) by hand
 ```
 
 `TILLER_HOME` must be set wherever the skills run; each skill's `Step −1` calls
 `$TILLER_HOME/lib/resolve-profile.sh`. Without it every skill resolves no profile and stops, which
-is the correct failure but an opaque one. Restart the session after installing.
+is the correct failure but an opaque one. `install.sh` writes it for Claude Code, Codex and the
+terminal and keeps any value set by hand; another agent needs it in its own environment. Restart
+the session after installing.
 
 ### Windows
 
@@ -97,10 +99,9 @@ git clone <this repo> C:\src\tiller; cd C:\src\tiller
 .\install.ps1 --hooks        # any install.sh form works the same way
 ```
 
-- Paths in `settings.json` use the `C:/src/tiller` form (forward slashes), which bash and Node both
-  read; `/c/src/tiller` is bash-only. `install.sh --hooks` prints them in that form.
-- Set `CLAUDE_CODE_GIT_BASH_PATH` to `C:/Program Files/Git/bin/bash.exe` in the same `env` object so
-  Claude Code runs the hooks through Git Bash.
+- `install.sh` writes `TILLER_HOME` and `CLAUDE_CODE_GIT_BASH_PATH` into `settings.json` in the
+  `C:/src/tiller` form (forward slashes), which bash and Node both read; `/c/src/tiller` is
+  bash-only. `install.sh --hooks` prints its paths the same way.
 - `ln -s` needs Developer Mode (Settings > System > For developers); `install.ps1` enables it when
   run as administrator. Without it `install.sh` links skills as junctions, which work the same.
 - The unattended drivers (`flow-run-ticket`, `flow-run-day`) are not supported on Windows; the

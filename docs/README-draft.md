@@ -98,17 +98,16 @@ git clone <this repo> ~/src/tiller && cd ~/src/tiller
 git config core.hooksPath .githooks            # leak guard on every commit
 npm test                                       # about a minute; proves node, git and bash are fine
 
-# 1. TILLER_HOME: add to the "env" object of ~/.claude/settings.json
-#    "TILLER_HOME": "/absolute/path/to/tiller"
-# 2. Shared skills and harness roles
+# 1. Shared skills and harness roles; this also writes TILLER_HOME into ~/.claude/settings.json
+#    "env" (and TILLER_MACHINE), into ~/.codex/config.toml for --target codex, and into the shell rc
 ./install.sh all                               # symlinks every flow-* skill into ~/.claude/skills
 ./install.sh --agents                          # flow-resolver, flow-owner-proxy, flow-pm into ~/.claude/agents
-# 3. One profile per project
+# 2. One profile per project
 lib/new-profile.sh acme                        # copies profiles/_template, seeds leak-terms.txt
 $EDITOR profiles/acme/profile.md               # or: claude, then /flow-onboard-project
 echo acme > ~/src/acme-web/.tiller-profile
 lib/profile-facts.sh --check ~/src/acme-web    # exit 4 = a launch would be refused; fix what it names
-# 4. Optional: personal skills, project-only skills, private-access hook, cross-project overview
+# 3. Optional: personal skills, project-only skills, private-access hook, cross-project overview
 ./install.sh --setup-personal <user>
 ./install.sh --profile acme all
 ./install.sh --hooks                           # prints a settings fragment to merge, then restart
@@ -122,8 +121,8 @@ git clone <this repo> C:\src\tiller; cd C:\src\tiller
 .\install.ps1 all                               # then the same steps as above, through install.ps1 or Git Bash
 ```
 
-Paths in `settings.json` take the `C:/src/tiller` form; set `CLAUDE_CODE_GIT_BASH_PATH` to
-`C:/Program Files/Git/bin/bash.exe` next to `TILLER_HOME`. Native symlinks need Developer Mode,
+`install.sh` writes `TILLER_HOME` and `CLAUDE_CODE_GIT_BASH_PATH` into `settings.json` in the
+`C:/src/tiller` form. Native symlinks need Developer Mode,
 otherwise skills are linked as junctions. The unattended drivers are not supported on Windows; the
 interactive skills are.
 
@@ -183,7 +182,7 @@ still works as a fallback and needs `claude` on `PATH`.
 
 | Variable | Meaning | Default |
 |---|---|---|
-| `TILLER_HOME` | this checkout; required everywhere | unset: every skill stops |
+| `TILLER_HOME` | this checkout; required everywhere; `install.sh` writes it for Claude Code, Codex and the shell | unset: every skill stops |
 | `TILLER_PROFILE` | profile name, overrides `.tiller-profile` and globs | unset |
 | `STATE_ROOT` | where one run's state, journals and locks live | `~/.claude/run-state/<profile>/<run>` |
 | `TILLER_RUN_STATE` | the profile-level run-state directory that `calibrate` folds | `~/.claude/run-state/<profile>` |
