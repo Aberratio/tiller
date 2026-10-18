@@ -99,9 +99,11 @@ same_target() {
 link() {
   ln -s "$1" "$2" 2>/dev/null && return 0
   [ "$OS" = windows ] || { ln -s "$1" "$2"; return; }
-  if [ -d "$1" ]; then cmd //c mklink /J "$(cygpath -w "$2")" "$(cygpath -w "$1")" >/dev/null
-  else cmd //c mklink /H "$(cygpath -w "$2")" "$(cygpath -w "$1")" >/dev/null
-  fi
+  # MSYS rewrites arguments that look like POSIX paths (/J becomes C:/.../J); both variables stop
+  # that for this one command, on Git for Windows and on plain MSYS2.
+  local kind=/H
+  [ -d "$1" ] && kind=/J
+  MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' cmd /c mklink "$kind" "$(cygpath -w "$2")" "$(cygpath -w "$1")" >/dev/null
 }
 
 target="claude"
