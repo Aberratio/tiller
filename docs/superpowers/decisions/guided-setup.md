@@ -52,3 +52,5 @@
 - 2026-10-18 · spec · `install.ps1` is not parsed or run here — no PowerShell on the build machine; the owner's Windows run is its only verification · self
 - 2026-10-18 · spec · the README keeps the `install.sh` lines under "the same steps by hand", shortened — the wizard does not cover `--agents` or a codex-only relink · self
 - 2026-10-18 · spec · the harness.md paragraph sits under Script I/O as the second exception to "no prompts, one JSON line": `tiller` is for a person and no runner calls it · self
+- 2026-10-18 · standards · the wizard spawns a CLI through cmd.exe only when it is a `.cmd`/`.bat` shim with no `.exe`/`.com` on PATH; every other spawn keeps `shell: false`, so argument quoting matters only for shims — an npm-installed `claude` on Windows read as a failed sign-in while signed in · self
+- 2026-10-18 · spec · `launch` is unit-tested with an injected platform, PATH and file check; its wiring into `ctx.sh` and the sign-in probes runs only on Windows, so the owner's Windows rerun is its only end-to-end check · self
