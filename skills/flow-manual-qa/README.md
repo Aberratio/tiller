@@ -1,19 +1,19 @@
 # flow-manual-qa
 
-The half of verification no automated level reaches: which acceptance criteria actually need a human,
-steps that can fail, a verification record on the ticket, and the cross-ticket register of what nobody
-has verified yet.
+Covers the verification no automated test reaches. It decides which acceptance criteria need a human,
+gives steps that can fail, posts a verification record on the ticket and keeps a cross-ticket register
+of what nobody has verified yet.
 
 ## Where it sits
 
 | | flow-tdd | flow-confidence-check | **flow-manual-qa** |
 |---|---|---|---|
-| Names | criteria no test level reaches | findings marked `needs-user` | — |
-| Executes | — | — | the naming, per criterion |
-| Remembers | — | — | across tickets, in the register |
+| Names | criteria no test level reaches | findings marked `needs-user` | - |
+| Executes | - | - | the naming, per criterion |
+| Remembers | - | - | across tickets, in the register |
 
-A project's automated QA lane, when its profile lists one in `## test toolchain`, is a hand-off target
-for the `automatable` bucket, never a dependency.
+If the profile lists an automated QA lane in `## test toolchain`, the `automatable` bucket can be
+handed to it. The skill never depends on one.
 
 ## Profile facts it reads
 
@@ -27,30 +27,29 @@ for the `automatable` bucket, never a dependency.
 | protected paths and records | `## merge authority`, `## inviolables` |
 | who decides what this skill may not | `## escalation` |
 
-`## verification register` is rendered as `verificationRegister` by `lib/profile-facts.sh` and checked
-by `--check`: a `TODO`, or a Path line with no code span, refuses the profile.
+`lib/profile-facts.sh` renders `## verification register` as `verificationRegister`, and `--check`
+refuses the profile when it holds a `TODO` or a Path line without a code span.
 
 ## Design notes
 
-- Every project fact the procedure needs - hosts, the surface map, QA statuses, the register path, the
-  QA browser and its origin scope, the tracker kind - comes from the profile. `Kind: none` routes
-  records to the spec file.
+- Every project fact comes from the profile, including the QA browser's origin scope. With
+  `Kind: none`, records go to the spec file.
 - Decisions the skill may not take go to the ticket's owner or the `## escalation` human, never to a
   named person.
-- `automatable` criteria route to `flow-tdd` or the profile's own QA lane.
-- Browser-only checks live in `references/browser-evidence.md`; generic simulated-user rules live in
-  `references/simulated-sessions.md`, while project-specific simulation (models, personas, scripts)
-  stays in a project skill.
-- "Never moves a ticket to Done" is generalised to "any forward status", since boards name statuses
+- `automatable` criteria go to `flow-tdd` or the profile's own QA lane.
+- Browser-only checks live in `references/browser-evidence.md` and generic simulated-user rules in
+  `references/simulated-sessions.md`. Project-specific simulation (models, personas, scripts) stays in
+  a project skill.
+- The skill never moves a ticket to any forward status (not just Done), since boards name statuses
   differently.
 - A protected write is anything under a non-`agent` `## merge authority` path or an `## inviolables`
   item.
-- `scripts/check-artefacts.mjs` follows the script I/O contract in `docs/harness.md`; its tests run
+- `scripts/check-artefacts.mjs` follows the script I/O contract in `docs/harness.md`. Run its tests
   with `node --test 'skills/flow-manual-qa/scripts/tests/*.test.mjs'`.
 
 ## Rules earned in field use
 
-Each rule below was added after a real verification pass went wrong without it.
+Each rule came from a verification pass that went wrong without it.
 
 - The gap is detection, execution and memory
 - A green CI job proves a build, not a rollout
@@ -69,7 +68,7 @@ Each rule below was added after a real verification pass went wrong without it.
 - Verdict states, three tests before ranking
 - Record the observation that undermines the hypothesis
 - `observed-by-agent` needs an artefact
-- Artefact exists, is not empty, and is newer than the run start — checked by
+- Artefact exists, is not empty, and is newer than the run start - checked by
   `scripts/check-artefacts.mjs` before the record is posted
 - Subtract own requests from the console log
 - Read at the consumer boundary, not the transport
@@ -81,7 +80,7 @@ Each rule below was added after a real verification pass went wrong without it.
 - Origin scope is not widened by a step
 - One owner per charter section
 - Occluded window, `element.click()` fallback
-- A proxy is not a test — modelled / proxy / not modelled; intent is not effect; a proxy that decides a gate makes it `not verified`
+- A proxy is not a test - modelled / proxy / not modelled; intent is not effect; a proxy that decides a gate makes it `not verified`
 - A stubbed backend is not the environment
 - The recorded timeline is the only source of a verdict
 - App-vs-oracle triage; rerun before a defect; harness failure is `not verified`
@@ -90,4 +89,4 @@ Each rule below was added after a real verification pass went wrong without it.
 ## Pending, not applied
 
 - A sixth Step 1 bucket for a criterion that grades the tickets this ticket blocks. It changes the
-  classification, so it waits for a decision rather than riding a port.
+  classification, so it waits for a decision.

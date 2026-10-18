@@ -1,12 +1,12 @@
 # flow-pm
 
-The board role. It reconciles each ticket's status against the artefact that proves it (branch, PR,
-merge, verification record), moves the ones that drifted within the profile's `## board` mandate,
-measures whether every "is blocked by" relation still holds, writes a dated board snapshot, and builds
-a deadline radar from the sources that actually carry dates.
+The board role. It checks each ticket's status against the artefact that proves it (branch, PR,
+merge, verification record) and moves the ones that drifted, within the profile's `## board`
+mandate. It also measures whether every "is blocked by" relation still holds, writes a dated board
+snapshot, and builds a deadline radar from the sources that actually carry dates.
 
-It can be consumed by a morning day-planning step (`sweep`), an end-of-day note step (`close`) or a
-day orchestrator such as `flow-run-day` (reads the snapshot). None of them is required.
+A morning day-planning step (`sweep`), an end-of-day note step (`close`) or a day orchestrator such
+as `flow-run-day` (reads the snapshot) can use it. None of them is required.
 
 ## Usage
 
@@ -20,7 +20,7 @@ day orchestrator such as `flow-run-day` (reads the snapshot). None of them is re
 
 - A profile with `## tracker` and, for any write, `## board` (`docs/profile-schema.md` → Board).
 - `gh`, `git`, `jq`.
-- Tools, least privilege — the whole allowlist of the source agent:
+- Tools, least privilege - the whole allowlist of the source agent:
   - `Bash`, `Read`, `Grep`, `Glob`, `ToolSearch`
   - tracker: `search`, `get`, `transitions`, `transition`, `edit`, `remote-links`
   - calendar (read): `list`, `search`
@@ -29,7 +29,7 @@ day orchestrator such as `flow-run-day` (reads the snapshot). None of them is re
   - Role ops from `config/tool-kinds.json` (`config/agents.json` names them); the profile's `## tools`
     picks the vendor tool each resolves to.
   - No `Write`/`Edit`: the log and snapshot are written through Bash.
-- A mid-tier model is enough: the lane is read-heavy and every judgement is a table lookup.
+- A mid-tier model is enough (the lane is read-heavy and every judgement is a table lookup).
 
 ## Tests
 
@@ -39,8 +39,6 @@ day orchestrator such as `flow-run-day` (reads the snapshot). None of them is re
 the previous verdict forward. The `## board` section is pinned in `lib/gates/tests/profile-facts.test.mjs`.
 
 ## Rules earned in field use
-
-Each rule below was added after a sweep went wrong without it.
 
 - A status change needs an artefact; full mandate on the owner's tickets
 - Never read the tracker response whole; `jq` over the spilled file
@@ -66,9 +64,9 @@ Each rule below was added after a sweep went wrong without it.
 ## Design notes
 
 - Every project fact - site, project keys, repos, the owner's chat handle, epics, status names, the
-  canary - comes from `## tracker` and `## board`; the script has no default canary, because a foreign
-  canary is absent from every read and fails every run.
-- Transition ids are never cached: they are per workflow, and the rules already require fetching them.
+  canary (a ticket known to be done, used to prove the tracker read works) - comes from `## tracker`
+  and `## board`. The script has no default canary, since one from another project would fail every
+  run.
+- Transition ids are never cached (they are per workflow).
 - Report headings are English; a consumer that wants another language maps them.
-- Day-planning and end-of-day steps are optional consumers, never requirements.
 - Writes are the closed `Writes` list, and every outward channel is a hard stop.

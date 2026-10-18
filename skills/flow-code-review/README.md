@@ -2,11 +2,11 @@
 
 Two-axis review of a change, run as parallel sub-agents and reported side by side:
 
-- **Standards** — does it follow this repo's documented conventions, plus a Fowler smell baseline that applies even when the repo documents nothing?
-- **Spec** — does it do what the ticket *and every decision agreed since* asked for?
-- **Works** (optional) — do the repo's own check commands pass, and does each failure actually belong to this change?
+- **Standards** - does it follow this repo's documented conventions, plus a baseline of Fowler's code smells that applies even when the repo documents nothing?
+- **Spec** - does it do what the ticket and every decision agreed since asked for?
+- **Works** (optional) - do the repo's own check commands pass, and does each failure actually belong to this change?
 
-The two axes are never merged or reranked. That is the whole mechanism: code can follow every convention while implementing the wrong thing, or do exactly what the ticket asked while breaking the project's conventions. In practice one axis regularly catches a blocker the other is structurally blind to — a route rendering a dead message instead of redirecting, a label written with bare `File.write` where the rest of the codebase uses tmp+rename, a `console.log` shipped, a 3× duplicated path expression.
+The two axes are never merged or reranked. Code can follow every convention while implementing the wrong thing, or do exactly what the ticket asked while breaking the project's conventions, and each axis catches blockers the other cannot see.
 
 ## Where it sits
 
@@ -24,7 +24,7 @@ Both are useful on the same ticket, in that order.
 ./install.sh flow-code-review
 ```
 
-Restart Claude Code (or start a new session). No configuration — it learns each repo from its own docs every run.
+Restart Claude Code (or start a new session). No configuration - it learns each repo from its own docs every run.
 
 ## Usage
 
@@ -37,19 +37,19 @@ Restart Claude Code (or start a new session). No configuration — it learns eac
 
 ## What it handles that a generic review does not
 
-- **Uncommitted work is the default state.** With zero commits past the fixed point, `git diff main...HEAD` returns nothing and even two-dot skips untracked files — so a review can silently review *nothing*. The skill branches on repo state, intent-to-adds new files, and pins the correct diff command into every brief.
-- **A teammate's remote branch** in a multi-repo workspace: locate the repo, fetch, review in place.
-- **The spec is the ticket plus the agreements since.** Feeding the planning round's decisions in is what stops the Spec agent reporting pre-agreed decisions as scope creep.
-- **Deliberate deviations are pre-declared to both axes**, so an agent grades your decision instead of spending its strongest finding rediscovering it.
-- **Pre-existing debt is labelled, not billed** to a focused diff.
-- **Generated artifacts get read.** A clean generator can still emit output that breaks the ticket's constraint.
-- **Proportionality.** A one-line config change gets an inline checklist, not two sub-agents.
+- Uncommitted work is the default state. With no commits past the base commit, `git diff main...HEAD` returns nothing and even two-dot skips untracked files, so a review can silently cover nothing. The skill branches on repo state, marks new files intent-to-add, and pins the correct diff command into every brief.
+- A teammate's remote branch in a multi-repo workspace: locate the repo, fetch, review in place.
+- The spec is the ticket plus the agreements since, so the Spec agent does not report pre-agreed decisions as scope creep.
+- Deliberate deviations are pre-declared to both axes, so an agent grades the decision instead of rediscovering it.
+- Pre-existing debt is labelled, not billed to a focused diff.
+- Generated artifacts get read - a clean generator can still emit output that breaks the ticket's constraint.
+- Proportionality: a one-line config change gets an inline checklist, not two sub-agents.
 
 ## Requirements
 
 - Claude Code with sub-agent support
 - `git` with an `origin` remote
-- The tracker role's tools (for kind `jira`, the Atlassian MCP) or `gh` for automatic ticket resolution (optional — you can paste the spec)
+- The tracker role's tools (for kind `jira`, the Atlassian MCP) or `gh` for automatic ticket resolution (optional - you can paste the spec)
 
 ## Provenance
 

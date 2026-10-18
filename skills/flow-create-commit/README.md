@@ -7,12 +7,11 @@ Create git commits in the project's commit format. The format comes from the pro
 <type>(<scope>): <subject>
 ```
 
-No body, no footers, no co-author trailers.
-When the format carries a `<ticket>` placeholder, the skill takes the key from the branch name (the
-profile's `Ticket from branch:` pattern, else the first `ABC-123`-shaped segment), picks the type
-from the diff, validates the message against the checklist in
-`references/conventional-commits.md`, and commits.
-It also has a fix mode for repairing non-conforming commit messages (used by [flow-create-pull-request](../flow-create-pull-request/) before opening a PR).
+No body, no footers, no co-author trailers. When the format has a `<ticket>` placeholder, the skill
+takes the key from the branch name (the profile's `Ticket from branch:` pattern, else the first
+`ABC-123`-shaped segment). It then picks the type from the diff, checks the message against
+`references/conventional-commits.md`, and commits. A fix mode repairs non-conforming messages;
+[flow-create-pull-request](../flow-create-pull-request/) uses it before opening a PR.
 
 ## Install
 
@@ -26,7 +25,7 @@ Or install every skill in the repo with `./install.sh all` - see the [main READM
 
 ## When to use it
 
-Triggers on natural phrases - no need to invoke by name:
+It triggers on natural phrases, so you do not need to invoke it by name:
 
 ```
 commit this
@@ -45,8 +44,8 @@ fix the last commit message
 - Without ticket: `<type>(<scope>): <subject>`
 ```
 
-Both `Ticket from branch:` and `Without ticket:` are optional; with no `Without ticket:` the skill
-asks when the branch carries no ticket.
+`Ticket from branch:` and `Without ticket:` are optional. Without `Without ticket:`, the skill asks
+when the branch carries no ticket.
 
 ## Format examples
 
@@ -56,5 +55,5 @@ feat(auth): add token validation             # no ## commits section
 ```
 
 Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`.
-Breaking changes get `!` before the colon.
-Full spec: [references/conventional-commits.md](references/conventional-commits.md).
+Breaking changes get `!` before the colon. Full spec:
+[references/conventional-commits.md](references/conventional-commits.md).

@@ -1,20 +1,18 @@
 # tiller
 
-Project-agnostic agent skills, plus one local profile per project carrying the facts that differ.
+Project-agnostic agent skills, plus one local profile per project for the facts that differ.
 
-The skills carry no project facts, so a team adopts them by writing a profile, not by forking a
-skill. Nothing is installed automatically: `install.sh` symlinks into `~/.claude/skills/` only when
-it is run by hand.
+The skills carry no project facts, so you adopt them by writing a profile, not by forking a skill.
+Nothing installs automatically: `install.sh` symlinks into `~/.claude/skills/` only when you run it.
 
 ## Why it exists
 
-Skills that grow inside one project absorb that project's facts: its merge-signature rule, its
-worktree flow, its staging hosts, its test commands. Most of what they teach is not project-specific
-at all; it is how a ticket gets opened, reviewed, tested and merged anywhere. This repo separates the
-two, so any project gets the procedure without inheriting another project's merge rule.
+Skills that grow inside one project absorb its facts: the merge-signature rule, the worktree flow,
+the staging hosts, the test commands. Most of what they teach is how a ticket gets opened, reviewed,
+tested and merged anywhere. This repo keeps the procedure apart from the facts.
 
-What couples a skill to a project is hardcoded **paths, repo names, merge rules and toolchain
-commands**, not the examples in its prose. Those facts live in the profile; the skill reads them.
+What ties a skill to a project is hardcoded paths, repo names, merge rules and toolchain commands,
+not the examples in its prose. Those facts live in the profile, and the skill reads them.
 
 ## Layout
 
@@ -41,9 +39,8 @@ helm/                      local, git-ignored: clone of the private cross-projec
 lib/helm/                  helm CLI, record.sh, template; lib/hooks/helm-session.sh at session start
 ```
 
-Each skill opens with a `Step −1` that resolves the profile and reads it. **No profile resolves →
-the skill stops.** That is the safety property the design is for: a skill must never apply one
-project's merge authority to another project because it guessed.
+Each skill opens with a `Step −1` that resolves the profile and reads it. If no profile resolves,
+the skill stops, so it never applies one project's merge authority to another by guessing.
 
 ## Setup
 
@@ -55,26 +52,26 @@ git config core.hooksPath .githooks          # leak guard on every commit
 ./bin/tiller setup                            # Windows: .\install.ps1 from PowerShell, see below
 ```
 
-`tiller setup` walks the steps below in order. Each step checks the machine first and is one `ok`
-line when it is already done, so a second run asks nothing; a step that fails prints the command
+`tiller setup` walks the steps below in order. Each step checks the machine first and prints one
+`ok` line when it is already done, so a second run asks nothing; a failed step prints the command
 that repeats it. `--yes` takes every default, `--answers <file.json>` answers without a terminal
 (no terminal and nothing to answer with is exit 4). Each step is also a command of its own;
 `tiller help` lists them.
 
-1. **Tools:** node >= 20.11, git, bash, jq, installed through the platform's package manager
+1. Tools: node >= 20.11, git, bash, jq, installed through the platform's package manager
    after showing the plan.
-2. **Providers:** Claude Code and/or Codex: installed, tiller's skills linked, signed in
+2. Providers: Claude Code and/or Codex: installed, tiller's skills linked, signed in
    (`tiller login`).
-3. **Hook:** the private-access hook merged into the agent settings (`tiller hooks`).
-4. **Personal skills:** generated (`tiller personal new`) or cloned from `tiller-personal-<owner>`
+3. Hook: the private-access hook merged into the agent settings (`tiller hooks`).
+4. Personal skills: generated (`tiller personal new`) or cloned from `tiller-personal-<owner>`
    (`tiller personal clone`).
-5. **Project:** a profile onboarded from a repository (`tiller project new`) or cloned from
+5. Project: a profile onboarded from a repository (`tiller project new`) or cloned from
    `tiller-profiles-<name>` (`tiller project clone`); it has to pass `profile-facts.sh --check`.
    `<repo>/.tiller-profile` names the profile and is left for the repository's owner to commit.
-6. **Backup:** a personal or profile directory the wizard just created is offered a private GitHub
+6. Backup: a personal or profile directory the wizard just created is offered a private GitHub
    repository by those names, through `gh repo create --private --push`. A profile whose
    `.gitignore` does not list `secrets.env` is refused.
-7. **Optional and verdict:** a helm (one private repository shared by every machine), then
+7. Optional, then the check: a helm (one private repository shared by every machine), then
    `bin/doctor`, what is still manual, and the first command to run.
 
 The same steps by hand, for a step the wizard does not cover:
@@ -92,15 +89,14 @@ lib/new-profile.sh acme                       # a profile (see Profiles below)
 # TILLER_MACHINE is the host name unless set; add TILLER_MACHINE_CAPS (e.g. calendar) by hand
 ```
 
-Every skill install records TILLER_HOME where the agents read their environment: the "env" object
-of ~/.claude/settings.json (with TILLER_MACHINE), ~/.codex/config.toml for Codex, and the shell's
-rc file, which also gets `tiller/bin` on `PATH`.
+Every skill install records `TILLER_HOME` where the agents read their environment: the "env"
+object of `~/.claude/settings.json` (with `TILLER_MACHINE`), `~/.codex/config.toml` for Codex, and
+the shell's rc file, which also gets `tiller/bin` on `PATH`. A value set by hand is kept.
 
-`TILLER_HOME` must be set wherever the skills run; each skill's `Step −1` calls
-`$TILLER_HOME/lib/resolve-profile.sh`. Without it every skill resolves no profile and stops, which
-is the correct failure but an opaque one. `install.sh` writes it for Claude Code, Codex and the
-terminal and keeps any value set by hand; another agent needs it in its own environment. Restart
-the session after installing.
+`TILLER_HOME` must be set wherever the skills run, since each skill's `Step −1` calls
+`$TILLER_HOME/lib/resolve-profile.sh`; without it every skill resolves no profile and stops. An
+agent other than Claude Code or Codex needs it in its own environment. Restart the session after
+installing.
 
 ### Windows
 
@@ -134,47 +130,47 @@ lib/leak-guard.sh
 Resolution order: `TILLER_PROFILE` env var → a `.tiller-profile` file at the repo root (one line,
 the profile name) → `repo_globs` in a profile's frontmatter → fail.
 
-An unattended run needs the facts as values rather than as a file: the driver reads no profile, so
-every fact it branches on is rendered once, before anything spawns. `lib/profile-facts.sh` renders
-them and refuses when a required section is unfilled, including one that still reads `TODO`:
+An unattended run needs the facts as values, not as a file: the driver reads no profile, so every
+fact it branches on is rendered once, before anything spawns. `lib/profile-facts.sh` renders them
+and refuses when a required section is unfilled or still reads `TODO`:
 
 ```bash
 "$TILLER_HOME/lib/profile-facts.sh" --check ~/src/acme-web
 # -> per-key report; exit 4 means a launch against this profile would be refused
 ```
 
-The contract (required sections, the facts object, the rule that a profile carries facts and never
-procedure) is [docs/profile-schema.md](docs/profile-schema.md); filling a new one is
+The contract (required sections, the facts object, facts only and never procedure) is
+[docs/profile-schema.md](docs/profile-schema.md); filling a new one is
 [docs/adding-a-project.md](docs/adding-a-project.md) and `profiles/_template/README.md`.
 Credentials go in `profiles/<name>/secrets.env` (mode 600), never in `profile.md`.
 
-A skill or agent that only makes sense for one project (a QA lane for that product, a simulator
-for its domain) lives in `profiles/<name>/skills/<skill>/` or `profiles/<name>/agents/<agent>.md`
+A skill or agent that only makes sense for one project (a QA lane for its product, say) lives in `profiles/<name>/skills/<skill>/` or `profiles/<name>/agents/<agent>.md`
 and is installed with `./install.sh --profile <name> all`.
 
 ## Personal skills
 
 Skills about one person rather than one project (a daily note, a writing voice) are generated into
 `personal/<user>/`, which is git-ignored. `install.sh --setup-personal <user>` generates and links
-them, `install.sh --personal <user> all` re-links; a plain `all` never does. The mechanism and the templates: `personal/_templates/README.md`.
+them, `install.sh --personal <user> all` re-links; a plain `all` never does. Mechanism and
+templates: `personal/_templates/README.md`.
 
 ## Helm
 
-The helm is a private overview above the profiles: which project is at which stage, what is next,
-what is due, what was promised, which machine holds which clone. It lives in its own git
-repository, cloned into `helm/`, and is shared by every machine that runs tiller.
+The helm is a private view across all projects: which project is at which stage, what is next,
+what is due, what was promised, which machine holds which clone. It is its own git repository,
+cloned into `helm/` on every machine that runs tiller.
 
-Projects write to it and never read it: `flow-*` skills call `lib/helm/record.sh` at fixed
-milestones, which stamps the resolved profile, and the private-access hook denies a project
-session every path under `helm/`. Each write is a new file under `events/`, so two machines never
-conflict. At session start `lib/hooks/helm-session.sh` prints at most five lines: overdue, due
+Projects write to it and never read it. `flow-*` skills call `lib/helm/record.sh` at fixed
+milestones (it stamps the resolved profile), and the private-access hook denies a project session
+every path under `helm/`. Each write is a new file under `events/`, so two machines never conflict.
+At session start `lib/hooks/helm-session.sh` prints at most five lines: overdue, due
 within 48 hours, parked, stale projects, machines that have not synced. `flow-helm` gives the full
 status and proposes calendar events. It advises; it never starts work. Design:
 `docs/superpowers/specs/2026-10-14-helm-design.md`.
 
 ## Leak guard
 
-Every tracked file must stay free of project, company and personal facts. `lib/leak-guard.sh` scans
+Tracked files carry no project, company or personal facts. `lib/leak-guard.sh` scans
 the files git would track against the local lists `profiles/*/leak-terms.txt` and
 `personal/*/leak-terms.txt` (one case-insensitive extended regex per line), plus credential shapes.
 `.githooks/pre-commit` runs it with `--staged`; `git config core.hooksPath .githooks` enables it.
@@ -327,7 +323,7 @@ flowchart TD
     class merge,logs done
 ```
 
-Ready-to-sign is not a failure: it is the run finishing on a path the profile's `## merge authority`
+Ready-to-sign is not a failure: the run finished on a path the profile's `## merge authority`
 reserves for a human signature.
 
 ### 5. When a run gets stuck: the escalation chain
@@ -368,8 +364,8 @@ a hard-stop channel.
 
 ### 6. A whole day, unattended (`flow-run-day`)
 
-A day is waves of ticket runs. The supervisor is a plain shell loop on purpose: it has no context to
-grow, and its only decision is reading `state.md`.
+A day is waves of ticket runs. The supervisor is a plain shell loop with no context to grow; its
+only decision is reading `state.md`.
 
 ```mermaid
 flowchart TD

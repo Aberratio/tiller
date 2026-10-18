@@ -3,10 +3,10 @@
 A profile holds every fact that changes between projects. Everything under `profiles/` except this
 folder is git-ignored, so a profile stays on the machine that uses it.
 
-1. `lib/new-profile.sh <name>` — copies this folder to `profiles/<name>/`, drops the `.example`
-   suffixes and sets `secrets.env` to mode 600. (By hand: copy the folder and do the same.)
-2. Fill `profile.md`; the contract is `docs/profile-schema.md`, the filling order
-   `docs/adding-a-project.md`. Add the repo path to `repo_globs`, or put the name in a
+1. `lib/new-profile.sh <name>` copies this folder to `profiles/<name>/`, drops the `.example`
+   suffixes and sets `secrets.env` to mode 600 (or do the same by hand).
+2. Fill `profile.md` (contract: `docs/profile-schema.md`, filling order:
+   `docs/adding-a-project.md`). Add the repo path to `repo_globs`, or put the name in a
    `.tiller-profile` file at the repo root, or set `TILLER_PROFILE`.
 3. Put credentials in `secrets.env`, never in `profile.md`.
 4. List the project's names, repos, people, hosts and ticket key pattern in `leak-terms.txt`.

@@ -1,17 +1,15 @@
 # flow-tdd
 
-The implementation loop, test-first, between `flow-start-ticket` (which agrees the plan) and `flow-code-review` / `flow-create-commit` (which close it).
+The test-first implementation loop, between `flow-start-ticket` (which agrees the plan) and `flow-code-review` / `flow-create-commit` (which close it). Beyond red → green, it carries what a generic TDD reference leaves out:
 
-Red → green is the easy part. What this skill carries is everything that turned out to be load-bearing on real tickets and is missing from a generic TDD reference:
-
-1. **Discover** the repo's test levels and — crucially — its **gates**, because green means "rubocop and typecheck pass", not "the assertion passes".
-2. **Restate the seam table** (seam / level / mode / *deliberately not tested*) inherited from the agreed plan, instead of re-negotiating seams mid-loop. Only a seam the plan never named needs confirming.
-3. **Probe before the first red** — a *required* throwaway replay of real data whenever an AC carries a number or the inputs can't be hand-authored. It reproduces the ticket's numbers, picks the fixture, and once falsified a ticket's own acceptance criterion (an unreachable threshold) before any test was written. Three outcomes, each with its own exit: numbers reproduce → the probe is the test's skeleton; they don't → the premise is false and the ticket is corrected first; the target is unreachable → substitute the strongest measure that is true, with both numbers recorded.
-4. **Pick the loop mode per seam**: vertical slices where the next cycle can still change the design, the whole spec set up front where 18 validator branches are enumerable from a written contract.
-5. **Red → green** with an honest red (it fails on the *assertion*), expected values from an independent source of truth, and the computation that the assertion depends on left unmocked.
-6. **Pin** the behaviour the change claims not to alter — for a bug fix that is one red plus a pin set, not the other way round.
-7. **Bound the blast radius** when an AC says "X is unchanged": a green suite only proves nothing *asserted* moved.
-8. **Prove green, then report what the suite cannot say** — green is a `verify-claim` re-run of the profile's test command at the committed SHA, with every gate's exit code and output tail pasted; then the acceptance criteria that need a human, a physical device, or a document.
+1. Discover the repo's test levels and its gates - green means "rubocop and typecheck pass", not just "the assertion passes".
+2. Restate the seam table (seam / level / mode / deliberately not tested) inherited from the agreed plan instead of re-negotiating seams mid-loop. Only a seam the plan never named needs confirming.
+3. Probe before the first red - a required throwaway replay of real data whenever an acceptance criterion carries a number or the inputs can't be hand-authored. It reproduces the ticket's numbers and picks the fixture. Three outcomes: the numbers reproduce, and the probe becomes the test's skeleton; they don't, and the ticket is corrected first; the target is unreachable, and the strongest true measure is substituted, with both numbers recorded.
+4. Pick the loop mode per seam: vertical slices where the next cycle can still change the design, the whole spec set up front where the cases are enumerable from a written contract.
+5. Red → green with an honest red (it fails on the assertion), expected values from an independent source of truth, and the computation the assertion depends on left unmocked.
+6. Pin the behaviour the change claims not to alter - for a bug fix, one red plus a pin set.
+7. Bound the blast radius when an acceptance criterion says "X is unchanged": a green suite only proves nothing asserted moved.
+8. Prove green, then report what the suite cannot say. Green is a `verify-claim` re-run of the profile's test command at the committed SHA, with every gate's exit code and output tail pasted; then come the acceptance criteria that need a human, a physical device, or a document.
 
 ## Install
 
@@ -19,7 +17,7 @@ Red → green is the easy part. What this skill carries is everything that turne
 ./install.sh flow-tdd
 ```
 
-Then restart Claude Code (or start a new session). No configuration — the skill carries no per-repo config and learns each repo from its own docs every run.
+Then restart Claude Code (or start a new session). No configuration - the skill learns each repo from its own docs every run.
 
 ## Usage
 
@@ -30,7 +28,7 @@ Then restart Claude Code (or start a new session). No configuration — the skil
 "write the regression test for ABC-208 first"
 ```
 
-Best invoked with a plan already agreed (`flow-start-ticket` step 5) — the plan's per-step test levels become the seam table, which is why the loop then runs without interruptions.
+Best invoked with a plan already agreed (`flow-start-ticket` step 5): the plan's per-step test levels become the seam table, so the loop runs without interruptions.
 
 ## Reference files
 
@@ -43,7 +41,7 @@ Best invoked with a plan already agreed (`flow-start-ticket` step 5) — the pla
 ## Requirements
 
 - `git` (Step 4's red re-verification and Step 6's blast-radius diff both use `git stash`)
-- The repo's own testing docs — undocumented essentials are asked about, then offered as a `CLAUDE.md` addition
+- The repo's own testing docs - undocumented essentials are asked about, then offered as a `CLAUDE.md` addition
 
 ## Provenance
 

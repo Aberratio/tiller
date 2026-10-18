@@ -1,32 +1,32 @@
 # tiller
 
-Project-agnostic skills and an unattended runner for Claude Code. One repository holds *how* a
-ticket is opened, planned, implemented test-first, reviewed, merged and verified; a private profile
-per project holds *what* differs: repo paths, merge rules, trackers, toolchain commands, who may sign.
+Project-agnostic skills and an unattended runner for Claude Code. One repository holds how a ticket
+is opened, planned, implemented test-first, reviewed, merged and verified; a private profile per
+project holds what differs: repo paths, merge rules, trackers, toolchain commands, who may sign.
 
 The skills run interactively in any Claude Code session. The runner takes a ticket, or a day's queue
-of tickets, and drives them end to end with no one at the keyboard: it fails closed, resumes after a
-crash, caps spend in USD and escalates only what a human must decide.
+of tickets, and drives them end to end unattended: it fails closed, resumes after a crash, caps spend
+in USD and escalates only what a human must decide.
 
 ## Who it is for
 
-- One person or a small team working several codebases with the same procedure.
-- Anyone who wants an agent to run tickets overnight on a laptop and find a signed-off PR, or a
-  precise list of open decisions, in the morning.
+- One person or a small team running the same procedure across several codebases.
+- Anyone who wants an agent to run tickets overnight and find a signed-off PR, or a precise list of
+  open decisions, in the morning.
 - Teams that keep project facts out of shared tooling: nothing in this repository names a company,
-  a product, a host or a person; the leak guard refuses a commit that does.
+  product, host or person, and the leak guard refuses a commit that does.
 
 ## Supported systems
 
 | | Status |
 |---|---|
 | macOS 13+ (Apple Silicon and Intel), bash 3.2 or newer, zsh as login shell | supported, where it is developed |
-| Linux (Debian/Ubuntu, Fedora, Arch; any distribution with bash 4+ and GNU coreutils) | supported; the suite has no macOS-only step except one pseudo-terminal test, which skips where `openpty` is unavailable |
+| Linux (Debian/Ubuntu, Fedora, Arch; any distribution with bash 4+ and GNU coreutils) | supported; the only macOS-only step is one pseudo-terminal test, skipped where `openpty` is unavailable |
 | Windows | partial: the Node parts run under Node 22+; shell scripts need WSL2 or Git Bash; the keep-awake and battery guards are macOS/Linux only |
 
-Runtimes: the Claude Code CLI (`claude`) is the only runtime verified end to end. An adapter for
-Codex (`codex exec`) and a read-only adapter for any OpenAI-compatible endpoint exist but are
-marked unverified; the launcher refuses to put a gate lane on them.
+Runtimes: the Claude Code CLI (`claude`) is the only runtime verified end to end. Adapters for
+Codex (`codex exec`) and, read-only, for any OpenAI-compatible endpoint exist but are marked
+unverified; the launcher refuses to put a gate lane on them.
 
 ## Prerequisites
 
@@ -63,28 +63,29 @@ profiles/<name>/profile.md     -->   skills/flow-*/SKILL.md  -->  lib/driver/dri
   escalation, inviolables             the profile or stopping        lanes = model calls with caps
 ```
 
-1. **Profile resolution.** Every skill's first step runs `lib/resolve-profile.sh`. Order:
+1. Profile resolution. Every skill's first step runs `lib/resolve-profile.sh`, in this order:
    `TILLER_PROFILE` env var, a `.tiller-profile` file at the repo root, `repo_globs` in a profile's
-   frontmatter. No profile, no run: the skill stops instead of guessing.
-2. **Facts, not files.** Before anything spawns, `lib/profile-facts.sh` renders the profile into a
-   facts object and refuses when a required section is empty or still reads `TODO`. The runner never
-   reads a profile; it reads rendered facts.
-3. **Phases and lanes.** A ticket run moves through `start`, `premise`, `plan`, `implement`,
+   frontmatter. With no profile the skill stops instead of guessing.
+2. Facts, not files. Before anything spawns, `lib/profile-facts.sh` renders the profile into a
+   facts object and refuses when a required section is empty or still reads `TODO`. The runner reads
+   only the rendered facts, never the profile.
+3. Phases and lanes. A ticket run moves through `start`, `premise`, `plan`, `implement`,
    `review`, `pr`, `ci`, `review-bot`, `confidence`, `gate`, `merge`, `qa`, `cleanup`, `logs`. Each
-   phase calls lanes: one model call with a JSON schema, a USD cap, a turn cap and a wall-clock cap.
-   Model tiers come from `config/routing.json`; a profile may raise a tier, never lower a gate lane.
-4. **Checkpoints and resume.** Every phase writes a checkpoint and every side effect a step record.
+   phase calls lanes; a lane is one model call with a JSON schema and caps on USD, turns and
+   wall-clock time. Model tiers come from `config/routing.json`; a profile may raise a tier, never
+   lower a gate lane.
+4. Checkpoints and resume. Every phase writes a checkpoint and every side effect a step record.
    Relaunching with the same args skips finished phases. A crash loop hits a resume cap and parks.
-5. **Escalation.** A question the phase cannot answer from the repo, the ticket or the ledger goes
+5. Escalation. A question the phase cannot answer from the repo, the ticket or the ledger goes
    to the resolver (decides or parks), then to the owner proxy (acts only inside the mandate the
    profile grants), then to a human. Signatures are never delegated. A harness block (permission,
    classifier) goes to nobody and parks with the rule named. See `docs/escalation.md`.
-6. **Caps.** Per call, per run and per day, in USD, read from `config/routing.json` and overridable
-   per profile. Over the cap, the run parks as `budget-exhausted` with one open decision.
-7. **Untrusted text.** Ticket bodies, PR comments, CI output and review-bot text are fenced with
-   a per-run random marker and a read rule before any model sees them; fence markers found inside
-   the content are flagged and recorded.
-8. **Outcome.** `driver-result.json` / `day-result.json` under the state root, a journal with spend
+6. Caps. Per call, per run and per day, in USD, from `config/routing.json` and overridable per
+   profile. Over the cap, the run parks as `budget-exhausted` with one open decision.
+7. Untrusted text. Ticket bodies, PR comments, CI output and review-bot text are fenced with a
+   per-run random marker and a read rule before any model sees them; fence markers found inside the
+   content are flagged and recorded.
+8. Outcome. `driver-result.json` / `day-result.json` under the state root, a journal with spend
    per lane, a decision ledger on the branch, a retro proposal file after a day. Exit codes and
    statuses are one table: `lib/contract/exit-codes.md`.
 
@@ -99,13 +100,13 @@ git config core.hooksPath .githooks            # leak guard on every commit
 ./bin/tiller setup                             # the guided setup, below
 ```
 
-`tiller setup` runs, in order: tools, providers (Claude Code and/or Codex: installed, skills
-linked, signed in), the private-access hook, personal skills (new, or cloned from
-`tiller-personal-<owner>`), a project profile (onboarded from a repository, or cloned from
-`tiller-profiles-<name>`, and launch-safe), a private GitHub backup of what it just created, an
-optional helm, then `bin/doctor` and the first command to run. Each step checks the machine
-first and is one `ok` line when done, so it is safe to run again; a failed step prints the
-command that repeats it. `--yes` takes every default, `--answers <file.json>` answers without a
+`tiller setup` runs, in order: tools; providers (Claude Code and/or Codex: installed, skills
+linked, signed in); the private-access hook; personal skills (new, or cloned from
+`tiller-personal-<owner>`); a project profile (onboarded from a repository or cloned from
+`tiller-profiles-<name>`, and launch-safe); a private GitHub backup of what it just created; an
+optional helm; then `bin/doctor` and the first command to run. Each step checks the machine first
+and prints one `ok` line when done, so it is safe to run again; a failed step prints the command
+that repeats it. `--yes` takes every default, `--answers <file.json>` answers without a
 terminal. Each step is a command of its own (`tiller help`).
 
 The same, by hand:
@@ -141,8 +142,7 @@ otherwise skills are linked as junctions. The unattended drivers are not support
 interactive skills are.
 
 Restart Claude Code after step 2 and after `--hooks`. `TILLER_HOME` must be set in the environment
-of every session that runs a skill; without it each skill resolves no profile and stops, which is
-correct but opaque.
+of every session that runs a skill; without it each skill resolves no profile and stops.
 
 Profiles, personal skills, brains and the cross-project overview repository are git-ignored. They
 never leave the machine unless you put them in a private repository of your own.
@@ -176,21 +176,23 @@ node "$H" day-args --profile acme --date 2026-10-16 --queue waves.json
 node "$H" drive-day --args ~/.claude/run-state/acme/2026-10-16/args-day.json
 ```
 
-The day runner keeps the machine awake (caffeinate / systemd-inhibit), starts no new work after the
-profile's stop hour (exit 3; relaunch the same command after that hour), stops with a handoff on a
-usage limit, waits on a low battery until it charges (up to 4 hours, then ends `battery-wait`), journals a wall-clock jump (sleep or a changed
-time) and re-checks the stop hour and day cap after one. `TILLER_NOTIFY_CMD` receives one JSON
-event (`{kind, runId|dayId, ticket, status, reason, at}`) on stdin per park, cap, crash, stop hour,
-battery pause, battery wait limit and day end (a day ended by the stop hour or the battery wait limit
-sends only that event):
+The day runner keeps the machine awake (caffeinate / systemd-inhibit) and starts no new work after
+the profile's stop hour (exit 3; relaunch the same command after that hour). On a usage limit it
+stops with a handoff. On low battery it waits until the machine charges, up to 4 hours, then ends as
+`battery-wait`. After a wall-clock jump (sleep or a changed time) it journals the jump and re-checks
+the stop hour and day cap.
+
+`TILLER_NOTIFY_CMD` receives one JSON event (`{kind, runId|dayId, ticket, status, reason, at}`) on
+stdin per park, cap, crash, stop hour, battery pause, battery wait limit and day end. A day ended by
+the stop hour or the battery wait limit sends only that event:
 
 ```sh
 TILLER_NOTIFY_CMD='cat >> ~/tiller-events.jsonl'   # or any command that posts the JSON somewhere
 ```
 
-Read `skills/flow-run-day/SKILL.md` for the queue format; the retro skill turns the day's records
-into proposals the next morning. `lib/supervisor/supervise.sh` is the older shell supervisor; it
-still works as a fallback and needs `claude` on `PATH`.
+`skills/flow-run-day/SKILL.md` has the queue format; the retro skill turns the day's records into
+proposals the next morning. `lib/supervisor/supervise.sh` is the older shell supervisor, still
+usable as a fallback; it needs `claude` on `PATH`.
 
 ## Environment variables
 
@@ -229,7 +231,7 @@ pseudo-terminal and are skipped where `script(1)` is not permitted (sandboxes, s
 | Usage limit | run exits `paused-usage` with the reset time; a day run waits and continues | nothing; relaunch with the same args if the process died |
 | USD cap reached | run parks as `budget-exhausted` with one open decision | raise the cap in the profile or accept the stop |
 | Laptop slept through the night | on wake the day runner re-checks the stop hour and the day cap before the next chunk | plug in; set `TILLER_NO_INHIBIT` only if you want sleep |
-| Crash mid-phase | relaunch resumes at the unfinished phase; finished phases are skipped by checkpoint, and a step log records which side effects already happened so the resumed phase can check before it repeats one | relaunch with the same args |
+| Crash mid-phase | relaunch resumes at the unfinished phase; finished phases are skipped, and the step log lets the resumed phase check which side effects already happened | relaunch with the same args |
 | Crash loop | the resume cap parks the run | read `driver-result.json`, fix, relaunch |
 | Crash inside a PR open, merge, rebase or cleanup | the resume parks as `interrupted-step`: the step log has the start but no result | check the forge or the repository, then remove the started line from `steps.jsonl` or record the result; relaunch |
 | Another process runs the ticket | launch refused with kind `locked` | wait, or kill the dead process; a dead lock is broken automatically |
@@ -240,17 +242,19 @@ pseudo-terminal and are skipped where `script(1)` is not permitted (sandboxes, s
 
 ## Advice
 
-- Fill `merge authority` in the profile first. It is the load-bearing field: who may click merge,
-  which paths need a human signature, which are never touched unattended.
-- Run the test suite's dry-run harness (`bash skills/flow-run-ticket/tests/run-tests.sh`) and read one
-  `driver-result.json` before leaving a day unattended; the retro skill explains the records.
-- Keep the profile small. A fact that is only true for one ticket belongs in the ticket; a procedure
-  belongs in a skill; a profile carries facts only (`docs/profile-schema.md`).
+- Fill `merge authority` in the profile first: who may click merge, which paths need a human
+  signature, which are never touched unattended.
+- Before leaving a day unattended, run the dry-run harness
+  (`bash skills/flow-run-ticket/tests/run-tests.sh`) and read one `driver-result.json`; the retro
+  skill explains the records.
+- Keep the profile small. A fact true for one ticket belongs in the ticket, a procedure in a skill;
+  a profile carries facts only (`docs/profile-schema.md`).
 - Let the leak guard refuse. A hit means a fact belongs in a profile, not that the list is wrong.
 - Pin models in `config/models.json`; prices in `config/prices.json`. The launcher refuses an active
   model with no price.
 - One worktree per run, linear history only. The runner never force-pushes unless the profile opts in.
-- Read `retros/<date>.md` the next morning; apply proposals by hand. Nothing in a retro is applied.
+- Read `retros/<date>.md` the next morning and apply its proposals by hand; nothing in a retro is
+  applied automatically.
 
 ## Layout
 
@@ -281,6 +285,6 @@ rm -rf ~/.claude/run-state                                                      
 
 ## Contributing, security, licence
 
-`CONTRIBUTING.md` for the rules (tests with every change, no project facts, no attribution
-trailers), `SECURITY.md` for reporting, `CHANGELOG.md` for what changed. Licensed under the MIT
-licence (`LICENSE`).
+`CONTRIBUTING.md` has the rules (tests with every change, no project facts, no attribution
+trailers), `SECURITY.md` how to report a vulnerability, `CHANGELOG.md` what changed. MIT licence
+(`LICENSE`).

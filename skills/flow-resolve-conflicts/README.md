@@ -1,12 +1,11 @@
 # flow-resolve-conflicts
 
-Resolve a stopped merge or rebase, or bring a conflicting PR up to date, by intent rather than by
-hunk, and prove at the tip that nothing the conflict hid was lost.
+Resolve a stopped merge or rebase, or bring a conflicting PR up to date, by the intent of each side
+rather than hunk by hunk, then prove at the tip that nothing the conflict hid was lost.
 
-Adapted from the generic five-step recipe (see the state, find the primary sources, resolve each
-hunk, run the checks, finish). The five steps survive; field use added everything around them. The recurring lesson:
-the conflicted hunks are the smallest part of the job — generated files, auto-merged damage, stale
-installs and a check run at the wrong moment cost more than any marker.
+It keeps the generic five-step recipe (see the state, find the primary sources, resolve each hunk,
+run the checks, finish) and adds rules around it. Most of them cover what sits outside the markers:
+generated files, auto-merged damage, stale installs and checks run at the wrong moment.
 
 ## Project facts
 
@@ -21,11 +20,11 @@ installs and a check run at the wrong moment cost more than any marker.
 
 ## Relation to unattended runs
 
-`lib/git/update-from-base.mjs` reports a conflict and never resolves it; the runner parks on the
-base condition with the files named and dispatches no lane (tests in
-`skills/flow-run-ticket/tests/run-ticket.test.mjs` assert this). Routing has no `conflict` lane;
-`lib/contract/schemas/lane-conflict.json` is kept as the output shape for when one is added, and
-this skill is the procedure it would follow.
+`lib/git/update-from-base.mjs` reports a conflict and never resolves it. The runner parks on the
+base condition with the files named and dispatches no lane (asserted in
+`skills/flow-run-ticket/tests/run-ticket.test.mjs`). Routing has no `conflict` lane yet;
+`lib/contract/schemas/lane-conflict.json` is kept as its output shape, and this skill is the
+procedure it would follow.
 
 ## Rules earned in field use
 
@@ -64,7 +63,7 @@ Step number in parentheses.
 |---|---|
 | prefer merge over rebase on shared branches | the project decides in `## branching`; force-push safety is `## run policy` plus the lease |
 | `gh pr ready`, `gh pr merge`, branch cleanup as teardown | merging belongs to `flow-create-pull-request` and `## merge authority`; this skill stops at a pushed, mergeable head |
-| rebase siblings oldest-touching-the-least first | one observation, no evidence the order mattered; naming the shared region is what paid |
+| rebase siblings oldest-touching-the-least first | no evidence the order mattered; naming the shared region is what helps |
 | do not `--autosquash` a regeneration into an old commit | covered by "regenerate at the tip, its own commit" |
 | the ADR index's former-number note | a repo convention; the rule says to follow the repo's own convention |
 | rerere replays only textual resolutions | an observation, not an action; covered by Step 5 |
