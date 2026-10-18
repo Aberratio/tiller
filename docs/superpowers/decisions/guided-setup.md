@@ -68,3 +68,7 @@
 - 2026-10-18 · spec · `project.merge` offers `human` or `unconfirmed`; `agent` stays reachable only through `onboard.mjs ask` at a terminal, as for `code` · self
 - 2026-10-18 · spec · `notes` states that flow-* skills stop in its folder on the step's done line, so a second run says it again and a declined brain says it too · self
 - 2026-10-18 · standards · the `code` pin compares against fixtures rendered by the unchanged step at `c55c2eb` (sandbox root and dates normalised), not against a second run of the new code · self
+- 2026-10-18 · spec · setup clarity fix 1: the `Step n/N` header and purpose line print only for a step that runs; a step already done keeps its one `ok` line, so a second run stays one line per step · self
+- 2026-10-18 · spec · single-step commands (`tiller personal`, `tiller project`) print `Step 1/1` too — one header rule for every entry point · self
+- 2026-10-18 · standards · `fixtures/code-project.stdout` gains the two header lines — the `code` pin still holds the profile byte for byte; its stdout half now records the step as it is after fix 1, which changes every kind alike · self
+- 2026-10-18 · standards · setup clarity fixes are verified on macOS only; prompts in PowerShell → Git Bash and `.cmd` shims are verified by the owner's Windows rerun · self

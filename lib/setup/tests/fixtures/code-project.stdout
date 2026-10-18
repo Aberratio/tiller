@@ -1,3 +1,6 @@
+
+Step 1/1: Project
+A profile for one project: its repositories, tracker and gates, so the flow skills know how to work there. Needed before working on a project.
 wrote <root>/home/profiles/widget/profile.md
   MISSING  tracker — kind (unknown kind 'todo'; jira or none)
   MISSING  branching — integrating main (reads TODO)
